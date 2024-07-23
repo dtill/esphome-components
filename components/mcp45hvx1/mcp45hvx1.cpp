@@ -1,4 +1,4 @@
-#include "x9c.h"
+#include "mcp45hvx1.h"
 #include "esphome/core/log.h"
 
 namespace esphome {
