@@ -4,33 +4,18 @@
 namespace esphome {
 namespace mcp45hvx1 {
 
-static const char *const TAG = "mcp45hvx1.output";
-
-void Mcp45hvx1Output::test_wlat(int change_amount) {
-  if (change_amount == 0) {
-    return;
-  }
-  if (change_amount > 0) {
-    this->wlat_pin_->digital_write(true);
-  } else {
-    this->wlat_pin_->digital_write(false);
-  }
-}
+static const char *TAG = "mcp45hvx1";
 
 void Mcp45hvx1Output::setup() {
-  ESP_LOGCONFIG(TAG, "Setting up MCP45HVX1 Potentiometer with initial value of %f", this->initial_value_);
+  ESP_LOGCONFIG(TAG, "Setting up MCP45HVX1...");
+  // Initialization code
 }
 
 void Mcp45hvx1Output::write_state(float state) {
-  return;
-}
-
-void Mcp45hvx1Output::dump_config() {
-  ESP_LOGCONFIG(TAG, "MCP45HVX1 Potentiometer Output:");
-  LOG_PIN("  SHDN Pin: ", this->shdn_pin_);
-  LOG_PIN("  WLAT Pin: ", this->wlat_pin_);
-  ESP_LOGCONFIG(TAG, "  Initial Value: %f", this->initial_value_);
-  LOG_FLOAT_OUTPUT(this);
+  ESP_LOGD(TAG, "Setting MCP45HVX1 to %.1f", state);
+  // Code to write the state to the MCP45HVX1
+  // Example:
+  // this->write_byte(this->address_, static_cast<uint8_t>(state * 255));
 }
 
 }  // namespace mcp45hvx1
