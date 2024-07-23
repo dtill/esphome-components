@@ -20,22 +20,21 @@ Mcp45hvx1Output = mcp45hvx1_ns.class_("Mcp45hvx1Output", output.FloatOutput, cg.
 
 MULTI_CONF = True
 
-CONFIG_SCHEMA = (((
-    cv.All(
-        output.FLOAT_OUTPUT_SCHEMA.extend(
-            {
-                cv.GenerateID(): cv.declare_id(Mcp45hvx1Output),
-                cv.Optional(CONF_SHDN_PIN): pins.internal_gpio_output_pin_schema,
-                cv.Optional(CONF_WLAT_PIN): pins.internal_gpio_output_pin_schema,
-                cv.Optional(CONF_INITIAL_VALUE, default=1.0): cv.float_range(
-                    min=0.01, max=1.0
-                ),
-            }
-        )
+CONFIG_SCHEMA = (
+    output.FLOAT_OUTPUT_SCHEMA.extend(
+        {
+            cv.GenerateID(): cv.declare_id(Mcp45hvx1Output),
+            cv.Optional(CONF_SHDN_PIN): pins.internal_gpio_output_pin_schema,
+            cv.Optional(CONF_WLAT_PIN): pins.internal_gpio_output_pin_schema,
+            cv.Optional(CONF_INITIAL_VALUE, default=1.0): cv.float_range(
+                min=0.01, max=1.0
+            ),
+        }
     )
+    .extend(i2c.i2c_device_schema(0x70))
+    .extend(cv.COMPONENT_SCHEMA)
 )
-                 .extend(i2c.i2c_device_schema(0x70)))
-                 .extend(cv.COMPONENT_SCHEMA))
+
 
 async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
@@ -43,9 +42,11 @@ async def to_code(config):
     await output.register_output(var, config)
     await i2c.register_i2c_device(var, config)
 
-    shdn_pin = await cg.gpio_pin_expression(config[CONF_SHDN_PIN])
-    cg.add(var.set_cs_pin(shdn_pin))
-    wlat_pin = await cg.gpio_pin_expression(config[CONF_WLAT_PIN])
-    cg.add(var.set_inc_pin(wlat_pin))
+    if CONF_SHDN_PIN in config:
+        shdn_pin = await cg.gpio_pin_expression(config[CONF_SHDN_PIN])
+        cg.add(var.set_shdn_pin(shdn_pin))
+    if CONF_WLAT_PIN in config:
+        wlat_pin = await cg.gpio_pin_expression(config[CONF_WLAT_PIN])
+        cg.add(var.set_wlat_pin(wlat_pin))
 
     cg.add(var.set_initial_value(config[CONF_INITIAL_VALUE]))
