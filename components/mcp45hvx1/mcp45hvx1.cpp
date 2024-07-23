@@ -21,7 +21,7 @@ void Mcp45hvx1Output::setup() {
   ESP_LOGCONFIG(TAG, "Setting up MCP45HVX1 Potentiometer with initial value of %f", this->initial_value_);
 }
 
-void X9cOutput::write_state(float state) {
+void Mcp45hvx1Output::write_state(float state) {
   return;
 }
 
