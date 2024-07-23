@@ -25,8 +25,8 @@ CONFIG_SCHEMA = (
         output.FLOAT_OUTPUT_SCHEMA.extend(
             {
                 cv.GenerateID(): cv.declare_id(Mcp45hvx1Output),
-                cv.Required(CONF_SHDN_PIN): pins.internal_gpio_output_pin_schema,
-                cv.Required(CONF_WLAT_PIN): pins.internal_gpio_output_pin_schema,
+                cv.Optional(CONF_SHDN_PIN): pins.internal_gpio_output_pin_schema,
+                cv.Optional(CONF_WLAT_PIN): pins.internal_gpio_output_pin_schema,
                 cv.Optional(CONF_INITIAL_VALUE, default=1.0): cv.float_range(
                     min=0.01, max=1.0
                 ),
