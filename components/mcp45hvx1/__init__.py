@@ -20,7 +20,7 @@ Mcp45hvx1Output = mcp45hvx1_ns.class_("Mcp45hvx1Output", output.FloatOutput, cg.
 
 MULTI_CONF = True
 
-CONFIG_SCHEMA = (
+CONFIG_SCHEMA = (((
     cv.All(
         output.FLOAT_OUTPUT_SCHEMA.extend(
             {
@@ -34,6 +34,8 @@ CONFIG_SCHEMA = (
         )
     )
 )
+                 .extend(i2c.i2c_device_schema(0x70)))
+                 .extend(cv.COMPONENT_SCHEMA))
 
 async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
