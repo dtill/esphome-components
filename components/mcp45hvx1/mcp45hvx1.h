@@ -17,7 +17,6 @@ class Mcp45hvx1Output : public output::FloatOutput, public Component, public i2c
   void set_wlat_pin(GPIOPin *pin) { wlat_pin_ = pin; }
 
  protected:
-  void write_state(float state) override;
   float initial_value_;
   GPIOPin *shdn_pin_{nullptr};
   GPIOPin *wlat_pin_{nullptr};
