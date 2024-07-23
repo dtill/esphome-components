@@ -5,14 +5,15 @@ from esphome.components import output
 from esphome.components import i2c
 from esphome.const import (
     CONF_ID,
-    CONF_SHDN_PIN,
-    CONF_WLAT_PIN,
     CONF_INITIAL_VALUE,
 )
 
 CODEOWNERS = ["@dtill"]
 
 DEPENDENCIES = ["i2c"]
+
+CONF_SHDN_PIN = "shdn_pin"
+CONF_WLAT_PIN = "wlat_pin"
 
 mcp45hvx1_ns = cg.esphome_ns.namespace("mcp45hvx1")
 Mcp45hvx1Output = mcp45hvx1_ns.class_("Mcp45hvx1Output", output.FloatOutput, cg.Component, i2c.I2CDevice)
