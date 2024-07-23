@@ -19,18 +19,21 @@ Mcp45hvx1Output = mcp45hvx1_ns.class_("Mcp45hvx1Output", output.FloatOutput, cg.
 
 MULTI_CONF = True
 
-CONFIG_SCHEMA = cv.All(
-    output.FLOAT_OUTPUT_SCHEMA.extend(
-        {
-            cv.GenerateID(): cv.declare_id(Mcp45hvx1Output),
-            cv.Required(CONF_SHDN_PIN): pins.internal_gpio_output_pin_schema,
-            cv.Required(CONF_WLAT_PIN): pins.internal_gpio_output_pin_schema,
-            cv.Optional(CONF_INITIAL_VALUE, default=1.0): cv.float_range(
-                min=0.01, max=1.0
-            ),
-        }
+CONFIG_SCHEMA = (
+    cv.All(
+        output.FLOAT_OUTPUT_SCHEMA.extend(
+            {
+                cv.GenerateID(): cv.declare_id(Mcp45hvx1Output),
+                cv.Required(CONF_SHDN_PIN): pins.internal_gpio_output_pin_schema,
+                cv.Required(CONF_WLAT_PIN): pins.internal_gpio_output_pin_schema,
+                cv.Optional(CONF_INITIAL_VALUE, default=1.0): cv.float_range(
+                    min=0.01, max=1.0
+                ),
+            }
+        )
     )
     .extend(i2c.i2c_device_schema(0x3c))
+    .extend(cv.COMPONENT_SCHEMA)
 )
 
 async def to_code(config):
