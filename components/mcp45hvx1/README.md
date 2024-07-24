@@ -4,8 +4,13 @@ For MCP45HVX1 7/8-Bit Single, +36V (±18V) Digital POT with I2C Serial Interface
 
 This output component provides support for the [MCP45HVX1](https://ww1.microchip.com/downloads/en/DeviceDoc/20005304A.pdf) chip.
 
-ATTENTION: There is an issue with i2c Interface on these chips. Read [MCP45HVX1 Rev. A1 Silicon/Data Sheet Errata](https://ww1.microchip.com/downloads/aemDocuments/documents/OTH/ProductDocuments/Errata/80000649B.pdf).
+Supported Features: Wiper Read/Write. 
 
+TODO: Incriment/Decremnt Wiper command, TCON Read/Write to connect/disconnect Terminal- A,B,W from resistor network, General Call Commands
+
+
+ATTENTION: There is an issue with i2c Interface on these chips. Read [MCP45HVX1 Rev. A1 Silicon/Data Sheet Errata](https://ww1.microchip.com/downloads/aemDocuments/documents/OTH/ProductDocuments/Errata/80000649B.pdf).
+In short: General Call commands do not properly work and can lead to failure states.
 Workaround: "Each MCP45HVX1 device would need to be on a unique I2C bus with no other I2C devices."
 
 You need an `i2c:` component configured.
