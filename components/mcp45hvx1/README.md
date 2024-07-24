@@ -1,4 +1,4 @@
-# MCP45HVX1 Digital Potentiometer output component
+# MCP45HVX1 Potentiometer Output
 
 For MCP45HVX1 7/8-Bit Single, +36V (±18V) Digital POT with I2C Serial Interface and Volatile Memory
 

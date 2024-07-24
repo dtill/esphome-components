@@ -24,7 +24,9 @@ CONFIG_SCHEMA = cv.All(
             cv.GenerateID(): cv.declare_id(Mcp45hvx1Output),
             cv.Optional(CONF_SHDN_PIN): pins.internal_gpio_output_pin_schema,
             cv.Optional(CONF_WLAT_PIN): pins.internal_gpio_output_pin_schema,
-            cv.Optional(CONF_INITIAL_VALUE, default=1.0): cv.float_range(
+            cv.Optional(CONF_INITIAL_VALUE, default=0.5): cv.float_range(
+                # default refers to the wiper POR (Power-On Reset) and BOR (Brown-Out Reset) value 0x7F.
+                # Means wiper is in "middle" position between Terminal-A and Terminal-B for example on startup.
                 min=0.01, max=1.0
             ),
         }
