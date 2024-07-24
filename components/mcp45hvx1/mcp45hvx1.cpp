@@ -30,7 +30,10 @@ void Mcp45hvx1Output::write_state(float state) {
     this->mark_failed();
   } else {
     float read_value = this->read_wiper();
-    // ESP_LOGD(TAG, "Read back MCP45HVX1 wiper value: %f", read_value);
+    uint8_t read_int_value = static_cast<uint8_t>(read_value * 255);
+    if (read_int_value != int_state) {
+      ESP_LOGE(TAG, "Mismatch: Written value %d does not match read value %d", int_state, read_int_value);
+    }
   }
 }
 
@@ -58,8 +61,7 @@ float Mcp45hvx1Output::read_wiper() {
   }
 
   float state = static_cast<float>(data[1]) / 255.0;  // Convert to float between 0 and 1
-  ESP_LOGD(TAG, "Read MCP45HVX1 wiper value: %f", state);
-
+  ESP_LOGI(TAG, "Read MCP45HVX1 wiper value: %d", static_cast<int>(read_value * 255));
   return state;
 }
 
