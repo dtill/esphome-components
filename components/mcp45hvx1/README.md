@@ -17,11 +17,17 @@ You need an `i2c:` component configured.
 
 Tested with MCP45HV51-503E/ST (50kOhms 8bit) 
 
-Example YAML configuration:
+[Example YAML](../../example_mcp45hvx1.yaml) configuration:
 ```yaml
 esp8266:
   board: nodemcuv2
 
+external_components:
+  - source:
+      type: git
+      url: https://github.com/dtill/esphome-mcp45hvx1
+    components: [mcp45hvx1]
+    
 i2c:
   sda: GPIO4
   scl: GPIO5
