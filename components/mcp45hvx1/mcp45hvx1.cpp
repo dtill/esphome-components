@@ -12,7 +12,7 @@ void Mcp45hvx1Output::setup() {
 }
 
 void Mcp45hvx1Output::write_state(float state) {
-  uint8_t int_state = static_cast<int>(state * 255);  // Convert state to 0-255 range
+  uint8_t int_state = static_cast<uint8_t>(state * 255);  // Convert state to 0-255 range
   ESP_LOGD(TAG, "Setting MCP45HVX1 to %d", int_state);
 
   if (this->is_failed()) {
@@ -28,7 +28,39 @@ void Mcp45hvx1Output::write_state(float state) {
   if (error != i2c::ERROR_OK) {
     ESP_LOGE(TAG, "Failed to write to MCP45HVX1: %d", error);
     this->mark_failed();
+  } else {
+    float read_value = this->read_wiper();
+    // ESP_LOGD(TAG, "Read back MCP45HVX1 wiper value: %f", read_value);
   }
+}
+
+
+float Mcp45hvx1Output::read_wiper() {
+  if (this->is_failed()) {
+    ESP_LOGE(TAG, "I2C device not initialized");
+    return -1.0f;  // Return an invalid value
+  }
+
+  uint8_t command = 0x0C;  // MEM_WIPER | COM_READ
+  i2c::ErrorCode error = this->write(&command, 1);
+  if (error != i2c::ERROR_OK) {
+    ESP_LOGE(TAG, "Failed to send read command to MCP45HVX1: %d", error);
+    this->mark_failed();
+    return -1.0f;  // Return an invalid value
+  }
+
+  uint8_t data[2] = {0};
+  error = this->read(data, 2);
+  if (error != i2c::ERROR_OK) {
+    ESP_LOGE(TAG, "Failed to read from MCP45HVX1: %d", error);
+    this->mark_failed();
+    return -1.0f;  // Return an invalid value
+  }
+
+  float state = static_cast<float>(data[1]) / 255.0;  // Convert to float between 0 and 1
+  ESP_LOGD(TAG, "Read MCP45HVX1 wiper value: %f", state);
+
+  return state;
 }
 
 
