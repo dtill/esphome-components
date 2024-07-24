@@ -13,10 +13,10 @@ void Mcp45hvx1Output::setup() {
 
 void Mcp45hvx1Output::write_state(float state) {
   int int_state = static_cast<int>(state);  // Convert state to integer
-  ESP_LOGD(TAG, "Setting MCP45HVX1 to %d", int_state);
+  ESP_LOGD(TAG, "Setting MCP45HVX1 (ID: %s) to %d", this->get_name().c_str(), int_state);
   // Code to write the state to the MCP45HVX1
   // Example:
-  // this->write_byte(this->address_, static_cast<uint8_t>(state * 255));
+  // this->write_byte(this->address_, static_cast<uint8_t>(int_state));
 }
 
 }  // namespace mcp45hvx1
