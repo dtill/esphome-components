@@ -61,7 +61,7 @@ float Mcp45hvx1Output::read_wiper() {
   }
 
   float state = static_cast<float>(data[1]) / 255.0;  // Convert to float between 0 and 1
-  ESP_LOGI(TAG, "Read MCP45HVX1 wiper value: %d", static_cast<int>(read_value * 255));
+  ESP_LOGI(TAG, "Read MCP45HVX1 wiper value: %d", static_cast<int>(state * 255));
   return state;
 }
 
