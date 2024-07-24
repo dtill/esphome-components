@@ -11,7 +11,7 @@ namespace mcp45hvx1 {
 class Mcp45hvx1Output : public output::FloatOutput, public Component, public i2c::I2CDevice {
  public:
   void setup() override;
-  i2c::ErrorCode write_state(float state) override;
+  void write_state(float state) override;
   void set_initial_value(float value) { this->initial_value_ = value; }
   void set_shdn_pin(GPIOPin *pin) { shdn_pin_ = pin; }
   void set_wlat_pin(GPIOPin *pin) { wlat_pin_ = pin; }

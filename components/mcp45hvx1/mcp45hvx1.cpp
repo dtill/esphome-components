@@ -11,13 +11,13 @@ void Mcp45hvx1Output::setup() {
   // Initialization code
 }
 
-i2c::ErrorCode Mcp45hvx1Output::write_state(float state) {
-  uint8_t int_state = static_cast<uint8_t>(state * 255);  // Convert state to 0-255 range
+void Mcp45hvx1Output::write_state(float state) {
+  uint8_t int_state = static_cast<int>(state * 255);  // Convert state to 0-255 range
   ESP_LOGD(TAG, "Setting MCP45HVX1 to %d", int_state);
 
   if (this->is_failed()) {
     ESP_LOGE(TAG, "I2C device not initialized");
-    return i2c::ERROR_NOT_INITIALIZED;
+    return;
   }
 
   uint8_t data[2];
@@ -29,7 +29,6 @@ i2c::ErrorCode Mcp45hvx1Output::write_state(float state) {
     ESP_LOGE(TAG, "Failed to write to MCP45HVX1: %d", error);
     this->mark_failed();
   }
-  return error;
 }
 
 
