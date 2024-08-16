@@ -28,7 +28,7 @@ void Mcp41hvx1Output::write_state(float state) {
 // Correctly associating dump_config function with Mcp41hvx1Output class
 void Mcp41hvx1Output::dump_config() {
   ESP_LOGCONFIG(TAG, "Mcp41hvx1_spi:");
-  LOG_PIN("  CS Pin: ", this->cs_pin_);
+  LOG_PIN("  CS Pin: ", cs_);
   ESP_LOGCONFIG(TAG, "  Data Rate: %d", this->data_rate_);
   ESP_LOGCONFIG(TAG, "  Mode: %d", this->mode_);
   ESP_LOGCONFIG(TAG, "  Bit Order: %d", this->bit_order_);
