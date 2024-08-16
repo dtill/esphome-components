@@ -9,6 +9,7 @@ from esphome.const import (
     UNIT_OHM,
 )
 
+CODEOWNERS = ["@dtill"]
 mcp41hvx1_ns = cg.esphome_ns.namespace("mcp41hvx1")
 
 Mcp41hvx1Output = mcp41hvx1_ns.class_("Mcp41hvx1Output", output.FloatOutput, cg.Component, spi.SPIDevice)
