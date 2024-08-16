@@ -6,11 +6,13 @@ namespace mcp41hvx1 {
 
 static const char *TAG = "mcp41hvx1";
 
+// Correctly associating setup function with Mcp41hvx1Output class
 void Mcp41hvx1Output::setup() {
   ESP_LOGCONFIG(TAG, "Setting up MCP41HVX1...");
   this->spi_setup();  // Setup the SPI device
 }
 
+// Correctly associating write_state function with Mcp41hvx1Output class
 void Mcp41hvx1Output::write_state(float state) {
   uint8_t int_state = static_cast<uint8_t>(state * 255);  // Convert state to 0-255 range
   ESP_LOGD(TAG, "Setting MCP41HVX1 to %d", int_state);
@@ -23,6 +25,7 @@ void Mcp41hvx1Output::write_state(float state) {
   this->wiper_set_position(int_state);
 }
 
+// Correctly associating dump_config function with Mcp41hvx1Output class
 void Mcp41hvx1Output::dump_config() {
   ESP_LOGCONFIG(TAG, "Mcp41hvx1_spi:");
   LOG_PIN("  CS Pin: ", this->cs_pin_);
@@ -31,6 +34,7 @@ void Mcp41hvx1Output::dump_config() {
   ESP_LOGCONFIG(TAG, "  Bit Order: %d", this->bit_order_);
 }
 
+// Correctly associating wiper_set_position function with Mcp41hvx1Output class
 void Mcp41hvx1Output::wiper_set_position(uint8_t position) {
   this->enable();  // Assert CS low to start communication
 
@@ -40,6 +44,7 @@ void Mcp41hvx1Output::wiper_set_position(uint8_t position) {
   this->disable();  // Assert CS high to end communication
 }
 
+// Correctly associating wiper_get_position function with Mcp41hvx1Output class
 uint8_t Mcp41hvx1Output::wiper_get_position() {
   this->enable();  // Assert CS low to start communication
 
