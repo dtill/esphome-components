@@ -12,7 +12,6 @@ void Mcp41hvx1Output::setup() {
   this->spi_setup();  // Setup the SPI device
 }
 
-// Correctly associating write_state function with Mcp41hvx1Output class
 void Mcp41hvx1Output::write_state(float state) {
   uint8_t int_state = static_cast<uint8_t>(state * 255);  // Convert state to 0-255 range
   ESP_LOGD(TAG, "Setting MCP41HVX1 to %d", int_state);
@@ -22,7 +21,16 @@ void Mcp41hvx1Output::write_state(float state) {
     return;
   }
 
+  // Set the wiper position
   this->wiper_set_position(int_state);
+
+  // Verify the wiper position by reading it back
+  uint8_t read_position = this->wiper_get_position();
+  if (read_position == int_state) {
+    ESP_LOGD(TAG, "Set MCP41HVX1 wiper to %d", read_position);
+  } else {
+    ESP_LOGW(TAG, "Failed to set MCP41HVX1 wiper. Expected %d but read %d", int_state, read_position);
+  }
 }
 
 // Correctly associating dump_config function with Mcp41hvx1Output class
