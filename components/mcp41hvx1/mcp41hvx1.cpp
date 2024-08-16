@@ -27,9 +27,9 @@ void Mcp41hvx1Output::write_state(float state) {
   // Verify the wiper position by reading it back
   uint8_t read_position = this->wiper_get_position();
   if (read_position == int_state) {
-    ESP_LOGD(TAG, "Set MCP41HVX1 wiper to %d", read_position);
+    ESP_LOGI(TAG, "Read MCP41HVX1 wiper value: %d", read_position);
   } else {
-    ESP_LOGW(TAG, "Failed to set MCP41HVX1 wiper. Expected %d but read %d", int_state, read_position);
+    ESP_LOGE(TAG, "Failed to set MCP41HVX1 wiper. Expected %d but read %d", int_state, read_position);
   }
 }
 
