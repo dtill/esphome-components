@@ -6,7 +6,7 @@ This output component provides support for the [MCP41HVX1](https://ww1.microchip
 
 Supported Features: Wiper Read/Write. 
 
-TODO: Incriment/Decremnt Wiper command, control resistor network via SHDN and WLAT PINs
+TODO: increment/decrement wiper command, control resistor network via SHDN and WLAT PINs
 
 You need an `spi:` component configured.
 

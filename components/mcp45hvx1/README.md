@@ -6,7 +6,7 @@ This output component provides support for the [MCP45HVX1](https://ww1.microchip
 
 Supported Features: Wiper Read/Write. 
 
-TODO: Incriment/Decremnt Wiper command, TCON Read/Write to connect/disconnect Terminal- A,B,W from resistor network, General Call Commands
+TODO: increment/decrement command, TCON Read/Write to connect/disconnect Terminal- A,B,W from resistor network, General Call Commands
 
 
 ATTENTION: There is an issue with i2c Interface on these chips. Read [MCP45HVX1 Rev. A1 Silicon/Data Sheet Errata](https://ww1.microchip.com/downloads/aemDocuments/documents/OTH/ProductDocuments/Errata/80000649B.pdf).
