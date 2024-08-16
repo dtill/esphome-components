@@ -25,17 +25,16 @@ external_components:
     
 spi:
   - id: spi_bus0
-    clk_pin: GPIOXX
-    mosi_pin: GPIOXX
-    miso_pin: GPIOXX
+    clk_pin: GPIO14
+    mosi_pin: GPIO13
+    miso_pin: GPIO12
     interface: any
 
 output:
   - platform: mcp41hvx1  
-    id: digipot1
-    cs_pin: GPIOXX      # optional parameter
+    id: digipot_spi_1
+    cs_pin: GPIO15      # optional parameter
     data_rate: 1MHz     # optional 80MHz, 40MHz, 20MHz, 10MHz, 5MHz, 4MHz, 2MHz, 1MHz (default), 200kHz, 75kHz or 1kHz
     mode: 3             # optional mode0, mode1, mode2, mode3 (default)
-    bit_order: msb_first
 
 ```
