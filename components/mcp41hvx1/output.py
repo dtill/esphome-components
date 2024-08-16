@@ -1,8 +1,7 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome import pins
-from esphome.components import output
-from esphome.components import spi
+from esphome.components import spi, output
 from esphome.const import (
     CONF_ID,
     CONF_INITIAL_VALUE,

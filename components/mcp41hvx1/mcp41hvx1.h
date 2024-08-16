@@ -5,7 +5,7 @@
 #include "esphome/components/spi/spi.h"
 
 namespace esphome {
-namespace mcp45hvx1 {
+namespace mcp41hvx1 {
 
 class Mcp41hvx1Output : public output::FloatOutput,
                         public Component,
