@@ -1,4 +1,4 @@
-# MCP45HVX1 Potentiometer Output
+# MCP45HVX1 I2C Potentiometer Output
 
 For MCP45HVX1 7/8-Bit Single, +36V (±18V) Digital POT with I2C Serial Interface and Volatile Memory
 
@@ -25,7 +25,7 @@ esp8266:
 external_components:
   - source:
       type: git
-      url: https://github.com/dtill/esphome-mcp45hvx1
+      url: https://github.com/dtill/esphome-components
     components: [mcp45hvx1]
     
 i2c:
