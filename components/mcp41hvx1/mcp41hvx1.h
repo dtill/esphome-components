@@ -9,8 +9,7 @@ namespace mcp45hvx1 {
 
 class Mcp41hvx1Output : public output::FloatOutput,
                         public Component,
-                        public spi::SPIDevice<spi::BIT_ORDER_MSB_FIRST, spi::CLOCK_POLARITY_HIGH, spi::CLOCK_PHASE_LEADING,
-                                         spi::DATA_RATE_1MHZ> {
+                        public spi::SPIDevice<spi::BIT_ORDER_MSB_FIRST, spi::CLOCK_POLARITY_HIGH, spi::CLOCK_PHASE_LEADING,spi::DATA_RATE_1MHZ> {
  public:
   void setup() override;
   void dump_config() override;
