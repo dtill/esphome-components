@@ -32,5 +32,31 @@ class GdoorComponent : public Component {
   GDOOR_DATA* last_rx_data_{nullptr};
 };
 
+class PrintToBuffer : public Print {
+ public:
+  PrintToBuffer(char *buffer, size_t buffer_size)
+      : buffer_(buffer), buffer_size_(buffer_size), index_(0) {
+    if (buffer_size_ > 0) {
+      buffer_[0] = '\0';
+    }
+  }
+
+  virtual size_t write(uint8_t c) override {
+    if (index_ < buffer_size_ - 1) {
+      buffer_[index_++] = c;
+      buffer_[index_] = '\0';
+      return 1;
+    }
+    return 0;  // Buffer full.
+  }
+
+  size_t size() const { return index_; }
+
+ private:
+  char *buffer_;
+  size_t buffer_size_;
+  size_t index_;
+};
+
 }  // namespace gdoor_esphome
 }  // namespace esphome
