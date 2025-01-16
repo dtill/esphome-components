@@ -14,7 +14,7 @@ CONFIG_SCHEMA = binary_sensor.BINARY_SENSOR_SCHEMA.extend({
     cv.GenerateID(): cv.declare_id(GDoorActionSensor),
     cv.Required(CONF_NAME): cv.string,
     cv.Required("gdoor_id"): cv.use_id(GdoorComponent),
-    cv.Optional("busdata", default=""): cv.string,
+    cv.Optional("busdata", default=[]): cv.ensure_list(cv.string),
 }).extend(cv.COMPONENT_SCHEMA)
 
 async def to_code(config):
@@ -23,5 +23,5 @@ async def to_code(config):
     await cg.register_component(var, config)
     await binary_sensor.register_binary_sensor(var, config)
     cg.add(var.set_parent(parent))
-    if "busdata" in config:
-        cg.add(var.set_busdata(config["busdata"]))
+    for busdata in config["busdata"]:
+        cg.add(var.add_busdata(busdata))

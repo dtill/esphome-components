@@ -17,7 +17,7 @@ class GDoorActionSensor : public binary_sensor::BinarySensor, public Component {
 
  protected:
   GdoorComponent *parent_{nullptr};
-  std::string busdata_;
+  std::vector<std::string> busdata_list_;
   uint32_t last_bus_update_{0};
 };
 

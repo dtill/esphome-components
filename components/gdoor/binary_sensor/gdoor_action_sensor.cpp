@@ -18,15 +18,16 @@ void GDoorActionSensor::loop() {
   if (this->parent_ != nullptr) {
     uint32_t parent_timestamp = this->parent_->get_last_bus_update();
     if (parent_timestamp != this->last_bus_update_) {
-      std::string last_message = this->parent_->get_last_rx_data_str();
-      if (!this->busdata_.empty() && last_message.find(this->busdata_) != std::string::npos) {
-        ESP_LOGVV(TAG, "Matched busdata: %s", this->busdata_.c_str());
-        this->publish_state(true);
-        this->publish_state(false);
-      } else {
-        this->publish_state(false);
-      }
+      std::string current_message = this->parent_->get_last_rx_data_str();
       this->last_bus_update_ = parent_timestamp;
+      for (const auto &busdata : this->busdata_list_) {
+        if (current_message.find(busdata) != std::string::npos) {
+          ESP_LOGVV(TAG, "Matched busdata: %s", busdata.c_str());
+          this->publish_state(true);
+          this->publish_state(false);
+          return;
+        }
+      }
     }
   } else {
     ESP_LOGW(TAG, "Parent component not set!");
@@ -35,7 +36,9 @@ void GDoorActionSensor::loop() {
 
 void GDoorActionSensor::dump_config() {
   ESP_LOGCONFIG(TAG, "GDoor Action Sensor binary_sensor");
-  ESP_LOGCONFIG(TAG, "Busdata filter: %s", this->busdata_.c_str());
+  for (const auto &busdata : this->busdata_list_) {
+    ESP_LOGCONFIG(TAG, "  Busdata filter: %s", busdata.c_str());
+  }
 }
 
 }  // namespace gdoor_esphome
