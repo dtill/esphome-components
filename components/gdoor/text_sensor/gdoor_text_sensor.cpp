@@ -14,7 +14,7 @@ void GDoorBusMessage::setup() {
   publish_state("BUS_IDLE");
 }
 
-void GDoorBusMessage::update() {
+void GDoorBusMessage::on_update() {
   if (this->parent_ != nullptr) {
     this->parent_->loop();
     std::string last_data = this->parent_->get_last_rx_data();

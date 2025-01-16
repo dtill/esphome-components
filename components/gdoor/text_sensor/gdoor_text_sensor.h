@@ -9,7 +9,7 @@ namespace gdoor_esphome {
 class GDoorBusMessage : public text_sensor::TextSensor, public Component {
  public:
   void setup() override;
-  void update() override;
+  void on_update() override;
   void dump_config() override;
 };
 
