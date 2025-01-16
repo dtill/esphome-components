@@ -16,7 +16,6 @@ void GDoorBusMessage::setup() {
 
 void GDoorBusMessage::loop() {
   if (this->parent_ != nullptr) {
-    //this->parent_->loop();
     std::string last_message = this->parent_->get_last_rx_data_str();
     if (!last_message.empty()) {
       ESP_LOGD(TAG, "Publishing updated bus message: %s", last_message.c_str());

@@ -41,6 +41,7 @@ void GdoorComponent::loop() {
   if (rx_data != nullptr) {
     GDOOR_DATA_PROTOCOL busmessage = GDOOR_DATA_PROTOCOL(rx_data);
     std::string action = busmessage.action;
+    std::string action = busmessage.action;
     this->set_last_rx_data(rx_data);
     char buffer[256];
     PrintToBuffer ptb(buffer, sizeof(buffer));
