@@ -157,9 +157,9 @@ namespace GDOOR_RX {
     void loop() {
         if (rx_state & FLAG_BITSTREAM_RECEIVED) {
             rx_state &= (uint16_t)~FLAG_BITSTREAM_RECEIVED;
-            ESP_LOGD(TAG, "Gira RX done");
+            ESP_LOGVV(TAG, "Gira RX done");
             if (retval.parse(counts, bitcounter)) {
-                ESP_LOGD(TAG, "Gira RX was successfully parsed");
+                ESP_LOGVV(TAG, "Gira RX was successfully parsed");
                 rx_state |= FLAG_DATA_READY;
             }
             reset();
