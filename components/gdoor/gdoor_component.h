@@ -28,7 +28,7 @@ class GdoorComponent : public Component {
   int tx_en_pin_{-1};
   int rx_pin_{-1};
   float rx_sens_{-1};
-  GDOOR_DATA* last_rx_data_{""};
+  GDOOR_DATA* last_rx_data_{nullptr};
 };
 
 }  // namespace gdoor_esphome
