@@ -29,6 +29,7 @@ RX_SENS_MODES = {
     "med": 1.45,
     "high": 1.65,
 }
+DEFAULT_RX_SENS_MODE = "high"
 
 def validate_rx_sens_and_pin(cfg):
     """
@@ -48,7 +49,7 @@ CONFIG_SCHEMA = cv.All(
         cv.Optional(CONF_TX_PIN, default=DEFAULT_TX_PIN): pins.internal_gpio_output_pin_schema,
         cv.Optional(CONF_TX_EN_PIN, default=DEFAULT_TX_EN_PIN): pins.internal_gpio_output_pin_schema,
         cv.Optional(CONF_RX_PIN, default=DEFAULT_RX_PIN): pins.internal_gpio_input_pin_schema,
-        cv.Optional(CONF_RX_SENS): cv.enum(RX_SENS_MODES, upper=False),
+        cv.Optional(CONF_RX_SENS, default=DEFAULT_RX_SENS_MODE): cv.enum(RX_SENS_MODES, upper=False),
     }).extend(cv.COMPONENT_SCHEMA),
     validate_rx_sens_and_pin
 )

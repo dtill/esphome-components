@@ -28,8 +28,8 @@ void GdoorComponent::setup() {
   ESP_LOGI(TAG, "Configuring GDoor bus pins: TX=%d, TX_EN=%d, RX=%d", this->tx_pin_, this->tx_en_pin_, this->rx_pin_);
   GDOOR::setup(PIN_TX, PIN_TX_EN, RX_PIN_22_NUM);
 
-  if (this->rx_pin_ == 22 && this->rx_sens_ > 0) {
-    ESP_LOGI(TAG, "Setting RX threshold to %f", threshold);
+  if (this->rx_pin_ == 22 && this->rx_sens_ != 1.65) {
+    ESP_LOGI(TAG, "Setting RX threshold to %f", RX_SENS_MED_NUM);
     GDOOR::setRxThreshold(PIN_RX_THRESH, RX_SENS_MED_NUM);
   }
 }
