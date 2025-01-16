@@ -28,4 +28,8 @@ gdoor:
   rx_pin: 22      # optional (default 22)
   rx_sens: 'med'  # optional if rx_pin is 22: 'low', 'med' or 'high' (default 'high')
 
+text_sensor:
+  - platform: gdoor
+    name: "GDoor Bus Message"
+    gdoor_id: my_gdoor
 ```
