@@ -8,7 +8,7 @@ CODEOWNERS = ["@dtill"]
 DEPENDENCIES = [DOMAIN]
 
 # Define the text sensor class for gdoor
-GDoorActionSensor = gdoor_esphome_ns.class_("GDoorActionSensor", binary_sensor.TextSensor, cg.Component)
+GDoorActionSensor = gdoor_esphome_ns.class_("GDoorActionSensor", binary_sensor.BinarySensor, cg.Component)
 
 CONFIG_SCHEMA = binary_sensor.BINARY_SENSOR_SCHEMA.extend({
     cv.GenerateID(): cv.declare_id(GDoorActionSensor),
