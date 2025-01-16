@@ -5,7 +5,7 @@ Based on @nholloh's [gdoor esphome-component](https://github.com/nholloh/gdoor-e
 
 Supported Features: Read Bus State
 
-TODO: Write to TKS-Bus, add parameters and IO PINs in yaml config.
+TODO: Write to TKS-Bus.
 
 Tested hardware combination: Gira Wohnungsstation AP (1250 015) + gdoor Adapter 3.1-1 + ESP32 D1 Mini.
 
@@ -19,7 +19,7 @@ external_components:
       type: git
       url: https://github.com/dtill/esphome-components
     components: [gdoor]
-    refresh: 0s
+    refresh: 15m
 
 gdoor:
   id: my_gdoor    # optional set your own id here
