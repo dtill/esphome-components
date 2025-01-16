@@ -1,0 +1,13 @@
+esp32:
+  board: esp32dev
+
+external_components:
+  - source:
+      type: git
+      url: https://github.com/dtill/esphome-components
+    components: [gdoor]
+
+text_sensor:
+  - platform: gdoor
+    name: 'BUS State'
+    id: gdoor_bus_state
