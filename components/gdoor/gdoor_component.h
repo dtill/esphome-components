@@ -20,6 +20,7 @@ class GdoorComponent : public Component {
 
   void setup() override;
   void loop() override;
+  void dump_config() override;
 
   void set_last_rx_data(GDOOR_DATA *data);
 
