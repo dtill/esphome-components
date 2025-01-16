@@ -24,7 +24,6 @@ void GdoorComponent::set_rx_sens(float rx_sens) {
 
 void GdoorComponent::set_last_rx_data(GDOOR_DATA *data) {
   this->last_rx_data_ = data;
-  this->read_flag_ = true; // Mark as unread when new data arrives
 }
 
 void GdoorComponent::setup() {
@@ -51,7 +50,7 @@ void GdoorComponent::loop() {
     PrintToBuffer ptb(buffer, sizeof(buffer));
     busmessage.printTo(ptb);
     this->last_rx_str_ = std::string(buffer);
-    this->last_bus_update_ = millis();
+    this->set_last_bus_update();
     ESP_LOGD(TAG, "Received data from GDoor bus: %s", buffer);
   }
 }
