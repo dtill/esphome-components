@@ -15,8 +15,8 @@ class GdoorComponent : public Component {
   void setup() override;
   void loop() override;
 
-  void set_last_rx_data(const std::string &data) { this->last_rx_data_ = data; }
-  std::string get_last_rx_data() const { return this->last_rx_data_; }
+  void set_last_rx_data(const GDOOR_DATA* &data) { this->last_rx_data_ = data; }
+  GDOOR_DATA* get_last_rx_data() const { return this->last_rx_data_; }
 
   int tx_pin() const { return tx_pin_; }
   int tx_en_pin() const { return tx_en_pin_; }
@@ -27,7 +27,7 @@ class GdoorComponent : public Component {
   int tx_en_pin_{-1};
   int rx_pin_{-1};
   float rx_sens_{-1};
-  std::string last_rx_data_{""};
+  GDOOR_DATA* last_rx_data_{""};
 };
 
 }  // namespace gdoor_esphome
