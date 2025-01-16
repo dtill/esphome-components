@@ -18,9 +18,6 @@ class GdoorComponent : public Component {
   void set_last_rx_data(const std::string &data) { this->last_rx_data_ = data; }
   std::string get_last_rx_data() const { return this->last_rx_data_; }
 
-  void set_id(const std::string &id) { this->id_ = id; }
-  std::string get_id() const { return this->id_; }
-
   int tx_pin() const { return tx_pin_; }
   int tx_en_pin() const { return tx_en_pin_; }
   int rx_pin() const { return rx_pin_; }
