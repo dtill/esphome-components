@@ -2,10 +2,10 @@ import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.components import text_sensor
 from esphome.const import CONF_NAME
-from .. import gdoor_esphome_ns
+from .. import DOMAIN, GdoorComponent, gdoor_esphome_ns
 
 CODEOWNERS = ["@dtill"]
-DEPENDENCIES = ["gdoor"]
+DEPENDENCIES = [DOMAIN]
 
 # Define the text sensor class for gdoor
 GDoorBusMessage = gdoor_esphome_ns.class_("GDoorBusMessage", text_sensor.TextSensor, cg.Component)
@@ -13,7 +13,7 @@ GDoorBusMessage = gdoor_esphome_ns.class_("GDoorBusMessage", text_sensor.TextSen
 CONFIG_SCHEMA = text_sensor.TEXT_SENSOR_SCHEMA.extend({
     cv.GenerateID(): cv.declare_id(GDoorBusMessage),
     cv.Required(CONF_NAME): cv.string,
-    cv.Required("gdoor_id"): cv.use_id(None),
+    cv.Required("gdoor_id"): cv.use_id(GdoorComponent),
 }).extend(cv.COMPONENT_SCHEMA)
 
 async def to_code(config):
