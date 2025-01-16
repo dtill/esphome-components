@@ -19,10 +19,13 @@ external_components:
       type: git
       url: https://github.com/dtill/esphome-components
     components: [gdoor]
-    
-text_sensor:
-  - platform: gdoor
-    name: 'BUS State'
-    id: gdoor_bus_state
+    refresh: 0s
+
+gdoor:
+  id: my_gdoor    # optional set your own id here
+  tx_pin: 25      # optional (default 25)
+  tx_en_pin: 27   # optional (default 27)
+  rx_pin: 22      # optional (default 22)
+  rx_sens: 'med'  # optional if rx_pin is 22: 'low', 'med' or 'high' (default 'high')
 
 ```
