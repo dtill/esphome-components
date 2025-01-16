@@ -30,7 +30,7 @@ class GdoorComponent : public Component {
   GPIOPin* tx_pin() const { return tx_pin_; }
   GPIOPin* tx_en_pin() const { return tx_en_pin_; }
   GPIOPin* rx_pin() const { return rx_pin_; }
-
+  float rx_sens() const { return rx_sens_; };
  protected:
   GPIOPin *tx_pin_{nullptr};
   GPIOPin *tx_en_pin_{nullptr};
