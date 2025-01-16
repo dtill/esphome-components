@@ -12,7 +12,7 @@ class GDoorBusMessage : public text_sensor::TextSensor, public Component {
   void setup() override;
   void loop() override;
   void dump_config() override;
-  void GDoorBusMessage::set_parent(GdoorComponent *parent) {
+  void set_parent(GdoorComponent *parent) {
     this->parent_ = parent;
     ESP_LOGD("GDoorBusMessage", "Parent component linked successfully.");
   }
