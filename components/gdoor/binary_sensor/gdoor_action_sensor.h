@@ -13,6 +13,7 @@ class GDoorActionSensor : public binary_sensor::BinarySensor, public Component {
   void loop() override;
   void dump_config() override;
   void set_parent(GdoorComponent *parent) { this->parent_ = parent; }
+  void add_busdata(const std::string &busdata) { this->busdata_list_.push_back(busdata); }
   void set_busdata_list(const std::vector<std::string> &busdata) { this->busdata_list_ = busdata; }
 
  protected:

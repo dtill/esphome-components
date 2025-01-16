@@ -28,7 +28,9 @@ binary_sensor:
     icon: "mdi:bell-ring-outline"
     name: "GDoor Button Ring"
     gdoor_id: my_gdoor
-    busdata: "011011A286FD0360A04A" # example from a BUTTON_RING on OUTDOOR station
+    busdata:
+      - "011011A286FD0360A04A" # example from a short BUTTON_RING on OUTDOOR station
+      - "011011A286FD03A0A04A" # example from a long BUTTON_RING on OUTDOOR station
 
   - platform: gdoor
     id: gdoor_indoor_button_light
