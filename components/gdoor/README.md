@@ -1,8 +1,9 @@
 # gdoor ESPHome Component
 An esphome component for the [gdoor](https://gdoor-org.github.io/) GIRA TKS-Bus-Adapter.
-Based on [gdoor firmware](https://github.com/gdoor-org/gdoor) and [gdoor esphome-component](https://github.com/nholloh/gdoor-esphome).
+Based on @nholloh's [gdoor esphome-component](https://github.com/nholloh/gdoor-esphome) who was the first to make the [gdoor firmware](https://github.com/gdoor-org/gdoor) work in ESPHome
+(see more details in : [gdoor issue #25](https://github.com/gdoor-org/gdoor/issues/25)).
 
-Supported Features: Read Bus Status
+Supported Features: Read Bus State
 
 TODO: Write to TKS-Bus, add parameters and IO PINs in yaml config.
 
