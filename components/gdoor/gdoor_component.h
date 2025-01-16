@@ -21,7 +21,6 @@ class GdoorComponent : public Component {
   void set_last_rx_data(GDOOR_DATA *data) { this->last_rx_data_ = data; }
   GDOOR_DATA* get_last_rx_data() { return this->last_rx_data_; }
   std::string get_last_rx_data_str() const { return this->last_rx_str_; }
-}
 
   GPIOPin* tx_pin() const { return tx_pin_; }
   GPIOPin* tx_en_pin() const { return tx_en_pin_; }
