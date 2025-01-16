@@ -15,7 +15,7 @@ class GdoorComponent : public Component {
   void set_rx_pin(GPIOPin *rx_pin);
   void set_rx_sens(float rx_sens);
 
-  bool has_new_data(); // Check if new data is available
+  bool has_new_data();      // Check if new data is available
   void mark_data_as_read(); // Mark the data as read
 
   void setup() override;

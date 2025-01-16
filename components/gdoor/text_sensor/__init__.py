@@ -6,6 +6,7 @@ from .. import DOMAIN, GdoorComponent, gdoor_esphome_ns
 
 CODEOWNERS = ["@dtill"]
 DEPENDENCIES = [DOMAIN]
+MULTI_CONF = True
 
 # Define the text sensor class for gdoor
 GDoorBusMessage = gdoor_esphome_ns.class_("GDoorBusMessage", text_sensor.TextSensor, cg.Component)

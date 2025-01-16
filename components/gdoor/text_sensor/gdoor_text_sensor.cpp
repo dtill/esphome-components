@@ -19,10 +19,10 @@ void GDoorBusMessage::loop() {
     if (this->parent_->has_new_data()) {
       std::string current_message = this->parent_->get_last_rx_data_str();
       publish_state(current_message.c_str());
-      ESP_LOGD("GDoorBusMessage", "Published bus message: %s", current_message.c_str());
+      ESP_LOGVV("GDoorBusMessage", "Published bus message: %s", current_message.c_str());
       //delay(10); // Optional delay
       publish_state("BUS_IDLE");
-      ESP_LOGD("GDoorBusMessage", "Switched to BUS_IDLE.");
+      ESP_LOGVV("GDoorBusMessage", "Switched to BUS_IDLE.");
       this->parent_->mark_data_as_read();
     }
   } else {

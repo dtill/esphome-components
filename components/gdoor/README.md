@@ -28,7 +28,7 @@ gdoor:
   rx_pin: 22      # optional (default 22)
   rx_sens: 'med'  # optional if rx_pin is 22: 'low', 'med' or 'high' (default 'high')
 
-text_sensor:
+text_sensor:      # atm returns gdoor formatted string: "action": "BUTTON_RING", "parameters": "0360", "source": "A286FD", "destination": "000000", "type": "OUTDOOR", "busdata": "011011A286FD0360A04A"
   - platform: gdoor
     name: "GDoor Bus Message"
     gdoor_id: my_gdoor

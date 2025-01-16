@@ -5,16 +5,13 @@ from esphome.const import CONF_ID
 
 CODEOWNERS = ["@dtill"]
 DOMAIN = "gdoor"
-DEPENDENCIES = []  # No platform dependency here. The platforms will list their own dependency.
+DEPENDENCIES = []
 MULTI_CONF = True
 
-# Create a namespace for your custom integration.
 gdoor_esphome_ns = cg.esphome_ns.namespace("gdoor_esphome")
 
-# Define your base component. This is not a sensor or an output on its own.
 GdoorComponent = gdoor_esphome_ns.class_("GdoorComponent", cg.Component)
 
-# Define your own configuration options.
 CONF_TX_PIN = "tx_pin"
 CONF_TX_EN_PIN = "tx_en_pin"
 CONF_RX_PIN = "rx_pin"
@@ -37,17 +34,11 @@ def validate_rx_sens_and_pin(cfg):
     Enforces:
       - If the raw rx_pin is not 22, then if rx_sens is provided, it must be "high".
     """
-    # Retrieve the rx_pin configuration. It might be a plain number or a dictionary.
     rx_pin_cfg = cfg.get(CONF_RX_PIN, DEFAULT_RX_PIN)
-
-    # Try to extract the pin number from the configuration.
     if isinstance(rx_pin_cfg, dict):
-        # Here we assume the dictionary stores the actual number under the key "number".
-        # Adjust this key if your pin schema uses a different one.
         rx_pin_number = rx_pin_cfg.get("number", DEFAULT_RX_PIN)
     else:
         rx_pin_number = rx_pin_cfg
-
     # Now, apply the validation: when rx_pin is not exactly 22, the rx_sens (if given) must be "high".
     if rx_pin_number != 22:
         # Only check rx_sens if it's explicitly provided.
@@ -69,16 +60,11 @@ CONFIG_SCHEMA = cv.All(
 async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)
-
     tx_pin = await cg.gpio_pin_expression(config[CONF_TX_PIN])
     cg.add(var.set_tx_pin(tx_pin))
-
     tx_en_pin = await cg.gpio_pin_expression(config[CONF_TX_EN_PIN])
     cg.add(var.set_tx_en_pin(tx_en_pin))
-
     rx_pin = await cg.gpio_pin_expression(config[CONF_RX_PIN])
     cg.add(var.set_rx_pin(rx_pin))
-
-    # If rx_sens is specified, set it.
     if CONF_RX_SENS in config:
         cg.add(var.set_rx_sens(config[CONF_RX_SENS]))

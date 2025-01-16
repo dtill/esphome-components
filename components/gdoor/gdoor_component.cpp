@@ -63,5 +63,9 @@ void GdoorComponent::loop() {
   }
 }
 
+void GdoorComponent::dump_config() {
+  ESP_LOGCONFIG(TAG, "GDoor Component");
+}
+
 }  // namespace gdoor_esphome
 }  // namespace esphome
