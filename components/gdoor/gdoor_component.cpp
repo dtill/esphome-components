@@ -43,6 +43,7 @@ void GdoorComponent::loop() {
     std::string action = busmessage.action;
     this->set_last_rx_data(rx_data);
     char buffer[256];
+    this->last_rx_str_ = std::string(buffer);
     PrintToBuffer ptb(buffer, sizeof(buffer));
     busmessage.printTo(ptb);
     ESP_LOGD(TAG, "Received data from GDoor bus: %s", buffer);
