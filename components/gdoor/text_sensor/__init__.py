@@ -20,4 +20,5 @@ async def to_code(config):
     parent = await cg.get_variable(config["gdoor_id"])
     var = cg.new_Pvariable(config[cv.GenerateID()])
     await text_sensor.register_text_sensor(var, config)
+    await cg.register_component(var, config)
     cg.add(var.set_parent(parent))
