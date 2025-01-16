@@ -39,7 +39,7 @@ def validate_rx_sens_and_pin(cfg):
     rx_pin = cfg.get(CONF_RX_PIN, DEFAULT_RX_PIN)
     if rx_pin != DEFAULT_RX_PIN:
         # If rx_sens is given and is not 'high', raise an error.
-        if CONF_RX_SENS in cfg and cfg[CONF_RX_SENS] != "high":
+        if CONF_RX_SENS in cfg and cfg[CONF_RX_PIN] != 22 and cfg[CONF_RX_SENS] != "high":
             raise cv.Invalid("If rx_pin is not 22, rx_sens must be 'high'.")
     return cfg
 
