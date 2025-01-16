@@ -44,6 +44,7 @@ def validate_rx_sens_and_pin(cfg):
 
 CONFIG_SCHEMA = cv.All(
     cv.Schema({
+        cv.GenerateID(): cv.declare_id(GdoorComponent),
         cv.Optional(CONF_TX_PIN, default=DEFAULT_TX_PIN): pins.internal_gpio_output_pin_schema,
         cv.Optional(CONF_TX_EN_PIN, default=DEFAULT_TX_EN_PIN): pins.internal_gpio_output_pin_schema,
         cv.Optional(CONF_RX_PIN, default=DEFAULT_RX_PIN): pins.internal_gpio_input_pin_schema,
