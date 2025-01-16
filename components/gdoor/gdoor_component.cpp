@@ -6,15 +6,15 @@ namespace gdoor_esphome {
 
 static const char *TAG = "gdoor_esphome.gdoor_component";
 
-void GdoorComponent::set_tx_pin(int tx_pin) {
+void GdoorComponent::set_tx_pin(GPIOPin *tx_pin) {
   this->tx_pin_ = tx_pin;
 }
 
-void GdoorComponent::set_tx_en_pin(int tx_en_pin) {
+void GdoorComponent::set_tx_en_pin(GPIOPin *tx_en_pin) {
   this->tx_en_pin_ = tx_en_pin;
 }
 
-void GdoorComponent::set_rx_pin(int rx_pin) {
+void GdoorComponent::set_rx_pin(GPIOPin *rx_pin) {
   this->rx_pin_ = rx_pin;
 }
 
