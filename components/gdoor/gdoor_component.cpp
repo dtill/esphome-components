@@ -22,6 +22,19 @@ void GdoorComponent::set_rx_sens(float rx_sens) {
   this->rx_sens_ = rx_sens;
 }
 
+void GdoorComponent::set_last_rx_data(GDOOR_DATA *data) {
+  this->last_rx_data_ = data;
+  this->read_flag_ = true; // Mark as unread when new data arrives
+}
+
+bool GdoorComponent::has_new_data() {
+  return this->read_flag_; // Return true if data has not been read
+}
+
+void GdoorComponent::mark_data_as_read() {
+  this->read_flag_ = false; // Reset the flag after data is read
+}
+
 void GdoorComponent::setup() {
   ESP_LOGI(TAG, "Setting up GdoorComponent");
   ESP_LOGI(TAG, "Configuring GDoor bus pins: TX=%d, TX_EN=%d, RX=%d", this->tx_pin_, this->tx_en_pin_, this->rx_pin_);

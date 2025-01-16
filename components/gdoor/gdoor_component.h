@@ -15,10 +15,14 @@ class GdoorComponent : public Component {
   void set_rx_pin(GPIOPin *rx_pin);
   void set_rx_sens(float rx_sens);
 
+  bool has_new_data(); // Check if new data is available
+  void mark_data_as_read(); // Mark the data as read
+
   void setup() override;
   void loop() override;
 
-  void set_last_rx_data(GDOOR_DATA *data) { this->last_rx_data_ = data; }
+  void set_last_rx_data(GDOOR_DATA *data);
+
   GDOOR_DATA* get_last_rx_data() { return this->last_rx_data_; }
   std::string get_last_rx_data_str() const { return this->last_rx_str_; }
 
@@ -33,6 +37,7 @@ class GdoorComponent : public Component {
   float rx_sens_{-1};
   GDOOR_DATA* last_rx_data_{nullptr};
   std::string last_rx_str_;
+  bool read_flag_{false};
 };
 
 class PrintToBuffer : public Print {

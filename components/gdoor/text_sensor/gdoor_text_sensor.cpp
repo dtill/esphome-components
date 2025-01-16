@@ -16,18 +16,14 @@ void GDoorBusMessage::setup() {
 
 void GDoorBusMessage::loop() {
   if (this->parent_ != nullptr) {
-    std::string current_message = this->parent_->get_last_rx_data_str();
-    if (!current_message.empty() && current_message != this->last_message_) {
-      this->new_data_available_ = true;
-      this->last_message_ = current_message;
-      ESP_LOGD("GDoorBusMessage", "New bus message: %s", current_message.c_str());
-    }
-    if (this->new_data_available_) {
-      publish_state(this->last_message_.c_str());  // Publish the new data
-      ESP_LOGD("GDoorBusMessage", "Published updated bus message: %s", this->last_message_.c_str());
-      this->new_data_available_ = false;
+    if (this->parent_->has_new_data()) {
+      std::string current_message = this->parent_->get_last_rx_data_str();
+      publish_state(current_message.c_str());
+      ESP_LOGD("GDoorBusMessage", "Published bus message: %s", current_message.c_str());
+      //delay(10); // Optional delay
       publish_state("BUS_IDLE");
-      ESP_LOGD("GDoorBusMessage", "Bus message sensor switched to BUS_IDLE.");
+      ESP_LOGD("GDoorBusMessage", "Switched to BUS_IDLE.");
+      this->parent_->mark_data_as_read();
     }
   } else {
     ESP_LOGW("GDoorBusMessage", "Parent component is null!");
