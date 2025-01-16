@@ -65,36 +65,32 @@ void GdoorComponent::loop() {
 
 void GdoorComponent::dump_config() {
   ESP_LOGCONFIG(TAG, "GDoor Component:");
+
+  // Log TX pin configuration
   if (this->tx_pin_ != nullptr) {
-    auto *internal_pin = dynamic_cast<InternalGPIOPin *>(this->tx_pin_);
-    if (internal_pin != nullptr) {
-      ESP_LOGCONFIG(TAG, "  TX Pin: GPIO %d", internal_pin->get_pin());
-    } else {
-      ESP_LOGCONFIG(TAG, "  TX Pin: Not an internal GPIO pin");
-    }
+    auto *internal_pin = static_cast<InternalGPIOPin *>(this->tx_pin_);
+    ESP_LOGCONFIG(TAG, "  TX Pin: GPIO %d", internal_pin->get_pin());
   } else {
     ESP_LOGCONFIG(TAG, "  TX Pin: Not set");
   }
+
+  // Log TX Enable pin configuration
   if (this->tx_en_pin_ != nullptr) {
-    auto *internal_pin = dynamic_cast<InternalGPIOPin *>(this->tx_en_pin_);
-    if (internal_pin != nullptr) {
-      ESP_LOGCONFIG(TAG, "  TX Enable Pin: GPIO %d", internal_pin->get_pin());
-    } else {
-      ESP_LOGCONFIG(TAG, "  TX Enable Pin: Not an internal GPIO pin");
-    }
+    auto *internal_pin = static_cast<InternalGPIOPin *>(this->tx_en_pin_);
+    ESP_LOGCONFIG(TAG, "  TX Enable Pin: GPIO %d", internal_pin->get_pin());
   } else {
     ESP_LOGCONFIG(TAG, "  TX Enable Pin: Not set");
   }
+
+  // Log RX pin configuration
   if (this->rx_pin_ != nullptr) {
-    auto *internal_pin = dynamic_cast<InternalGPIOPin *>(this->rx_pin_);
-    if (internal_pin != nullptr) {
-      ESP_LOGCONFIG(TAG, "  RX Pin: GPIO %d", internal_pin->get_pin());
-    } else {
-      ESP_LOGCONFIG(TAG, "  RX Pin: Not an internal GPIO pin");
-    }
+    auto *internal_pin = static_cast<InternalGPIOPin *>(this->rx_pin_);
+    ESP_LOGCONFIG(TAG, "  RX Pin: GPIO %d", internal_pin->get_pin());
   } else {
     ESP_LOGCONFIG(TAG, "  RX Pin: Not set");
   }
+
+  // Log RX sensitivity
   ESP_LOGCONFIG(TAG, "  RX Sensitivity: %f", this->rx_sens());
 }
 
