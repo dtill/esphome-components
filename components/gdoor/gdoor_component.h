@@ -1,5 +1,6 @@
 #pragma once
 #include "esphome/core/component.h"
+#include "esphome/core/pins.h"
 #include "gdoor.h"
 
 namespace esphome {
