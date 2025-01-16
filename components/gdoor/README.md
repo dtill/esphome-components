@@ -30,6 +30,21 @@ gdoor:
 
 text_sensor:      # atm returns gdoor formatted string: "action": "BUTTON_RING", "parameters": "0360", "source": "A286FD", "destination": "000000", "type": "OUTDOOR", "busdata": "011011A286FD0360A04A"
   - platform: gdoor
+    id: gdoor_bus_message
     name: "GDoor Bus Message"
     gdoor_id: my_gdoor
+
+binary_sensor:
+  - platform: gdoor
+    id: gdoor_outdoor_button_ring
+    name: "GDoor Button Ring"
+    gdoor_id: my_gdoor
+    busdata: "011011A286FD0360A04A" # example from a BUTTON_RING on OUTDOOR station
+
+binary_sensor:
+  - platform: gdoor
+    id: gdoor_indoor_button_light
+    name: "GDoor Button Light"
+    gdoor_id: my_gdoor
+    busdata: "011041A286FD0000A18F1E" # example from a BUTTON_LIGHT from INDOOR station
 ```
