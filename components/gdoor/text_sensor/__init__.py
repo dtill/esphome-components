@@ -8,10 +8,10 @@ CODEOWNERS = ["@dtill"]
 DEPENDENCIES = ["gdoor"]
 
 # Define the text sensor class for gdoor
-GdoorTextSensor = gdoor_esphome_ns.class_("GdoorTextSensor", text_sensor.TextSensor, cg.Component)
+GDoorBusMessage = gdoor_esphome_ns.class_("GDoorBusMessage", text_sensor.TextSensor, cg.Component)
 
 CONFIG_SCHEMA = text_sensor.TEXT_SENSOR_SCHEMA.extend({
-    cv.GenerateID(): cv.declare_id(GdoorTextSensor),
+    cv.GenerateID(): cv.declare_id(GDoorBusMessage),
     cv.Required(CONF_NAME): cv.string,
     cv.Required("gdoor_id"): cv.use_id(None),
 }).extend(cv.COMPONENT_SCHEMA)

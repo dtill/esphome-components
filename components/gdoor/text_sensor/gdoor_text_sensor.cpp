@@ -6,15 +6,15 @@ namespace gdoor_esphome {
 
 static const char *TAG = "gdoor_esphome.text_sensor";
 
-void GdoorTextSensor::setup() {
-  ESP_LOGI(TAG, "Setting up GdoorTextSensor");
+void GDoorBusMessage::setup() {
+  ESP_LOGI(TAG, "Setting up GDoorBusMessage");
   if (this->parent_ != nullptr) {
     this->parent_->setup();
   }
   publish_state("BUS_IDLE");
 }
 
-void GdoorTextSensor::loop() {
+void GDoorBusMessage::loop() {
   if (this->parent_ != nullptr) {
     this->parent_->loop();
     std::string last_data = this->parent_->get_last_rx_data();
@@ -26,8 +26,8 @@ void GdoorTextSensor::loop() {
   }
 }
 
-void GdoorTextSensor::dump_config() {
-  ESP_LOGCONFIG(TAG, "Gdoor Text Sensor active.");
+void GDoorBusMessage::dump_config() {
+  ESP_LOGCONFIG(TAG, "Gdoor Bus Messages active.");
 }
 
 }  // namespace gdoor_esphome
