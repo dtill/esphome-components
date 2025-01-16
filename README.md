@@ -5,6 +5,6 @@ ESPHome-External-Component for
 
 [MCP45HVX1](components/mcp45hvx1/README.md) digital i2c potentiometer chips.
 
-gdoor GIRA TKS-Bus Adapters
+[gdoor](components/gdoor/README.md) GIRA TKS-Bus Adapters
 
-More details on component [README](components/mcp45hvx1/README.md)
+More details on component README pages.
