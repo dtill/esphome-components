@@ -30,6 +30,7 @@ class GdoorComponent : public Component {
   int tx_en_pin_{-1};
   int rx_pin_{-1};
   float rx_sens_{-1};
+  std::string last_rx_data_{""};
 };
 
 }  // namespace gdoor_esphome
