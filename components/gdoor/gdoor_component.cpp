@@ -1,6 +1,5 @@
 #include "gdoor_component.h"
 #include "esphome/core/log.h"
-#include "gdoor.h"
 
 namespace esphome {
 namespace gdoor_esphome {
