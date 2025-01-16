@@ -27,14 +27,6 @@ void GdoorComponent::set_last_rx_data(GDOOR_DATA *data) {
   this->read_flag_ = true; // Mark as unread when new data arrives
 }
 
-bool GdoorComponent::has_new_data() {
-  return this->read_flag_; // Return true if data has not been read
-}
-
-void GdoorComponent::mark_data_as_read() {
-  this->read_flag_ = false; // Reset the flag after data is read
-}
-
 void GdoorComponent::setup() {
   ESP_LOGI(TAG, "Setting up GdoorComponent");
   ESP_LOGI(TAG, "Configuring GDoor bus pins: TX=%d, TX_EN=%d, RX=%d", this->tx_pin_, this->tx_en_pin_, this->rx_pin_);
@@ -59,6 +51,7 @@ void GdoorComponent::loop() {
     PrintToBuffer ptb(buffer, sizeof(buffer));
     busmessage.printTo(ptb);
     this->last_rx_str_ = std::string(buffer);
+    this->last_bus_update_ = millis();
     ESP_LOGD(TAG, "Received data from GDoor bus: %s", buffer);
   }
 }
@@ -66,7 +59,6 @@ void GdoorComponent::loop() {
 void GdoorComponent::dump_config() {
   ESP_LOGCONFIG(TAG, "GDoor Component:");
 
-  // Log TX pin configuration
   if (this->tx_pin_ != nullptr) {
     auto *internal_pin = static_cast<InternalGPIOPin *>(this->tx_pin_);
     ESP_LOGCONFIG(TAG, "  TX Pin: GPIO %d", internal_pin->get_pin());
@@ -74,7 +66,6 @@ void GdoorComponent::dump_config() {
     ESP_LOGCONFIG(TAG, "  TX Pin: Not set");
   }
 
-  // Log TX Enable pin configuration
   if (this->tx_en_pin_ != nullptr) {
     auto *internal_pin = static_cast<InternalGPIOPin *>(this->tx_en_pin_);
     ESP_LOGCONFIG(TAG, "  TX Enable Pin: GPIO %d", internal_pin->get_pin());
@@ -82,7 +73,6 @@ void GdoorComponent::dump_config() {
     ESP_LOGCONFIG(TAG, "  TX Enable Pin: Not set");
   }
 
-  // Log RX pin configuration
   if (this->rx_pin_ != nullptr) {
     auto *internal_pin = static_cast<InternalGPIOPin *>(this->rx_pin_);
     ESP_LOGCONFIG(TAG, "  RX Pin: GPIO %d", internal_pin->get_pin());
@@ -90,7 +80,6 @@ void GdoorComponent::dump_config() {
     ESP_LOGCONFIG(TAG, "  RX Pin: Not set");
   }
 
-  // Log RX sensitivity
   ESP_LOGCONFIG(TAG, "  RX Sensitivity: %f", this->rx_sens());
 }
 

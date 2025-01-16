@@ -1,22 +1,24 @@
 #pragma once
 
 #include "esphome/core/component.h"
-#include "esphome/components/text_sensor/text_sensor.h"
+#include "esphome/components/binary_sensor/binary_sensor.h"
 #include "../gdoor_component.h"
 
 namespace esphome {
 namespace gdoor_esphome {
 
-class GDoorBusMessage : public text_sensor::TextSensor, public Component {
+class GDoorActionSensor : public binary_sensor::BinarySensor, public Component {
  public:
   void setup() override;
   void loop() override;
   void dump_config() override;
   void set_parent(GdoorComponent *parent) { this->parent_ = parent; }
+  void set_busdata(const std::string &busdata) { this->busdata_ = busdata; }
 
  protected:
   GdoorComponent *parent_{nullptr};
-  bool new_data_available_ = false; // Flag to indicate new data is available
+  std::string busdata_;
+  uint32_t last_bus_update_{0};
 };
 
 }  // namespace gdoor_esphome
