@@ -6,7 +6,7 @@ from esphome.const import CONF_ID
 CODEOWNERS = ["@dtill"]
 DOMAIN = "gdoor"
 DEPENDENCIES = []  # No platform dependency here. The platforms will list their own dependency.
-MULTI_CONF = False
+MULTI_CONF = True
 
 # Create a namespace for your custom integration.
 gdoor_esphome_ns = cg.esphome_ns.namespace("gdoor_esphome")
