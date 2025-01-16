@@ -64,7 +64,23 @@ void GdoorComponent::loop() {
 }
 
 void GdoorComponent::dump_config() {
-  ESP_LOGCONFIG(TAG, "GDoor Component");
+  ESP_LOGCONFIG(TAG, "GDoor Component:");
+  if (this->tx_pin_ != nullptr) {
+    ESP_LOGCONFIG(TAG, "  TX Pin: GPIO %d", this->tx_pin_->get_pin());
+  } else {
+    ESP_LOGCONFIG(TAG, "  TX Pin: Not set");
+  }
+  if (this->tx_en_pin_ != nullptr) {
+    ESP_LOGCONFIG(TAG, "  TX Enable Pin: GPIO %d", this->tx_en_pin_->get_pin());
+  } else {
+    ESP_LOGCONFIG(TAG, "  TX Enable Pin: Not set");
+  }
+  if (this->rx_pin_ != nullptr) {
+    ESP_LOGCONFIG(TAG, "  RX Pin: GPIO %d", this->rx_pin_->get_pin());
+  } else {
+    ESP_LOGCONFIG(TAG, "  RX Pin: Not set");
+  }
+  ESP_LOGCONFIG(TAG, "  RX Sensitivity: %f", this->rx_sens_);
 }
 
 }  // namespace gdoor_esphome
