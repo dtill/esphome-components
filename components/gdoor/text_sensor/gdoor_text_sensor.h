@@ -2,7 +2,7 @@
 
 #include "esphome/core/component.h"
 #include "esphome/components/text_sensor/text_sensor.h"
-#include "gdoor_component.h"
+#include "../gdoor_component.h"
 
 namespace esphome {
 namespace gdoor_esphome {
