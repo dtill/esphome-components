@@ -6,7 +6,7 @@ from esphome.components import i2c
 from esphome.const import (
     CONF_ID,
     CONF_INITIAL_VALUE,
-    CONF_STEP_DELAY,  # Add if needed
+    UNIT_OHM,
 )
 
 CODEOWNERS = ["@dtill"]
