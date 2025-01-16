@@ -42,7 +42,7 @@ def validate_rx_sens_and_pin(cfg):
             raise cv.Invalid("If rx_pin is not 22, rx_sens must be 'high'.")
     return cfg
 
-GDOOR_CONFIG_SCHEMA = cv.All(
+CONFIG_SCHEMA = cv.All(
     cv.Schema({
         cv.Optional(CONF_TX_PIN, default=DEFAULT_TX_PIN): pins.internal_gpio_output_pin_schema,
         cv.Optional(CONF_TX_EN_PIN, default=DEFAULT_TX_EN_PIN): pins.internal_gpio_output_pin_schema,
