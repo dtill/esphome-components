@@ -2,7 +2,7 @@ import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.components import text_sensor
 from esphome.const import CONF_NAME
-from . import DOMAIN, gdoor_esphome_ns  # Import from __init__.py
+from .. import DOMAIN, gdoor_esphome_ns  # Import from __init__.py
 
 DEPENDENCIES = [DOMAIN]
 
