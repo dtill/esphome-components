@@ -1,5 +1,6 @@
 #include "gdoor_component.h"
 #include "esphome/core/log.h"
+#include "gdoor.h"
 
 namespace esphome {
 namespace gdoor_esphome {
@@ -24,7 +25,7 @@ void GdoorComponent::set_rx_sens(float rx_sens) {
 
 void GdoorComponent::setup() {
   ESP_LOGI(TAG, "Setting up GdoorComponent");
-  ESP_LOGI(TAG, "Configuring GDoor bus pins: TX=%d, TX_EN=%d, RX=%d", pin_tx, pin_tx_en, pin_rx);
+  ESP_LOGI(TAG, "Configuring GDoor bus pins: TX=%d, TX_EN=%d, RX=%d", this->tx_pin_, this->tx_en_pin_, this->rx_pin_);
   GDOOR::setup(PIN_TX, PIN_TX_EN, RX_PIN_22_NUM);
 
   if (this->rx_pin_ == 22 && this->rx_sens_ > 0) {
