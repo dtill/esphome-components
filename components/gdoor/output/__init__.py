@@ -20,9 +20,14 @@ CONFIG_SCHEMA = output.BINARY_OUTPUT_SCHEMA.extend({
     cv.GenerateID(): cv.declare_id(GDoorBusWrite),
     cv.Required(CONF_NAME): cv.string,
     cv.Required("gdoor_id"): cv.use_id(GdoorComponent),
-    cv.Required(CONF_PAYLOAD): cv.matches_regex(HEX_STRING_REGEX),
+    cv.Required(CONF_PAYLOAD): cv.string_strict,
     cv.Optional(CONF_REQUIRE_RESPONSE, default=False): cv.boolean,
-}).extend(cv.COMPONENT_SCHEMA)
+}).extend(cv.COMPONENT_SCHEMA).extend({
+    cv.Required(CONF_PAYLOAD): cv.All(
+        cv.string_strict,
+        cv.matches_regex(HEX_STRING_REGEX, msg="must be a valid hex string")
+    ),
+})
 
 async def to_code(config):
     parent = await cg.get_variable(config["gdoor_id"])
