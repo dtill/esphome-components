@@ -15,6 +15,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 #include "gdoor.h"
+#include "esphome/core/log.h"
 
 namespace GDOOR {
     /*
@@ -58,7 +59,7 @@ namespace GDOOR {
     * @param hex string data without 0x prefix
     */
     void send(String str) {
-        ESP_LOGVV(TAG, "GDoor call sending function..");
+        ESP_LOGD(TAG, "GDoor call sending function..");
         GDOOR_TX::send(str);
 
     }
