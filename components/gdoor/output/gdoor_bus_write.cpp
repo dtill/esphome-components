@@ -7,11 +7,15 @@ namespace gdoor_esphome {
 static const char *TAG = "gdoor_esphome.bus_write";
 
 void GDoorBusWrite::write_state(bool state) {
-  if (this->parent_ == nullptr) {
-    ESP_LOGW(TAG, "Parent component is not set, cannot write to bus");
+  if (!state) {
+    ESP_LOGVV(TAG, "State is OFF, no action taken.");
     return;
   }
-  ESP_LOGVV(TAG, "Writing state: %s", state ? "ON" : "OFF");
+  if (this->parent_ == nullptr) {
+    ESP_LOGW(TAG, "Parent component is not set, cannot write to GDoor bus");
+    return;
+  }
+  ESP_LOGVV(TAG, "Writing state: ON");
   ESP_LOGVV(TAG, "  Sending payload: %s", this->payload_.c_str());
   this->parent_->send_bus_message(this->payload_);
 }

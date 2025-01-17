@@ -16,26 +16,32 @@ HEX_STRING_REGEX = re.compile(r"^[0-9A-Fa-f]+$")  # Regex to validate hex string
 # Define the text sensor class for gdoor
 GDoorBusWrite = gdoor_esphome_ns.class_("GDoorBusWrite", output.BinaryOutput, cg.Component)
 
+def calculate_crc(hex_string):
+    """Calculate the CRC checksum of a given hex string."""
+    if not HEX_STRING_REGEX.match(hex_string):
+        raise cv.Invalid("Payload must be a valid hexadecimal string (e.g., '011041A1B14A0000A18F1E')")
+    if len(hex_string) % 2 != 0:
+        raise cv.Invalid("Hex string must contain an even number of digits (each byte consists of two hex digits).")
+    checksum = 0
+    for i in range(0, len(hex_string), 2):
+        byte_hex = hex_string[i:i+2]
+        byte_dec = int(byte_hex, 16)
+        checksum = (checksum + byte_dec) % 256  # 8-bit overflow simulation
+    return f"{checksum:02X}"
 
-def validate_hex_string(value):
-    """Validate that the string is a valid hexadecimal."""
+def validate_payload_with_crc(value):
+    """Validate that the payload is a valid hex string and check its CRC."""
     if not HEX_STRING_REGEX.match(value):
-        raise cv.Invalid("Payload must be a valid hex string (e.g., '011041A286FD0000A18FA7')")
-    return value
-
-def validate_crc(value):
-    """Validate the CRC checksum of the hex string."""
-    def calculate_crc(data: str) -> str:
-        checksum = 0
-        for i in range(0, len(data) - 2, 2):    # Exclude the last 2 characters (assumed checksum)
-            checksum ^= int(data[i:i+2], 16)
-        return f"{checksum:02X}"
-    provided_crc = value[-2:]                   # Assume last 2 characters are the CRC
-    data_without_crc = value[:-2]
+        raise cv.Invalid("Payload must be a valid hexadecimal string (e.g., '011041A1B14A0000A18F1E')")
+    if len(value) % 2 != 0:
+        raise cv.Invalid("Hex string must contain an even number of digits (each byte consists of two hex digits).")
+    provided_crc = value[-2:]               # Assume the last byte is the CRC
+    data_without_crc = value[:-2]           # Data excluding CRC
     expected_crc = calculate_crc(data_without_crc)
-    if provided_crc != expected_crc:
+
+    if provided_crc.upper() != expected_crc:
         cg.esphome_ns.global_log().warn(
-            f"Payload CRC mismatch: expected {expected_crc}, got {provided_crc} (Payload: {value})"
+            f"CRC Checksum mismatch: provided {provided_crc.upper()}, expected {expected_crc} (Payload: {value})"
         )
     return value
 
@@ -44,9 +50,8 @@ CONFIG_SCHEMA = output.BINARY_OUTPUT_SCHEMA.extend({
     cv.Required(CONF_NAME): cv.string,
     cv.Required("gdoor_id"): cv.use_id(GdoorComponent),
     cv.Required(CONF_PAYLOAD): cv.All(
-        cv.string,              # Ensure it's a string
-        validate_hex_string,    # Validate hex format
-        validate_crc            # Validate CRC and log warning
+        cv.string,
+        validate_payload_with_crc
     ),
     cv.Optional(CONF_REQUIRE_RESPONSE, default=False): cv.boolean,
 }).extend(cv.COMPONENT_SCHEMA)
