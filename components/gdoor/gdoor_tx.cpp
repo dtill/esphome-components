@@ -200,7 +200,7 @@ namespace GDOOR_TX {
         uint16_t index = 0;
         // String cleanup
         str.toUpperCase();
-
+        ESP_LOGD(TAG, "Gira TX start..");
         // Only if we have enough memory
         if(str != "" && str.length() < MAX_WORDLEN*2) {
             // Convert from hex string to raw buffer array
@@ -223,5 +223,6 @@ namespace GDOOR_TX {
                 send(tx_strbuffer, index);
             }
         }
+        ESP_LOGD(TAG, "Gira TX end.");
     }
 }
