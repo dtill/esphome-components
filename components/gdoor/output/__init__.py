@@ -38,11 +38,8 @@ def validate_payload_with_crc(value):
     provided_crc = value[-2:]               # Assume the last byte is the CRC
     data_without_crc = value[:-2]           # Data excluding CRC
     expected_crc = calculate_crc(data_without_crc)
-
     if provided_crc.upper() != expected_crc:
-        cg.esphome_ns.global_log().warn(
-            f"CRC Checksum mismatch: provided {provided_crc.upper()}, expected {expected_crc} (Payload: {value})"
-        )
+        raise cv.Invalid(f"CRC Checksum mismatch: provided {provided_crc.upper()}, expected {expected_crc} (Payload: {value})")
     return value
 
 CONFIG_SCHEMA = output.BINARY_OUTPUT_SCHEMA.extend({
