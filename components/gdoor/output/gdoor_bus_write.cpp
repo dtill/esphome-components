@@ -15,8 +15,8 @@ void GDoorBusWrite::write_state(bool state) {
     ESP_LOGW(TAG, "Parent component is not set, cannot write to GDoor bus");
     return;
   }
-  ESP_LOGVV(TAG, "Writing state: ON");
-  ESP_LOGVV(TAG, "  Sending payload: %s", this->payload_.c_str());
+  ESP_LOGD(TAG, "Writing state: ON");
+  ESP_LOGD(TAG, "  Sending payload: %s", this->payload_.c_str());
   this->parent_->send_bus_message(this->payload_);
 }
 
