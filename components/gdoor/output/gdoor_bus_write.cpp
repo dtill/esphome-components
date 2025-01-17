@@ -8,7 +8,7 @@ static const char *TAG = "gdoor_esphome.bus_write";
 
 void GDoorBusWrite::write_state(bool state) {
   if (!state) {
-    ESP_LOGVV(TAG, "State is OFF, no action taken.");
+    ESP_LOGD(TAG, "State is OFF, no action taken.");
     return;
   }
   if (this->parent_ == nullptr) {
