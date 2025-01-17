@@ -22,7 +22,7 @@
 
 using esphome::esp_log_printf_;
 
-static const char *TAG = "gdoor_esphome.gdoor_rx";
+static const char *TAG = "gdoor_esphome.gdoor_tx";
 
 namespace GDOOR_TX {
     uint16_t tx_state = 0;
@@ -181,16 +181,14 @@ namespace GDOOR_TX {
     */
     void send(uint8_t *data, uint16_t len) {
         if (! (tx_state & STATE_SENDING) && len < MAX_WORDLEN) {
+            ESP_LOGD(TAG, "Gira TX all conditions met to send payload.");
             bits_ptr = 0;
             pulse_cnt = 0;
             bits_len = (uint16_t) (len*9 + 9); // Data bits + CRC (8bit CRC data + parity bit) (Startbit is added by timer int. routine)
-
-
             for (uint16_t i=0; i<len; i++) {
                 uint8_t byte = data[i];
                 tx_words[i] = byte2word(byte);
             }
-
             uint8_t crc = GDOOR_UTILS::crc(data, len);
             tx_words[len] = byte2word(crc);
             start_timer();
@@ -224,6 +222,7 @@ namespace GDOOR_TX {
             }
 
             // If something was converted, transmit it
+            ESP_LOGD(TAG, "Gira TX Data to send");
             if (index > 0) {
                 send(tx_strbuffer, index);
             }
