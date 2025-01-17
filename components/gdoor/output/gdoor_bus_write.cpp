@@ -17,10 +17,9 @@ void GDoorBusWrite::write_state(bool state) {
 }
 
 void GDoorBusWrite::dump_config() {
-  ESP_LOGCONFIG(TAG, "GDoor Bus Write binary_output");
-  for (const auto &busdata : this->busdata_list_) {
-    ESP_LOGCONFIG(TAG, "  Payload: %s", busdata.c_str());
-  }
+  ESP_LOGCONFIG(TAG, "GDoor Bus Writer:");
+  ESP_LOGCONFIG(TAG, "  Payload: %s", this->payload_.c_str());
+  ESP_LOGCONFIG(TAG, "  Require Response: %s", this->require_response_ ? "YES" : "NO");
 }
 
 }  // namespace gdoor_esphome
