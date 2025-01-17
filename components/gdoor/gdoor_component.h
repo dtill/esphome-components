@@ -19,6 +19,8 @@ class GdoorComponent : public Component {
   void loop() override;
   void dump_config() override;
 
+  void send_bus_message(const std::string &payload);
+
   void set_last_rx_data(GDOOR_DATA *data);
 
   GDOOR_DATA* get_last_rx_data() { return this->last_rx_data_; }
@@ -31,6 +33,7 @@ class GdoorComponent : public Component {
   GPIOPin* tx_en_pin() const { return tx_en_pin_; }
   GPIOPin* rx_pin() const { return rx_pin_; }
   float rx_sens() const { return rx_sens_; };
+
  protected:
   GPIOPin *tx_pin_{nullptr};
   GPIOPin *tx_en_pin_{nullptr};

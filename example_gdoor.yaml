@@ -30,11 +30,19 @@ binary_sensor:
     gdoor_id: my_gdoor
     busdata:
       - "011011A286FD0360A04A" # example from a short BUTTON_RING on OUTDOOR station
-      - "011011A286FD03A0A04A" # example from a long BUTTON_RING on OUTDOOR station
+      - "011011A286FD03A0A08A" # example from a long BUTTON_RING on OUTDOOR station
 
   - platform: gdoor
     id: gdoor_indoor_button_light
     icon: "mdi:lightbulb-on"
     name: "GDoor Button Light"
     gdoor_id: my_gdoor
-    busdata: "011041A286FD0000A18F1E" # example from a BUTTON_LIGHT from INDOOR station
+    busdata: "011041A286FD0000A18FA7" # example from a BUTTON_LIGHT from INDOOR station
+
+output:
+  - platform: gdoor
+    id: gdoor_outdoor_opener
+    name: "GDoor Outdoor Opener"
+    gdoor_id: my_gdoor
+    payload: "020031A286FD0000A1004E6DB4"   # example from a short BUTTON_RING on OUTDOOR station
+    require_response: false           # default false has no use so far.

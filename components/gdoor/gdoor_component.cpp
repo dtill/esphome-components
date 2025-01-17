@@ -26,6 +26,11 @@ void GdoorComponent::set_last_rx_data(GDOOR_DATA *data) {
   this->last_rx_data_ = data;
 }
 
+void GdoorComponent::send_bus_message(const std::string &payload) {
+  ESP_LOGVV(TAG, "Writing bus data: %s", payload.c_str());
+  GDOOR::send(payload.c_str());
+}
+
 void GdoorComponent::setup() {
   ESP_LOGI(TAG, "Setting up GdoorComponent");
   ESP_LOGI(TAG, "Configuring GDoor bus pins: TX=%d, TX_EN=%d, RX=%d", this->tx_pin_, this->tx_en_pin_, this->rx_pin_);
