@@ -58,7 +58,9 @@ namespace GDOOR {
     * @param hex string data without 0x prefix
     */
     void send(String str) {
+        ESP_LOGVV(TAG, "GDoor call sending function..");
         GDOOR_TX::send(str);
+
     }
 
     /*
