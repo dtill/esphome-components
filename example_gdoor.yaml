@@ -44,5 +44,5 @@ output:
     id: gdoor_outdoor_opener
     name: "GDoor Outdoor Opener"
     gdoor_id: my_gdoor
-    payload: "020031A286FD0000A1004E6DB4"   # example from a short BUTTON_RING on OUTDOOR station
-    require_response: false           # default false has no use so far.
+    # CRC check will be performed on last 2 digits of hex-string during config validation. Only valid payloads are allowed.
+    payload: "020031A286FD0000A1004E6DB4"    # example from a short BUTTON_RING on OUTDOOR station

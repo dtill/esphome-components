@@ -51,4 +51,12 @@ binary_sensor:
     name: "GDoor Button Light"
     gdoor_id: my_gdoor
     busdata: "011041A286FD0000A18F1E" # example from a BUTTON_LIGHT from INDOOR station
+
+output:
+  - platform: gdoor
+    id: gdoor_outdoor_opener
+    name: "GDoor Outdoor Opener"
+    gdoor_id: my_gdoor
+    # CRC check will be performed on last 2 digits of hex-string during config validation. Only valid payloads are allowed.
+    payload: "020031A286FD0000A1004E6DB4"    # example from a short BUTTON_RING on OUTDOOR station
 ```

@@ -52,7 +52,6 @@ class PrintToBuffer : public Print {
       buffer_[0] = '\0';
     }
   }
-
   virtual size_t write(uint8_t c) override {
     if (index_ < buffer_size_ - 1) {
       buffer_[index_++] = c;
@@ -61,9 +60,7 @@ class PrintToBuffer : public Print {
     }
     return 0;  // Buffer full.
   }
-
   size_t size() const { return index_; }
-
  private:
   char *buffer_;
   size_t buffer_size_;

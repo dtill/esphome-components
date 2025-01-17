@@ -27,7 +27,7 @@ void GdoorComponent::set_last_rx_data(GDOOR_DATA *data) {
 }
 
 void GdoorComponent::send_bus_message(const std::string &payload) {
-  ESP_LOGVV(TAG, "Writing bus data: %s", payload.c_str());
+  ESP_LOGD(TAG, "Writing bus data: %s", payload.c_str());
   GDOOR::send(payload.c_str());
 }
 
@@ -54,7 +54,7 @@ void GdoorComponent::loop() {
     char buffer[256];
     PrintToBuffer ptb(buffer, sizeof(buffer));
     busmessage.printTo(ptb);
-    this->last_rx_str_ = std::string(buffer);
+    this->last_rx_str_ = "{" + std::string(buffer) + "}";
     this->set_last_bus_update( millis() );
     ESP_LOGD(TAG, "Received data from GDoor bus: %s", buffer);
   }
