@@ -22,7 +22,7 @@
 
 using esphome::esp_log_printf_;
 
-static const char *TAG = "gdoor_esphome.gdoor";
+static const char *TAG = "gdoor_esphome.gdoor_rx";
 
 namespace GDOOR_RX {
 

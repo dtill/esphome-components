@@ -17,6 +17,10 @@
 #include "gdoor.h"
 #include "esphome/core/log.h"
 
+using esphome::esp_log_printf_;
+
+static const char *TAG = "gdoor_esphome.gdoor";
+
 namespace GDOOR {
     /*
     * Setup everything needed for GDoor.

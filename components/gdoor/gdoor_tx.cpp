@@ -18,6 +18,11 @@
 #include "gdoor_tx.h"
 #include "gdoor_rx.h"
 #include "gdoor_utils.h"
+#include "esphome/core/log.h"
+
+using esphome::esp_log_printf_;
+
+static const char *TAG = "gdoor_esphome.gdoor_rx";
 
 namespace GDOOR_TX {
     uint16_t tx_state = 0;
