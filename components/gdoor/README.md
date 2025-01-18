@@ -40,4 +40,24 @@ binary_sensor:
   - platform: gdoor
     id: gdoor_outdoor_button_ring
     icon: "mdi:bell-ring-outline"
+    name: "GDoor Button Ring"
+    gdoor_id: my_gdoor
+    busdata:
+      - "011011A286FD0360A04A" # example filter a short BUTTON_RING on OUTDOOR station
+      - "011011A286FD03A0A08A" # example filter a long BUTTON_RING on OUTDOOR station
+
+  - platform: gdoor
+    id: gdoor_indoor_button_light
+    icon: "mdi:lightbulb-on"
+    name: "GDoor Button Light"
+    gdoor_id: my_gdoor
+    busdata: "011041A286FD0000A18FA7" # example filter a BUTTON_LIGHT from INDOOR station
+
+output:
+  - platform: gdoor
+    id: gdoor_outdoor_opener
+    name: "GDoor Outdoor Opener"
+    gdoor_id: my_gdoor
+    # Attention: CRC check will be performed on hex-string during config validation. Only valid payloads are allowed.
+    payload: "020031A286FD0000A1004E6DB4"    # example to immitate a short BUTTON_RING on OUTDOOR station.
 ```
