@@ -143,8 +143,6 @@ namespace GDOOR_TX {
         pin_tx = txpin;
         pin_tx_en = txenpin;
 
-        ESP_LOGD("Timer", "Timer 60kHz initialized: Divider=%d", GDOOR_UTILS::divider(60000));
-
         // Set timer_60khz timer frequency to 60kHz
         timer_60khz = timerBegin(1, GDOOR_UTILS::divider(60000), true);
         timerStop(timer_60khz);
@@ -183,7 +181,6 @@ namespace GDOOR_TX {
     */
     void send(uint8_t *data, uint16_t len) {
         if (! (tx_state & STATE_SENDING) && len < MAX_WORDLEN) {
-            ESP_LOGD(TAG, "Gira TX all conditions met to send payload.");
             bits_ptr = 0;
             pulse_cnt = 0;
             bits_len = (uint16_t) (len*9 + 9); // Data bits + CRC (8bit CRC data + parity bit) (Startbit is added by timer int. routine)
@@ -205,7 +202,6 @@ namespace GDOOR_TX {
         uint16_t index = 0;
         // String cleanup
         str.toUpperCase();
-        ESP_LOGD(TAG, "Gira TX start..");
         // Only if we have enough memory
         if(str != "" && str.length() < MAX_WORDLEN*2) {
             // Convert from hex string to raw buffer array
@@ -224,11 +220,9 @@ namespace GDOOR_TX {
             }
 
             // If something was converted, transmit it
-            ESP_LOGD(TAG, "Gira TX Data to send");
             if (index > 0) {
                 send(tx_strbuffer, index);
             }
         }
-        ESP_LOGD(TAG, "Gira TX end.");
     }
 }

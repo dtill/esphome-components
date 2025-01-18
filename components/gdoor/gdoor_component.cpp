@@ -31,14 +31,11 @@ void GdoorComponent::set_last_rx_data(GDOOR_DATA *data) {
 }
 
 void GdoorComponent::send_bus_message(const std::string &payload) {
-  ESP_LOGD(TAG, "Writing bus data: %s", payload.c_str());
+  ESP_LOGVV(TAG, "Writing bus data: %s", payload.c_str());
   GDOOR::send(payload.c_str());
 }
 
 void GdoorComponent::setup() {
-    ESP_LOGI(TAG, "Setting up GdoorComponent");
-
-    // Ensure all pins are properly configured
     if (this->tx_pin_ == nullptr || this->tx_en_pin_ == nullptr || this->rx_pin_ == nullptr) {
         ESP_LOGE(TAG, "One or more pins are not configured properly!");
         return;
@@ -55,16 +52,10 @@ void GdoorComponent::setup() {
     uint8_t rx_pin_number = rx_internal_pin->get_pin();
     uint8_t rx_thresh_pin_number = rx_thresh_internal_pin != nullptr ? rx_thresh_internal_pin->get_pin() : 0;
 
-    // Log the extracted pin numbers
-    ESP_LOGD(TAG, "Configuring GDoor bus pins: TX=%d, TX_EN=%d, RX=%d, RX_THRESH=%d",
-             tx_pin_number, tx_en_pin_number, rx_pin_number, rx_thresh_pin_number);
-
-    // Pass the extracted pin numbers to the GDOOR setup
     GDOOR::setup(tx_pin_number, tx_en_pin_number, rx_pin_number);
 
     // Configure RX threshold if conditions are met
     if (rx_pin_number == 22 && this->rx_sens_ != 1.65) {
-        ESP_LOGI(TAG, "Setting RX threshold to %f", this->rx_sens_);
         GDOOR::setRxThreshold(rx_thresh_pin_number, this->rx_sens_);
     }
 }
