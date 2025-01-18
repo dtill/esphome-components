@@ -16,7 +16,7 @@ gdoor:
   rx_thresh_pin: 26 # optional (default 26)
   rx_sens: 'med'  # optional if rx_pin is 22: 'low', 'med' or 'high' (default 'high')
 
-text_sensor:      # atm returns gdoor formatted string: "action": "BUTTON_RING", "parameters": "0360", "source": "A286FD", "destination": "000000", "type": "OUTDOOR", "busdata": "011011A286FD0360A04A"
+text_sensor:      # atm returns gdoor formatted string: {"action": "BUTTON_RING", "parameters": "0360", "source": "A286FD", "destination": "000000", "type": "OUTDOOR", "busdata": "011011A286FD0360A04A"}
  -  platform: gdoor
     id: gdoor_bus_message
     icon: "mdi:console-network-outline"
