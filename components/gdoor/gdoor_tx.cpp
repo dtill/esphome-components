@@ -103,7 +103,7 @@ namespace GDOOR_TX {
     */
     void isr_timer_60khz() {
         debug_counter++;
-        if (debug_counter >= 60000) { // Log once every second (assuming 60kHz)
+        if (debug_counter >= 100) { // Log once every second (assuming 60kHz)
             ESP_LOGD("ISR", "isr_timer_60khz triggered");
             debug_counter = 0;
         }
@@ -148,6 +148,8 @@ namespace GDOOR_TX {
     void setup(uint8_t txpin, uint8_t txenpin) {
         pin_tx = txpin;
         pin_tx_en = txenpin;
+
+        ESP_LOGD("Timer", "Timer 60kHz initialized: Divider=%d", GDOOR_UTILS::divider(60000));
 
         // Set timer_60khz timer frequency to 60kHz
         timer_60khz = timerBegin(1, GDOOR_UTILS::divider(60000), true);
