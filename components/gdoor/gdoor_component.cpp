@@ -56,7 +56,7 @@ void GdoorComponent::setup() {
     uint8_t rx_thresh_pin_number = rx_thresh_internal_pin != nullptr ? rx_thresh_internal_pin->get_pin() : 0;
 
     // Log the extracted pin numbers
-    ESP_LOGI(TAG, "Configuring GDoor bus pins: TX=%d, TX_EN=%d, RX=%d, RX_THRESH=%d",
+    ESP_LOGD(TAG, "Configuring GDoor bus pins: TX=%d, TX_EN=%d, RX=%d, RX_THRESH=%d",
              tx_pin_number, tx_en_pin_number, rx_pin_number, rx_thresh_pin_number);
 
     // Pass the extracted pin numbers to the GDOOR setup
@@ -108,6 +108,13 @@ void GdoorComponent::dump_config() {
     ESP_LOGCONFIG(TAG, "  RX Pin: GPIO %d", internal_pin->get_pin());
   } else {
     ESP_LOGCONFIG(TAG, "  RX Pin: Not set");
+  }
+
+  if (this->rx_thresh_pin_ != nullptr) {
+    auto *internal_pin = static_cast<InternalGPIOPin *>(this->rx_thresh_pin_);
+    ESP_LOGCONFIG(TAG, "  RX_THRESH Pin: GPIO %d", internal_pin->get_pin());
+  } else {
+    ESP_LOGCONFIG(TAG, "  RX_THRESH Pin: Not set");
   }
 
   ESP_LOGCONFIG(TAG, "  RX Sensitivity: %f", this->rx_sens());
