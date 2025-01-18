@@ -19,17 +19,18 @@ external_components:
       type: git
       url: https://github.com/dtill/esphome-components
     components: [gdoor]
-    refresh: 15m
+    refresh: 0s
 
 gdoor:
-  id: my_gdoor    # optional set your own id here
-  tx_pin: 25      # optional (default 25)
-  tx_en_pin: 27   # optional (default 27)
-  rx_pin: 22      # optional (default 22)
+  id: my_gdoor      # optional set your own id here
+  tx_pin: 25        # optional (default 25)
+  tx_en_pin: 27     # optional (default 27)
+  rx_pin: 22        # optional (default 22)
+  rx_thresh_pin: 26 # optional (default 26)
   rx_sens: 'med'  # optional if rx_pin is 22: 'low', 'med' or 'high' (default 'high')
 
 text_sensor:      # atm returns gdoor formatted string: "action": "BUTTON_RING", "parameters": "0360", "source": "A286FD", "destination": "000000", "type": "OUTDOOR", "busdata": "011011A286FD0360A04A"
-  - platform: gdoor
+ -  platform: gdoor
     id: gdoor_bus_message
     icon: "mdi:console-network-outline"
     name: "GDoor Bus Message"
@@ -39,24 +40,4 @@ binary_sensor:
   - platform: gdoor
     id: gdoor_outdoor_button_ring
     icon: "mdi:bell-ring-outline"
-    name: "GDoor Button Ring"
-    gdoor_id: my_gdoor
-    busdata:
-      - "011011A286FD0360A04A" # example filter a short BUTTON_RING on OUTDOOR station
-      - "011011A286FD03A0A08A" # example filter a long BUTTON_RING on OUTDOOR station
-
-  - platform: gdoor
-    id: gdoor_indoor_button_light
-    icon: "mdi:lightbulb-on"
-    name: "GDoor Button Light"
-    gdoor_id: my_gdoor
-    busdata: "011041A286FD0000A18FA7" # example filter a BUTTON_LIGHT from INDOOR station
-
-output:
-  - platform: gdoor
-    id: gdoor_outdoor_opener
-    name: "GDoor Outdoor Opener"
-    gdoor_id: my_gdoor
-    # CRC check will be performed on last 2 digits of hex-string during config validation. Only valid payloads are allowed.
-    payload: "020031A286FD0000A1004E6DB4"    # example to immitate a short BUTTON_RING on OUTDOOR station.
 ```
