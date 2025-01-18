@@ -96,6 +96,7 @@ namespace GDOOR_TX {
         GDOOR_RX::enable();
     }
 
+    volatile uint32_t debug_counter = 0;
 
     /*
     * This is the sending timer interrupt
