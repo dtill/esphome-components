@@ -3,9 +3,7 @@ An esphome component for the [gdoor](https://gdoor-org.github.io/) GIRA TKS-Bus-
 Based on @nholloh's [gdoor esphome-component](https://github.com/nholloh/gdoor-esphome) who was the first to make the [gdoor firmware](https://github.com/gdoor-org/gdoor) work in ESPHome
 (see more details in : [gdoor issue #25](https://github.com/gdoor-org/gdoor/issues/25)).
 
-Supported Features: Read Bus State
-
-TODO: Write to TKS-Bus.
+Supported Features: read/write to GIRA bus
 
 Tested hardware combination: Gira Wohnungsstation AP (1250 015) + gdoor Adapter 3.1-1 + ESP32 D1 Mini.
 
