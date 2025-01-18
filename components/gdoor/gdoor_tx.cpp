@@ -85,7 +85,7 @@ namespace GDOOR_TX {
         startbit_send = 0;
 
         // PWM off
-        ledcWrite(pin_tx, 0);
+        ledcWrite(0, 0);
 
         //TX Enable Pin Low
         digitalWrite(pin_tx_en, LOW);
@@ -96,17 +96,11 @@ namespace GDOOR_TX {
         GDOOR_RX::enable();
     }
 
-    volatile uint32_t debug_counter = 0;
-
     /*
     * This is the sending timer interrupt
     */
     void isr_timer_60khz() {
-        debug_counter++;
-        if (debug_counter >= 100) { // Log once every second (assuming 60kHz)
-            ESP_LOGD("ISR", "isr_timer_60khz triggered");
-            debug_counter = 0;
-        }
+
         if(pulse_cnt == 0) { // Update timer, we send out (or waited) enough timer ticks to go to next bit
             if (bits_ptr >= bits_len || bits_ptr >= MAX_WORDLEN*9) {//We send everything
                 stop_timer();
@@ -117,7 +111,7 @@ namespace GDOOR_TX {
                 // Do not send next 60khz pulses, but send pause (nothing)
                 timer_oc_state = 0;
                 pulse_cnt = PAUSE_PULSENUM;
-                ledcWrite(pin_tx, 0); //disable timer pulse output to send pause
+                ledcWrite(0, 0); //disable timer pulse output to send pause
             } else {
                 // Load new tick values
                 if (!startbit_send) { //First bit, is start bit with fixed value
@@ -133,7 +127,7 @@ namespace GDOOR_TX {
                 }
 
                 timer_oc_state = 1; //Signal that we are sending, so next time a pause will happen
-                ledcWrite(pin_tx, 127); //Enable timer pulse output to send pulses forming the bit
+                ledcWrite(0, 127); //Enable timer pulse output to send pulses forming the bit
             }
         } else { // Just update timer ticks, we are not finished yet
             pulse_cnt = pulse_cnt - 1;
@@ -175,7 +169,7 @@ namespace GDOOR_TX {
         // Still works.
         ledcSetup(0, 52000, 8);
         ledcAttachPin(pin_tx, 0);
-        ledcWrite(pin_tx, 0);
+        ledcWrite(0, 0);
 
         stop_timer();
         bits_len = 0;
