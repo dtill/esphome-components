@@ -101,6 +101,11 @@ namespace GDOOR_TX {
     * This is the sending timer interrupt
     */
     void isr_timer_60khz() {
+        debug_counter++;
+        if (debug_counter >= 60000) { // Log once every second (assuming 60kHz)
+            ESP_LOGD("ISR", "isr_timer_60khz triggered");
+            debug_counter = 0;
+        }
         if(pulse_cnt == 0) { // Update timer, we send out (or waited) enough timer ticks to go to next bit
             if (bits_ptr >= bits_len || bits_ptr >= MAX_WORDLEN*9) {//We send everything
                 stop_timer();
