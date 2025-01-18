@@ -55,7 +55,7 @@ CONFIG_SCHEMA = cv.All(
         cv.Optional(CONF_TX_PIN, default=DEFAULT_TX_PIN): pins.internal_gpio_output_pin_schema,
         cv.Optional(CONF_TX_EN_PIN, default=DEFAULT_TX_EN_PIN): pins.internal_gpio_output_pin_schema,
         cv.Optional(CONF_RX_PIN, default=DEFAULT_RX_PIN): pins.internal_gpio_input_pin_schema,
-        cv.Optional(CONF_RX_PIN, default=DEFAULT_RX_PIN): pins.internal_gpio_output_pin_schema,
+        cv.Optional(CONF_RX_THRESH_PIN, default=DEFAULT_RX_THRESH_PIN): pins.internal_gpio_output_pin_schema,
         cv.Optional(CONF_RX_SENS, default=DEFAULT_RX_SENS_MODE): cv.enum(RX_SENS_MODES, upper=False),
     }).extend(cv.COMPONENT_SCHEMA),
     validate_rx_sens_and_pin
@@ -70,5 +70,7 @@ async def to_code(config):
     cg.add(var.set_tx_en_pin(tx_en_pin))
     rx_pin = await cg.gpio_pin_expression(config[CONF_RX_PIN])
     cg.add(var.set_rx_pin(rx_pin))
+    rx_thresh_pin = await cg.gpio_pin_expression(config[CONF_RX_THRESH_PIN])
+    cg.add(var.set_rx_thresh_pin(rx_thresh_pin))
     if CONF_RX_SENS in config:
         cg.add(var.set_rx_sens(config[CONF_RX_SENS]))

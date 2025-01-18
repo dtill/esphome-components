@@ -13,6 +13,7 @@ class GdoorComponent : public Component {
   void set_tx_pin(GPIOPin *tx_pin);
   void set_tx_en_pin(GPIOPin *tx_en_pin);
   void set_rx_pin(GPIOPin *rx_pin);
+  void set_rx_thresh_pin(GPIOPin *rx_thresh_pin);
   void set_rx_sens(float rx_sens);
 
   void setup() override;
@@ -32,12 +33,14 @@ class GdoorComponent : public Component {
   GPIOPin* tx_pin() const { return tx_pin_; }
   GPIOPin* tx_en_pin() const { return tx_en_pin_; }
   GPIOPin* rx_pin() const { return rx_pin_; }
+  GPIOPin* rx_thresh_pin() const { return rx_thresh_pin_; }
   float rx_sens() const { return rx_sens_; };
 
  protected:
   GPIOPin *tx_pin_{nullptr};
   GPIOPin *tx_en_pin_{nullptr};
   GPIOPin *rx_pin_{nullptr};
+  GPIOPin *rx_thresh_pin_{nullptr};
   float rx_sens_{-1};
   GDOOR_DATA* last_rx_data_{nullptr};
   std::string last_rx_str_;
