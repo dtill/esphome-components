@@ -18,6 +18,10 @@ void GdoorComponent::set_rx_pin(GPIOPin *rx_pin) {
   this->rx_pin_ = rx_pin;
 }
 
+void GdoorComponent::set_rx_thresh_pin(GPIOPin *rx_thresh_pin) {
+  this->rx_thresh_pin_ = rx_thresh_pin;
+}
+
 void GdoorComponent::set_rx_sens(float rx_sens) {
   this->rx_sens_ = rx_sens;
 }
