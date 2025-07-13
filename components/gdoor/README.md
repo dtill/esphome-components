@@ -19,6 +19,13 @@ external_components:
     components: [gdoor]
     refresh: 0s
 
+# Enable Home Assistant API
+api:
+  reboot_timeout: 0s
+  batch_delay: 0ms        # (important for users with Homeassistant) https://github.com/esphome/esphome/pull/9298 since ESPHome 2025.6.0
+  encryption:
+    key: !secret my_own_secret_api_key # api-key generator found here: https://esphome.io/components/api.html#configuration-variables
+
 gdoor:
   id: my_gdoor      # optional set your own id here
   tx_pin: 25        # optional (default 25)
