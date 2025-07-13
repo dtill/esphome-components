@@ -79,7 +79,7 @@ light:
     name: "Blue Status LED"
     pin:
       number: GPIO2
-      ignore_strapping_warning: true  # https://github.com/esphome/feature-requests/issues/2168
+      ignore_strapping_warning: true        # https://github.com/esphome/feature-requests/issues/2168
     id: blue_status_light
     internal: true
 ```
