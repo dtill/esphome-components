@@ -66,4 +66,13 @@ button:
     icon: "mdi:door-open"
     output: gdoor_outdoor_opener
     duration: 50ms
+
+light:
+  - platform: status_led
+    name: "Blue Status LED"
+    pin:
+      number: GPIO2
+      ignore_strapping_warning: true  # https://github.com/esphome/feature-requests/issues/2168
+    id: blue_status_light
+    internal: true
 ```
