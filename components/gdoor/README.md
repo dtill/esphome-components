@@ -32,9 +32,9 @@ gdoor:
   tx_en_pin: 27     # optional (default 27)
   rx_pin: 22        # optional (default 22)
   rx_thresh_pin: 26 # optional (default 26)
-  rx_sens: 'med'  # optional if rx_pin is 22: 'low', 'med' or 'high' (default 'high')
+  rx_sens: 'med'    # optional if rx_pin is 22: 'low', 'med' or 'high' (default 'high')
 
-text_sensor:      # atm returns gdoor formatted strings like: {"action": "BUTTON_RING", "parameters": "0360", "source": "A286FD", "destination": "000000", "type": "OUTDOOR", "busdata": "011011A286FD0360A04A"}
+text_sensor:        # atm returns gdoor formatted strings like: {"action": "BUTTON_RING", "parameters": "0360", "source": "A286FD", "destination": "000000", "type": "OUTDOOR", "busdata": "011011A286FD0360A04A"}
  -  platform: gdoor
     id: gdoor_bus_message
     icon: "mdi:console-network-outline"
@@ -48,15 +48,15 @@ binary_sensor:
     name: "GDoor Button Ring"
     gdoor_id: my_gdoor
     busdata:
-      - "011011A286FD0360A04A" # example filter a short BUTTON_RING on OUTDOOR station
-      - "011011A286FD03A0A08A" # example filter a long BUTTON_RING on OUTDOOR station
+      - "011011A286FD0360A04A"                # example filter a short BUTTON_RING on OUTDOOR station
+      - "011011A286FD03A0A08A"                # example filter a long BUTTON_RING on OUTDOOR station
 
   - platform: gdoor
     id: gdoor_indoor_button_light
     icon: "mdi:lightbulb-on"
     name: "GDoor Button Light"
     gdoor_id: my_gdoor
-    busdata: "011041A286FD0000A18FA7" # example filter a BUTTON_LIGHT from INDOOR station
+    busdata: "011041A286FD0000A18FA7"         # example filter a BUTTON_LIGHT from INDOOR station
 
 output:
   - platform: gdoor
