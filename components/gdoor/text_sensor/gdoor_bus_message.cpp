@@ -21,7 +21,7 @@ void GDoorBusMessage::loop() {
       std::string current_message = this->parent_->get_last_rx_data_str();
       publish_state(current_message.c_str());
       ESP_LOGVV("GDoorBusMessage", "Published bus message: %s", current_message.c_str());
-      delay(200);
+      delay(300);
       publish_state("BUS_IDLE");
       ESP_LOGVV("GDoorBusMessage", "Switched to BUS_IDLE.");
       this->last_bus_update_ = parent_timestamp;
