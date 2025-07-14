@@ -22,8 +22,7 @@ external_components:
 # Enable Home Assistant API
 api:
   reboot_timeout: 0s
-  batch_delay: 0ms        # (important for users with Homeassistant) https://github.com/esphome/esphome/pull/9298 since ESPHome 2025.6.0
-  encryption:
+encryption:
     key: !secret my_own_secret_api_key # api-key generator found here: https://esphome.io/components/api.html#configuration-variables
 
 gdoor:
