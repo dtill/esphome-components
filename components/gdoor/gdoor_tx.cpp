@@ -166,7 +166,7 @@ namespace GDOOR_TX {
         // We only modulate with 52kHz, as the bandpass
         // manufacturing tolerances are a bit on the lower side.
         // Still works.
-        ledcSetup(pin_tx, 52000, 8);
+        ledcAttach(pin_tx, 52000, 8);
         //ledcAttachPin(pin_tx, 0);
         ledcWrite(0, 0);
 
