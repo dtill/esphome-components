@@ -143,19 +143,19 @@ namespace GDOOR_TX {
         pin_tx = txpin;
         pin_tx_en = txenpin;
 
+        constexpr uint32_t ALARM_US_TX   = 1000000 / TIMER_FREQ_TX;  // 1 Tick → 17 µs
+
         // Set timer_60khz timer frequency to 60kHz
-        timer_60khz = timerBegin(60000);
-        timerStop(timer_60khz);
+        timer_60khz = timerBegin(TIMER_FREQ_TX);
 
         // Attach isr_timer_60khz function to timer_60khz timer.
         timerAttachInterrupt(timer_60khz, &isr_timer_60khz);
 
         // Set alarm to call isr_timer_60khz function
         // after 1 60kHz Cycles
-        timerSetAlarmValue(timer_60khz, 1);
-        timerSetAutoReload(timer, true);
-        timerStart(timer_60khz);
-        
+        timerAlarm(timer_60khz, ALARM_US_TX, true);   // autoreload = true ⇒ Endlos-Takt
+        timerStop(timer_60khz);
+
         pinMode(pin_tx, OUTPUT);
         pinMode(pin_tx_en, OUTPUT);
 

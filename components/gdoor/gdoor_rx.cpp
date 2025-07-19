@@ -116,27 +116,30 @@ namespace GDOOR_RX {
         retval.len = 0;
         retval.valid = 0;
 
+        // after 20 120kHz Cycles (=10 60kHz Cycles)
+        constexpr uint32_t ALARM_US_RX   = 20 * 1000000 / TIMER_FREQ_RX;   // 20 Ticks → 166 µs
+
         // Set bit_received timer frequency to 120kHz
-        timer_bit_received = timerBegin(120000);
+        timer_bit_received = timerBegin(TIMER_FREQ_RX);
 
         // Attach isr_timer_bit_received function to bit_received timer.
         timerAttachInterrupt(timer_bit_received, &isr_timer_bit_received);
 
         // Set alarm to call isr_timer_bit_received function
-        // after 20 120kHz Cycles (=10 60kHz Cycles)
-        timerSetAlarmValue(timer_bit_received, 20);  // 20 Ticks bei 120kHz = 166 µs
-        timerStart(timer_bit_received);
+        timerAlarm(timer_bit_received, ALARM_US_RX, /*autoreload=*/false); // you restart manually!
+        // timerStart only in isr_extint_rx()
+
+        // after 6*STARTBIT_MIN_LEN 120kHz Cycles (= 3 * STARTBIT_MIN_LEN 60kHz Cycles)
+        constexpr uint32_t ALARM_US_STREAM = 6 * STARTBIT_MIN_LEN * 1000000 / TIMER_FREQ_RX;
 
         // Set bit_received timer frequency to 120kHz
-        timer_bitstream_received = timerBegin(120000);
+        timer_bitstream_received = timerBegin(TIMER_FREQ_RX);
 
         // Attach isr_timer_bit_received function to bit_received timer.
         timerAttachInterrupt(timer_bitstream_received, &isr_timer_bitstream_received);
 
         // Set alarm to call isr_timer_bit_received function
-        // after 6*STARTBIT_MIN_LEN 120kHz Cycles (= 3 * STARTBIT_MIN_LEN 60kHz Cycles)
-        timerSetAlarmValue(timer_bitstream_received, 6 * STARTBIT_MIN_LEN);
-        timerStart(timer_bitstream_received);
+        timerAlarm(timer_bitstream_received, ALARM_US_STREAM, false);
 
         // Enable External RX Interrupt
         enable();
