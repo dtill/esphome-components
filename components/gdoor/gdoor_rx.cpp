@@ -126,7 +126,7 @@ namespace GDOOR_RX {
         timerAttachInterrupt(timer_bit_received, &isr_timer_bit_received);
 
         // Set alarm to call isr_timer_bit_received function
-        timerAlarm(timer_bit_received, ALARM_US_RX, /*autoreload=*/false); // you restart manually!
+        timerAlarm(timer_bit_received, ALARM_US_RX, /*autoreload=*/false, /*reload_count=*/0); // you restart manually!
         // timerStart only in isr_extint_rx()
 
         // after 6*STARTBIT_MIN_LEN 120kHz Cycles (= 3 * STARTBIT_MIN_LEN 60kHz Cycles)
