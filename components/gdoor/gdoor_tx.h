@@ -19,7 +19,7 @@
 #define GDOOR_TX_H
 #include <Arduino.h>
 #include <esp32-hal-timer.h>
-#include <driver/ledc.h>
+#include <esp32-hal-ledc.h>
 
 namespace GDOOR_TX { //Namespace as we can only use it once
     extern uint16_t tx_state;

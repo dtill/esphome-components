@@ -139,7 +139,7 @@ namespace GDOOR_RX {
         timerAttachInterrupt(timer_bitstream_received, &isr_timer_bitstream_received);
 
         // Set alarm to call isr_timer_bit_received function
-        timerAlarm(timer_bitstream_received, ALARM_US_STREAM, false);
+        timerAlarm(timer_bit_received, ALARM_US_RX, /*autoreload=*/false, /*reload_count=*/0);
 
         // Enable External RX Interrupt
         enable();

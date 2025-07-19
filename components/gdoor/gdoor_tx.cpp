@@ -153,7 +153,7 @@ namespace GDOOR_TX {
 
         // Set alarm to call isr_timer_60khz function
         // after 1 60kHz Cycles
-        timerAlarm(timer_60khz, ALARM_US_TX, true);   // autoreload = true ⇒ Endlos-Takt
+        timerAlarm(timer_60khz, ALARM_US_TX, /*autoreload=*/true, /*reload_count=*/0);
         timerStop(timer_60khz);
 
         pinMode(pin_tx, OUTPUT);
