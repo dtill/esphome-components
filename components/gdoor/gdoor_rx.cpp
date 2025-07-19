@@ -50,8 +50,8 @@ namespace GDOOR_RX {
     void ARDUINO_ISR_ATTR isr_extint_rx() {
         rx_state |= (uint16_t)FLAG_RX_ACTIVE;
         isr_cnt = isr_cnt + 1;
-        timerRestart(timer_bit_received, 0); //restart timer to detect bit is over
-        timerRestart(timer_bitstream_received, 0); //restart timer to detect bit is over
+        timerRestart(timer_bit_received); //restart timer to detect bit is over
+        timerRestart(timer_bitstream_received); //restart timer to detect bit is over
     }
 
     /*

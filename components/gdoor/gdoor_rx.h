@@ -19,6 +19,7 @@
 
 #define GDOOR_RX_H
 #include <Arduino.h>
+#include <esp32-hal-timer.h>
 #include "gdoor_data.h"
 
 namespace GDOOR_RX { //Namespace as we can only use it once
