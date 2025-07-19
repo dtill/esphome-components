@@ -39,6 +39,11 @@ text_sensor:        # atm returns gdoor formatted strings like: {"action": "BUTT
     icon: "mdi:console-network-outline"
     name: "GDoor Bus Message"
     gdoor_id: my_gdoor
+    on_value:
+      then:
+        - light.turn_on: blue_status_light
+        - delay: 500ms
+        - light.turn_off: blue_status_light
 
 binary_sensor:
   - platform: gdoor

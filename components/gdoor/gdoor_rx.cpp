@@ -50,10 +50,8 @@ namespace GDOOR_RX {
     void ARDUINO_ISR_ATTR isr_extint_rx() {
         rx_state |= (uint16_t)FLAG_RX_ACTIVE;
         isr_cnt = isr_cnt + 1;
-        timerWrite(timer_bit_received, 0); //reset timer
-        timerWrite(timer_bitstream_received, 0); //reset timer
-        timerStart(timer_bit_received); //Start timer to detect bit is over
-        timerStart(timer_bitstream_received); //Start timer to detect bistream is over
+        timerRestart(timer_bit_received, 0); //restart timer to detect bit is over
+        timerRestart(timer_bitstream_received, 0); //restart timer to detect bit is over
     }
 
     /*
@@ -119,26 +117,26 @@ namespace GDOOR_RX {
         retval.valid = 0;
 
         // Set bit_received timer frequency to 120kHz
-        timer_bit_received = timerBegin(3, GDOOR_UTILS::divider(120000), true);
+        timer_bit_received = timerBegin(120000);
 
         // Attach isr_timer_bit_received function to bit_received timer.
-        timerAttachInterrupt(timer_bit_received, &isr_timer_bit_received, true);
+        timerAttachInterrupt(timer_bit_received, &isr_timer_bit_received);
 
         // Set alarm to call isr_timer_bit_received function
         // after 20 120kHz Cycles (=10 60kHz Cycles)
-        timerAlarmWrite(timer_bit_received, 20, true);
-        timerAlarmEnable(timer_bit_received);
+        timerSetAlarmValue(timer_bit_received, 20);  // 20 Ticks bei 120kHz = 166 µs
+        timerStart(timer_bit_received);
 
         // Set bit_received timer frequency to 120kHz
-        timer_bitstream_received = timerBegin(2, GDOOR_UTILS::divider(120000), true);
+        timer_bitstream_received = timerBegin(120000);
 
         // Attach isr_timer_bit_received function to bit_received timer.
-        timerAttachInterrupt(timer_bitstream_received, &isr_timer_bitstream_received, true);
+        timerAttachInterrupt(timer_bitstream_received, &isr_timer_bitstream_received);
 
         // Set alarm to call isr_timer_bit_received function
         // after 6*STARTBIT_MIN_LEN 120kHz Cycles (= 3 * STARTBIT_MIN_LEN 60kHz Cycles)
-        timerAlarmWrite(timer_bitstream_received, 6*STARTBIT_MIN_LEN, true);
-        timerAlarmEnable(timer_bitstream_received);
+        timerSetAlarmValue(timer_bitstream_received, 6 * STARTBIT_MIN_LEN);
+        timerStart(timer_bitstream_received);
 
         // Enable External RX Interrupt
         enable();
