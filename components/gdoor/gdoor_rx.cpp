@@ -21,163 +21,118 @@
 #include "esphome/core/log.h"
 
 using esphome::esp_log_printf_;
-
 static const char *TAG = "gdoor_esphome.gdoor_rx";
 
 namespace GDOOR_RX {
 
-    uint16_t counts[MAX_WORDLEN*9]; // Received counter values of bitstream, buffer
-    uint16_t isr_cnt = 0; // Interrupt Counter (Counting RX edges)  
+  // Sampling frequency and period
+  static constexpr uint32_t SAMPLE_FREQ_HZ   = 120000;               // 120 kHz
+  static constexpr uint32_t SAMPLE_PERIOD_US = 1000000 / SAMPLE_FREQ_HZ; // ~8 µs per sample
 
-    uint8_t words[MAX_WORDLEN]; //Received words buffer
-    uint16_t raw[MAX_WORDLEN*9]; // Received raw counter values of bitstream
+  // High-speed timer at 1MHz base
+  static hw_timer_t *gdoor_timer = nullptr;
 
-    uint16_t rx_state = 0; // State Machine
+  // Reception buffers and state
+  uint16_t counts[MAX_WORDLEN * 9];  // Pulse counts per bit
+  uint16_t isr_cnt = 0;              // Pulses counted within current bit
+  uint8_t  bitcounter = 0;           // Number of bits received so far
+  uint16_t rx_state = 0;             // State flags
+  GDOOR_DATA retval;                 // Parsed data
+  uint8_t pin_rx = 0;                // Input pin
 
-    uint8_t bitcounter = 0; //Current bit index, in currently active bitstream
+  // External interrupt: triggered on falling edge of 60kHz pulse
+  void IRAM_ATTR isr_extint_rx() {
+    rx_state |= FLAG_RX_ACTIVE;
+    isr_cnt++;
+  }
 
-    GDOOR_DATA retval;
-
-    hw_timer_t * timer_bit_received = NULL;
-    hw_timer_t * timer_bitstream_received = NULL;
-
-    uint8_t pin_rx = 0;
-    
-    /*
-    * We received a 60kHz pulse, so start timeout timer (for bit and whole bitstream) and increment bit pulse count,
-    * so that logic knows how much pulses were in this bit pulse-train.
-    */
-    void IRAM_ATTR isr_extint_rx() {
-        rx_state |= (uint16_t)FLAG_RX_ACTIVE;
-        isr_cnt = isr_cnt + 1;
-        timerRestart(timer_bit_received); //restart timer to detect bit is over
-        timerRestart(timer_bitstream_received); //restart timer to detect bit is over
+  // Timer ISR: called every SAMPLE_PERIOD_US µs
+  void IRAM_ATTR gdoor_timer_isr() {
+    static bool prev_level = true;
+    bool cur_level = digitalRead(pin_rx);
+    // detect rising edge in sampled signal
+    if (!prev_level && cur_level && (rx_state & FLAG_RX_ACTIVE)) {
+      isr_cnt++;
     }
+    prev_level = cur_level;
 
-    /*
-    * If this timer fires, the rx 60kHz pulse-train stopped,
-    * so we should read out how many pulses we got for this bit (to decide 1 or 0)
-    */
-    //void IRAM_ATTR isr_timer_bit_received() {
-    //    if (bitcounter > MAX_WORDLEN*9) {
-    //        bitcounter = 0;
-    //    }
-    //    counts[bitcounter] = isr_cnt;
-    //
-    //    isr_cnt = 0;
-    //    bitcounter = bitcounter + 1;
-    //    timerStop(timer_bit_received);
-    //}
-    static volatile uint32_t dbg_cnt = 0;
-    void IRAM_ATTR isr_timer_bit_received() { dbg_cnt++; }
+    // simple timeout logic to detect end of a burst
+    static uint32_t idle_ticks = 0;
+    idle_ticks++;
+    if (idle_ticks * SAMPLE_PERIOD_US >= (SAMPLE_PERIOD_US * 10)) {
+      // End of bit train detected (~83µs without pulses)
+      counts[bitcounter++] = isr_cnt;
+      isr_cnt = 0;
+      idle_ticks = 0;
 
-    /*
-    * If this timer fires, rx bit stream is over
-    */
-    void IRAM_ATTR isr_timer_bitstream_received() {
-        rx_state &= (uint16_t)~FLAG_RX_ACTIVE;
-        rx_state |= (uint16_t)FLAG_BITSTREAM_RECEIVED;
-        timerStop(timer_bitstream_received);
-        timerStop(timer_bit_received);
+      if (bitcounter >= MAX_WORDLEN * 9) {
+        rx_state |= FLAG_BITSTREAM_RECEIVED;
+        rx_state &= ~FLAG_RX_ACTIVE;
+        timerStop(gdoor_timer);
+      }
     }
+  }
 
-    /*
-    * Internal function set reset all internal values.
-    */
-    void reset() {
-        bitcounter = 0;
-        isr_cnt = 0;
+  // Reset internal counters
+  void reset() {
+    bitcounter = 0;
+    isr_cnt = 0;
+    rx_state = 0;
+  }
+
+  // Enable RX: attach ext interrupt and start timer
+  void enable() {
+    reset();
+    attachInterrupt(pin_rx, isr_extint_rx, FALLING);
+    if (gdoor_timer) {
+      timerAlarm(gdoor_timer, SAMPLE_PERIOD_US, true, 0);
+      timerStart(gdoor_timer);
     }
+  }
 
-    /*
-    * Function to enable/disable RX, so that during TX we can disable RX to not get our own message
-    */
-    void enable() {
-        reset();
-        attachInterrupt(pin_rx, isr_extint_rx, FALLING);
+  // Disable RX: detach interrupt and stop timer
+  void disable() {
+    detachInterrupt(pin_rx);
+    if (gdoor_timer) timerStop(gdoor_timer);
+  }
+
+  // Setup function: configure pin, timer, and interrupts
+  void setup(uint8_t rxpin) {
+    pin_rx = rxpin;
+    pinMode(pin_rx, INPUT_PULLUP);
+    retval.len = 0;
+    retval.valid = 0;
+
+    // initialize high-frequency timer at 1MHz base for µs precision
+    gdoor_timer = timerBegin(1000000);
+    timerAttachInterrupt(gdoor_timer, &gdoor_timer_isr);
+    timerAlarm(gdoor_timer, SAMPLE_PERIOD_US, true, 0);
+    timerStop(gdoor_timer);
+
+    enable();
+  }
+
+  // Loop: called from main loop, handle completed bitstream
+  void loop() {
+    if (rx_state & FLAG_BITSTREAM_RECEIVED) {
+      rx_state &= ~FLAG_BITSTREAM_RECEIVED;
+      ESP_LOGVV(TAG, "Gira RX done, bits=%u", bitcounter);
+      if (retval.parse(counts, bitcounter)) {
+        ESP_LOGVV(TAG, "Gira RX parsed, len=%u", retval.len);
+        rx_state |= FLAG_DATA_READY;
+      }
+      reset();
+      // Timer remains running for next reception
     }
+  }
 
-     /*
-    * Function to enable/disable RX, so that during TX we can disable RX to not get our own message
-    */
-    void disable() {
-        reset();
-        detachInterrupt(pin_rx);
+  // Read parsed data if available
+  GDOOR_DATA* read() {
+    if (rx_state & FLAG_DATA_READY) {
+      rx_state &= ~FLAG_DATA_READY;
+      return &retval;
     }
-    
+    return nullptr;
+  }
 
-    /*
-    * Function called by user to setup everything needed for GDoor.
-    * @param int rxpin Pin number where pulses from bus are received
-    */
-    void setup(uint8_t rxpin) {
-        reset();
-        pin_rx = rxpin;
-        pinMode(pin_rx, INPUT);
-
-        retval.len = 0;
-        retval.valid = 0;
-
-        // after 20 120kHz Cycles (=10 60kHz Cycles)
-        constexpr uint32_t ALARM_US_RX   = 20 * 1000000 / TIMER_FREQ_RX;   // 20 Ticks → 166 µs
-
-        // Set bit_received timer frequency to 120kHz
-        timer_bit_received = timerBegin(TIMER_FREQ_RX);
-
-        // Attach isr_timer_bit_received function to bit_received timer.
-        timerAttachInterrupt(timer_bit_received, &isr_timer_bit_received);
-
-        // Set alarm to call isr_timer_bit_received function
-        timerAlarm(timer_bit_received, ALARM_US_RX, /*autoreload=*/false, /*reload_count=*/0); // you restart manually!
-        // timerStart only in isr_extint_rx()
-
-        // after 6*STARTBIT_MIN_LEN 120kHz Cycles (= 3 * STARTBIT_MIN_LEN 60kHz Cycles)
-        constexpr uint32_t ALARM_US_STREAM = 6 * STARTBIT_MIN_LEN * 1000000 / TIMER_FREQ_RX;
-
-        // Set bit_received timer frequency to 120kHz
-        timer_bitstream_received = timerBegin(TIMER_FREQ_RX);
-
-        // Attach isr_timer_bit_received function to bit_received timer.
-        timerAttachInterrupt(timer_bitstream_received, &isr_timer_bitstream_received);
-
-        // Set alarm to call isr_timer_bit_received function
-        timerAlarm(timer_bit_received, ALARM_US_RX, /*autoreload=*/false, /*reload_count=*/0);
-
-        // Enable External RX Interrupt
-        enable();
-
-        // Set Timers to default values, just to be sure
-        timerWrite(timer_bit_received, 0); //reset timer
-        timerWrite(timer_bitstream_received, 0); //reset timer
-        timerStop(timer_bitstream_received);
-        timerStop(timer_bit_received);
-    }
-
-    /*
-    * Function called by user, in main loop.
-    * Needed for the decoding logic.
-    */
-    void loop() {
-        if (rx_state & FLAG_BITSTREAM_RECEIVED) {
-            rx_state &= (uint16_t)~FLAG_BITSTREAM_RECEIVED;
-            ESP_LOGVV(TAG, "Gira RX done");
-            if (retval.parse(counts, bitcounter)) {
-                ESP_LOGVV(TAG, "Gira RX was successfully parsed");
-                rx_state |= FLAG_DATA_READY;
-            }
-            reset();
-        }
-    }
-
-    /**
-    * User function, called to see if new data is available.
-    * @return Data pointer as GDOOR_RX_DATA class or NULL if no data is available
-    */
-    GDOOR_DATA* read() {
-        if(rx_state & FLAG_DATA_READY) {
-            rx_state &= (uint16_t)~FLAG_DATA_READY;
-            return &retval;
-        }
-        return NULL;
-    }
-}
+}  // namespace GDOOR_RX
