@@ -21,6 +21,8 @@ using esphome::esp_log_printf_;
 
 static const char *TAG = "gdoor_esphome.gdoor";
 
+static volatile uint32_t dbg_cnt = 0;
+
 namespace GDOOR {
     /*
     * Setup everything needed for GDoor.
@@ -31,7 +33,6 @@ namespace GDOOR {
     void setup(uint8_t txpin, uint8_t txenpin, uint8_t rxpin) {
         GDOOR_RX::setup(rxpin);
         GDOOR_TX::setup(txpin, txenpin);
-        static volatile uint32_t dbg_cnt = 0;
     }
 
     /*
