@@ -31,6 +31,7 @@ namespace GDOOR {
     void setup(uint8_t txpin, uint8_t txenpin, uint8_t rxpin) {
         GDOOR_RX::setup(rxpin);
         GDOOR_TX::setup(txpin, txenpin);
+        static volatile uint32_t dbg_cnt = 0;
     }
 
     /*
@@ -39,6 +40,13 @@ namespace GDOOR {
     */
     void loop() {
         GDOOR_RX::loop();
+        static uint32_t last_ms = 0;
+        if (dbg_cnt >= 1000) {
+            dbg_cnt = 0;
+            uint32_t now = millis();
+            ESP_LOGI("GDOOR_RX", "1000 Bit‑ISR‑Ticks in %u ms", now - last_ms);
+            last_ms = now;
+        }
     }
 
     /**
