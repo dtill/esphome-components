@@ -58,16 +58,18 @@ namespace GDOOR_RX {
     * If this timer fires, the rx 60kHz pulse-train stopped,
     * so we should read out how many pulses we got for this bit (to decide 1 or 0)
     */
-    void IRAM_ATTR isr_timer_bit_received() {
-        if (bitcounter > MAX_WORDLEN*9) {
-            bitcounter = 0;
-        }
-        counts[bitcounter] = isr_cnt;
-
-        isr_cnt = 0;
-        bitcounter = bitcounter + 1;
-        timerStop(timer_bit_received);
-    }
+    //void IRAM_ATTR isr_timer_bit_received() {
+    //    if (bitcounter > MAX_WORDLEN*9) {
+    //        bitcounter = 0;
+    //    }
+    //    counts[bitcounter] = isr_cnt;
+    //
+    //    isr_cnt = 0;
+    //    bitcounter = bitcounter + 1;
+    //    timerStop(timer_bit_received);
+    //}
+    static volatile uint32_t dbg_cnt = 0;
+    void IRAM_ATTR isr_timer_bit_received() { dbg_cnt++; }
 
     /*
     * If this timer fires, rx bit stream is over
