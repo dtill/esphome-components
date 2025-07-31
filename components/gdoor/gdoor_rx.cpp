@@ -41,13 +41,13 @@ namespace GDOOR_RX {
   uint8_t pin_rx = 0;                // Input pin
 
   // External interrupt: triggered on falling edge of 60kHz pulse
-  void IRAM_ATTR isr_extint_rx() {
+  void ARDUINO_ISR_ATTR isr_extint_rx() {
     rx_state |= FLAG_RX_ACTIVE;
     isr_cnt++;
   }
 
   // Timer ISR: called every SAMPLE_PERIOD_US µs
-  void IRAM_ATTR gdoor_timer_isr() {
+  void ARDUINO_ISR_ATTR gdoor_timer_isr() {
     static bool prev_level = true;
     bool cur_level = digitalRead(pin_rx);
     // detect rising edge in sampled signal
