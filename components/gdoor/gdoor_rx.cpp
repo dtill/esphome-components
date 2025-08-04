@@ -1,7 +1,6 @@
 /* 
  * This file is part of the GDoor distribution (https://github.com/gdoor-org).
- * Copyright (c) 2024 GDoor authors.
- * ... (rest of the license header)
+ * ... (license header)
  */
 #include "defines.h"
 #include "gdoor_rx.h"
@@ -15,10 +14,9 @@ static const char *TAG = "gdoor_esphome.gdoor_rx";
 
 namespace GDOOR_RX {
 
-    // --- DEBUGGING FLAG ---
-    // This flag is set to true within the ISR and checked in the main loop.
-    // 'volatile' is crucial to prevent the compiler from optimizing away access to this variable.
-    static volatile bool isr_triggered_flag = false;
+    // --- DEBUGGING FLAGS ---
+    static volatile bool ext_interrupt_fired_flag = false;
+    static volatile bool bit_timer_fired_flag = false;
 
     uint16_t counts[MAX_WORDLEN*9];
     uint16_t isr_cnt = 0;
@@ -37,19 +35,22 @@ namespace GDOOR_RX {
     uint8_t pin_rx = 0;
 
     void ARDUINO_ISR_ATTR isr_extint_rx() {
-        // --- Set the flag here ---
-        // This is a safe operation within an ISR.
-        isr_triggered_flag = true;
+        ext_interrupt_fired_flag = true; // Set flag for debug output
 
-        // The original logic remains
         rx_state |= (uint16_t)FLAG_RX_ACTIVE;
         isr_cnt = isr_cnt + 1;
-        timerRestart(timer_bit_received);
-        timerRestart(timer_bitstream_received);
+
+        // Let's try to start the timers here explicitly
+        timerStart(timer_bit_received);
+        timerStart(timer_bitstream_received);
+        // And also restart the count to 0
+        timerWrite(timer_bit_received, 0);
+        timerWrite(timer_bitstream_received, 0);
     }
 
-    // ... (rest of the ISRs: isr_timer_bit_received, isr_timer_bitstream_received)
     void ARDUINO_ISR_ATTR isr_timer_bit_received() {
+        bit_timer_fired_flag = true; // Set flag for debug output
+
         if (bitcounter >= MAX_WORDLEN*9) {
             bitcounter = 0;
         }
@@ -85,69 +86,52 @@ namespace GDOOR_RX {
     void setup(uint8_t rxpin) {
         reset();
         pin_rx = rxpin;
-        pinMode(pin_rx, INPUT);
+        pinMode(pin_rx, INPUT_PULLUP); // Using INPUT_PULLUP is often safer
+
+        ESP_LOGD(TAG, "GDoor RX setup on pin: %d", rxpin);
 
         retval.len = 0;
         retval.valid = 0;
 
         constexpr uint32_t ALARM_US_RX = (20 * 1000000) / TIMER_FREQ_RX;
         constexpr uint32_t ALARM_US_STREAM = (6 * STARTBIT_MIN_LEN * 1000000) / TIMER_FREQ_RX;
+        ESP_LOGD(TAG, "Timer RX Alarm value: %d us", ALARM_US_RX);
+        ESP_LOGD(TAG, "Timer Stream Alarm value: %d us", ALARM_US_STREAM);
 
         timer_bit_received = timerBegin(TIMER_FREQ_RX);
         timerAttachInterrupt(timer_bit_received, &isr_timer_bit_received);
-        timerAlarm(timer_bit_received, ALARM_US_RX, /*autoreload=*/false, 0);
+        timerAlarm(timer_bit_received, ALARM_US_RX, false, 0);
 
         timer_bitstream_received = timerBegin(TIMER_FREQ_RX);
         timerAttachInterrupt(timer_bitstream_received, &isr_timer_bitstream_received);
-        timerAlarm(timer_bitstream_received, ALARM_US_STREAM, /*autoreload=*/false, 0);
+        timerAlarm(timer_bitstream_received, ALARM_US_STREAM, false, 0);
 
         enable();
 
-        timerStop(timer_bit_received);
-        timerStop(timer_bitstream_received);
+        // Timers are configured but will be started by the first external interrupt.
+        ESP_LOGI(TAG, "GDoor RX setup complete. Waiting for bus activity.");
     }
 
     void loop() {
-        // --- DEBUGGING CHECK for external interrupt ---
-        // (This part can remain for now, it doesn't hurt)
-        if (isr_triggered_flag) {
-            ESP_LOGD(TAG, "*** External interrupt triggered! (isr_extint_rx fired) ***");
-            isr_triggered_flag = false;
+        if (ext_interrupt_fired_flag) {
+            ESP_LOGD(TAG, ">>> Ext Interrupt Fired!");
+            ext_interrupt_fired_flag = false;
         }
 
-        // Check if the "bitstream received" timer has fired
+        if (bit_timer_fired_flag) {
+            ESP_LOGD(TAG, "======> Bit Timer Fired! (isr_timer_bit_received was called)");
+            bit_timer_fired_flag = false;
+        }
+
         if (rx_state & FLAG_BITSTREAM_RECEIVED) {
-            // --- NEW DEBUGGING BLOCK ---
-            // Log the data we have collected before trying to parse it.
+            ESP_LOGI(TAG, ">>>>>>>>> Stream Timer Fired! Bit count: %d", bitcounter);
 
-            char buffer[256]; // A buffer to build the log string
-            int offset = 0;
-            // Print the number of bits (or pulse groups) detected
-            offset += snprintf(buffer + offset, sizeof(buffer) - offset, "Bitstream received. Bit count: %d. Counts: [", bitcounter);
-
-            // Print the pulse count for each detected bit
-            for (int i = 0; i < bitcounter && i < MAX_WORDLEN*9; i++) {
-                offset += snprintf(buffer + offset, sizeof(buffer) - offset, "%d", counts[i]);
-                if (i < bitcounter - 1) {
-                    offset += snprintf(buffer + offset, sizeof(buffer) - offset, ", ");
-                }
-            }
-            snprintf(buffer + offset, sizeof(buffer) - offset, "]");
-
-            // Print the complete string to the log
-            ESP_LOGD(TAG, "%s", buffer);
-
-            // --- END OF NEW DEBUGGING BLOCK ---
-
-
-            // Now, attempt to parse the data (original logic)
             rx_state &= (uint16_t)~FLAG_BITSTREAM_RECEIVED;
-            ESP_LOGVV(TAG, "Gira RX done"); // This is a VERBOSE log level, you might not see it
             if (retval.parse(counts, bitcounter)) {
-                ESP_LOGI(TAG, "Gira RX was successfully parsed!"); // Changed to INFO to be more visible
+                ESP_LOGI(TAG, "Gira RX was successfully parsed!");
                 rx_state |= FLAG_DATA_READY;
             } else {
-                ESP_LOGW(TAG, "Gira RX parse failed!"); // Added a warning if parsing fails
+                ESP_LOGW(TAG, "Gira RX parse failed!");
             }
             reset();
         }
