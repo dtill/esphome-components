@@ -50,6 +50,12 @@ namespace GDOOR_RX {
     }
 
     void loop() {
+        if (rx_state & FLAG_OVF) {
+            ESP_LOGW(TAG, "Edge-buffer overflow – Frame verworfen");
+            reset();                     // Buffer & State zurücksetzen
+            rx_state &= ~FLAG_OVF;
+            return;
+        }
         if (edge_pos < 0) return;
         if ((micros() - edge_timings[edge_pos]) > FRAME_END_US) {
             noInterrupts();
