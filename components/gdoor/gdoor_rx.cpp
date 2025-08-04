@@ -7,7 +7,7 @@
 static const char *TAG = "gdoor_esphome.gdoor_rx";
 
 namespace GDOOR_RX {
-
+    // ... (Variablen bleiben unverändert) ...
     static volatile uint32_t edge_timings[MAX_WORDLEN * 20] = {0};
     static volatile int32_t edge_pos = -1;
     uint8_t pin_rx = 0;
@@ -21,17 +21,9 @@ namespace GDOOR_RX {
         }
     }
 
-    void enable() {
-        attachInterrupt(pin_rx, isr_extint_rx, FALLING);
-    }
-    void disable() {
-        detachInterrupt(pin_rx);
-    }
-     void reset() {
-        edge_pos = -1;
-        rx_state = 0;
-    }
-
+    void enable() { attachInterrupt(pin_rx, isr_extint_rx, FALLING); }
+    void disable() { detachInterrupt(pin_rx); }
+    void reset() { edge_pos = -1; rx_state = 0; }
 
     void setup(uint8_t rxpin) {
         pin_rx = rxpin;
@@ -42,7 +34,6 @@ namespace GDOOR_RX {
 
     void loop() {
         if (edge_pos < 0) return;
-
         if ((micros() - edge_timings[edge_pos]) > 5000) {
             noInterrupts();
             int32_t local_pos = edge_pos;
@@ -58,22 +49,33 @@ namespace GDOOR_RX {
             uint16_t current_pulse_count = 0;
             const uint32_t PAUSE_BETWEEN_BITS_US = 150;
 
+            ESP_LOGD(TAG, "------ BEGIN TIMING ANALYSIS (Message with %d pulses) ------", local_pos + 1);
+
             for (int i = 0; i <= local_pos; i++) {
                 current_pulse_count++;
                 bool is_last_pulse = (i == local_pos);
                 if (!is_last_pulse) {
                     uint32_t delta_to_next = local_timings[i+1] - local_timings[i];
+
+                    // #######################################################
+                    // ## DIESE DIAGNOSE-ZEILE IST DER SCHLÜSSEL           ##
+                    // ## Sie loggt die Zeit seit dem letzten Impuls.        ##
+                    // #######################################################
+                    ESP_LOGD(TAG, "Pulse %d -> Delta to next: %d µs", i, delta_to_next);
+
                     if (delta_to_next > PAUSE_BETWEEN_BITS_US) {
                         if (bit_idx < (MAX_WORDLEN * 9)) counts[bit_idx++] = current_pulse_count;
                         current_pulse_count = 0;
+                        ESP_LOGD(TAG, "==> PAUSE DETECTED. Stored count %d. Resetting counter. <==", counts[bit_idx-1]);
                     }
                 } else {
                     if (bit_idx < (MAX_WORDLEN * 9)) counts[bit_idx++] = current_pulse_count;
+                    ESP_LOGD(TAG, "==> END OF MESSAGE. Stored final count %d. <==", counts[bit_idx-1]);
                 }
             }
+            ESP_LOGD(TAG, "------ END TIMING ANALYSIS ------");
 
             if (retval.parse(counts, bit_idx)) {
-                ESP_LOGVV(TAG, "Gira RX was successfully parsed");
                 rx_state |= FLAG_DATA_READY;
             }
         }
