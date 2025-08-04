@@ -46,8 +46,8 @@ namespace GDOOR_TX {
     TX_STATE state           = IDLE;
   } ctx;
 
-  static uint8_t PIN_TX      = 0;     // outputs 60 kHz carrier (LEDC ch0)
-  static uint8_t PIN_TX_EN   = 0;     // high = connect driver to bus
+  static uint8_t tx_pin_hw   = 0;   // outputs 60 kHz carrier
+  static uint8_t tx_en_hw    = 0;   // high = connect driver
 
   // -------------------------------------------------------------------------
   // helpers
@@ -80,7 +80,7 @@ namespace GDOOR_TX {
       }
       case GAP: {                 // finished inter-bit gap
         if (ctx.index >= ctx.total_bits) {   // frame done
-          digitalWrite(PIN_TX_EN, LOW);      // disconnect driver
+          digitalWrite(tx_en_hw, LOW);      // disconnect driver
           ctx.state = IDLE;
           GDOOR_RX::enable();                // re-enable RX
           ESP_LOGV(TAG, "TX finished");
@@ -101,14 +101,14 @@ namespace GDOOR_TX {
   // public API
   // -------------------------------------------------------------------------
   void setup(uint8_t txpin, uint8_t txenpin) {
-    PIN_TX    = txpin;
-    PIN_TX_EN = txenpin;
+    tx_pin_hw    = txpin;
+    tx_en_hw = txenpin;
 
-    pinMode(PIN_TX_EN, OUTPUT);
-    digitalWrite(PIN_TX_EN, LOW);
+    pinMode(tx_en_hw, OUTPUT);
+    digitalWrite(tx_en_hw, LOW);
 
     // 60 kHz carrier, 8-bit resolution (channel 0)
-    ledcAttach(PIN_TX, CARRIER_HZ, 8);
+    ledcAttach(tx_pin_hw, CARRIER_HZ, 8);
     ledcWrite(0, 0);               // off by default
 
     ctx.state = IDLE;
@@ -135,7 +135,7 @@ namespace GDOOR_TX {
 
     // ------------------------------------------------------------ go live --
     GDOOR_RX::disable();           // avoid self-echo
-    digitalWrite(PIN_TX_EN, HIGH); // connect driver
+    digitalWrite(tx_en_hw, HIGH); // connect driver
 
     ledcWrite(0, 128);             // first carrier burst
     ctx.deadline_us = micros() + (uint32_t)START_PULSES * HALF_WAVE_US;
