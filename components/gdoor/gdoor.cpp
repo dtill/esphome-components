@@ -21,8 +21,6 @@ using esphome::esp_log_printf_;
 
 static const char *TAG = "gdoor_esphome.gdoor";
 
-static volatile uint32_t dbg_cnt = 0;
-
 namespace GDOOR {
     /*
     * Setup everything needed for GDoor.
@@ -41,13 +39,7 @@ namespace GDOOR {
     */
     void loop() {
         GDOOR_RX::loop();
-        static uint32_t last_ms = 0;
-        if (dbg_cnt >= 1000) {
-            dbg_cnt = 0;
-            uint32_t now = millis();
-            ESP_LOGI("GDOOR_RX", "1000 Bit‑ISR‑Ticks in %u ms", now - last_ms);
-            last_ms = now;
-        }
+        GDOOR_TX::loop();
     }
 
     /**
@@ -81,7 +73,7 @@ namespace GDOOR {
     * @return true: GDOOR RX or TX is active. False: no GDOOR activity.
     */
     bool active() {
-        return (GDOOR_TX::tx_state != 0 || GDOOR_RX::rx_state != 0);
+        return (GDOOR_TX::busy() || GDOOR_RX::rx_state != 0);
     }
 
     /** Set RX Threshold (Sensitivity) to a certain level,
