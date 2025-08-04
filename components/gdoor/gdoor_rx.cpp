@@ -48,25 +48,22 @@ namespace GDOOR_RX {
     }
 
     void loop() {
-    if (edge_pos < 0) return;
-    if ((micros() - edge_timings[edge_pos]) > FRAME_END_US) {
-        noInterrupts();
-        int32_t local_pos = edge_pos;
-        static uint32_t local_timings[MAX_WORDLEN * 40];
-        if (local_pos >= 0)
+        if (edge_pos < 0) return;
+        if ((micros() - edge_timings[edge_pos]) > FRAME_END_US) {
+            noInterrupts();
+            int32_t local_pos = edge_pos;
+            static uint32_t local_timings[MAX_WORDLEN * 40];
             memcpy(local_timings,
                    (void*)edge_timings,
                    (local_pos + 1) * sizeof(uint32_t));
-        edge_pos = -1;
-        interrupts();
+            edge_pos = -1;            // Buffer wieder freigeben
+            interrupts();
 
             if (local_pos < 1) return;
-
             uint16_t counts[MAX_WORDLEN * 9] = {0};
             uint8_t bit_idx = 0;
             uint16_t current_pulse_count = 0;
             const uint32_t PAUSE_BETWEEN_BITS_US = 150;
-
             for (int i = 0; i <= local_pos; i++) {
                 current_pulse_count++;
                 bool is_last_pulse = (i == local_pos);
@@ -82,16 +79,15 @@ namespace GDOOR_RX {
             }
 
             // Temporäres Debugging, um das rekonstruierte Array zu sehen
-            //char debug_buffer[256];
-            //int offset = 0;
-            //offset += snprintf(debug_buffer, sizeof(debug_buffer), "Reconstructed Counts: [");
-            //for(int i=0; i<bit_idx; i++) {
-            //    if(offset < 240) offset += snprintf(debug_buffer+offset, sizeof(debug_buffer)-offset, "%d, ", counts[i]);
-            //}
-            //snprintf(debug_buffer+offset, sizeof(debug_buffer)-offset, "]");
-            //ESP_LOGD(TAG, "%s", debug_buffer);
+            char debug_buffer[256];
+            int offset = 0;
+            offset += snprintf(debug_buffer, sizeof(debug_buffer), "Reconstructed Counts: [");
+            for(int i=0; i<bit_idx; i++) {
+                if(offset < 240) offset += snprintf(debug_buffer+offset, sizeof(debug_buffer)-offset, "%d, ", counts[i]);
+            }
+            snprintf(debug_buffer+offset, sizeof(debug_buffer)-offset, "]");
+            ESP_LOGD(TAG, "%s", debug_buffer);
             // Ende Debugging
-
             if (retval.parse(counts, bit_idx)) {
                 rx_state |= FLAG_DATA_READY;
             }
