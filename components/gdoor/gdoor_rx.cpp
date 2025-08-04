@@ -4,22 +4,40 @@
 #include "esphome/core/log.h"
 
 static const char *TAG = "gdoor_esphome.gdoor_rx";
+
 namespace GDOOR_RX {
     static volatile bool isr_was_called = false;
     uint8_t pin_rx = 0;
-    GDOOR_DATA retval; uint16_t rx_state = 0;
+    GDOOR_DATA retval;
+    uint16_t rx_state = 0;
+
     void ARDUINO_ISR_ATTR isr_extint_rx() { isr_was_called = true; }
+
+    // --- HIER DIE KORREKTUR FÜR DEN LINKER-FEHLER ---
+    // Diese Funktionen werden von gdoor_tx.cpp benötigt.
+    void enable() {
+        attachInterrupt(pin_rx, isr_extint_rx, FALLING);
+        ESP_LOGD(TAG, "RX enabled.");
+    }
+    void disable() {
+        detachInterrupt(pin_rx);
+        ESP_LOGD(TAG, "RX disabled.");
+    }
+    // --- ENDE DER KORREKTUR ---
+
     void setup(uint8_t rxpin) {
         pin_rx = rxpin;
         pinMode(pin_rx, INPUT_PULLUP);
-        ESP_LOGI(TAG, "RX setup on pin %d. Attaching interrupt.", pin_rx);
-        attachInterrupt(pin_rx, isr_extint_rx, FALLING);
+        ESP_LOGI(TAG, "STEP 1 TEST: RX setup on pin %d. Attaching interrupt.", pin_rx);
+        enable(); // Ruft jetzt unsere neue enable-Funktion auf
     }
+
     void loop() {
         if (isr_was_called) {
-            ESP_LOGI(TAG, "SUCCESS: RX Interrupt was triggered!");
+            ESP_LOGI(TAG, "********** SUCCESS! RX Interrupt was triggered! **********");
             isr_was_called = false;
         }
     }
+
     GDOOR_DATA* read() { return NULL; }
 }
