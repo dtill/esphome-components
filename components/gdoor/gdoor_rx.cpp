@@ -22,7 +22,8 @@
 
 static const char *TAG = "gdoor_esphome.gdoor_rx";
 namespace GDOOR_RX {
-    static volatile uint32_t edge_timings[MAX_WORDLEN * 40] = {0};
+    #define EDGE_BUF_SIZE   7000
+    static volatile uint32_t edge_timings[EDGE_BUF_SIZE] = {0};
     static volatile int32_t edge_pos = -1;
     const uint32_t FRAME_END_US = 40000;
     uint8_t pin_rx = 0;
@@ -30,9 +31,10 @@ namespace GDOOR_RX {
     uint16_t rx_state = 0;
 
     void ARDUINO_ISR_ATTR isr_extint_rx() {
-        if (edge_pos < ((MAX_WORDLEN * 20) - 1)) {
-            edge_pos++;
-            edge_timings[edge_pos] = micros();
+        if (edge_pos < EDGE_BUF_SIZE - 1) {
+            edge_timings[++edge_pos] = micros();
+        } else {
+            rx_state |= FLAG_OVF;             // Optional: Overflow-Flag
         }
     }
 
