@@ -30,7 +30,7 @@ class GDOOR_DATA : public Printable { // Class/Struct to collect bus related inf
         uint16_t raw[MAX_WORDLEN*9];
         uint8_t valid;
 
-        boolean parse(uint16_t *counts, uint16_t len);
+        bool parse_from_timings(uint32_t *timings, uint16_t len);
 
         virtual size_t printTo(Print& p) const {
             size_t r = 0;
