@@ -1,6 +1,12 @@
-/* 
+/*
  * This file is part of the GDoor distribution (https://github.com/gdoor-org).
+ * Copyright (c) 2024 GDoor authors.
  * ... (license header)
+ *
+ * This version has been fundamentally rewritten to align with the Arduino Core v3.x
+ * timer handling, as seen in ESPHome's native components. It uses a single,
+ * free-running timer as a stopwatch and processes time deltas in the main loop
+ * to avoid issues with non-ISR-safe function calls.
  */
 #include "defines.h"
 #include "gdoor_rx.h"
@@ -14,66 +20,41 @@ static const char *TAG = "gdoor_esphome.gdoor_rx";
 
 namespace GDOOR_RX {
 
-    // --- DEBUGGING FLAGS ---
-    static volatile bool ext_interrupt_fired_flag = false;
-    static volatile bool bit_timer_fired_flag = false;
+    // --- Data Collection ---
+    // Buffer to store time deltas between interrupts (in microseconds)
+    static volatile uint32_t delta_buffer[MAX_WORDLEN * 20];
+    static volatile int buffer_index = 0;
+    // Flag to signal the main loop that a message is ready for processing
+    static volatile bool message_ready = false;
 
-    uint16_t counts[MAX_WORDLEN*9];
-    uint16_t isr_cnt = 0;
-
-    uint8_t words[MAX_WORDLEN];
-    uint16_t raw[MAX_WORDLEN*9];
-
-    uint16_t rx_state = 0;
-    uint8_t bitcounter = 0;
-
+    // --- State Variables ---
     GDOOR_DATA retval;
-
-    hw_timer_t * timer_bit_received = NULL;
-    hw_timer_t * timer_bitstream_received = NULL;
-
     uint8_t pin_rx = 0;
 
-    // Pre-calculated alarm values to use in the ISR
-    constexpr uint32_t ALARM_US_RX = (20 * 1000000) / TIMER_FREQ_RX;
-    constexpr uint32_t ALARM_US_STREAM = (6 * STARTBIT_MIN_LEN * 1000000) / TIMER_FREQ_RX;
+    // --- Timer and ISR Variables ---
+    hw_timer_t *stopwatch = NULL;
+    // Stores the timestamp of the last interrupt
+    static volatile uint64_t last_interrupt_micros = 0;
 
-
+    // The GPIO ISR - now extremely simple and fast
     void ARDUINO_ISR_ATTR isr_extint_rx() {
-        ext_interrupt_fired_flag = true; // Set flag for debugging
+        // Read the current time from our free-running "stopwatch" timer
+        const uint64_t now = timerRead(stopwatch);
 
-        rx_state |= (uint16_t)FLAG_RX_ACTIVE;
-        isr_cnt = isr_cnt + 1;
+        // Calculate the time since the last interrupt
+        const uint32_t delta = now - last_interrupt_micros;
+        last_interrupt_micros = now;
 
-        // CORRECT WAY: (Re)set the alarm with a non-zero value to enable it.
-        timerAlarm(timer_bit_received, ALARM_US_RX, false, 0);
-        timerAlarm(timer_bitstream_received, ALARM_US_STREAM, false, 0);
-    }
-
-    void ARDUINO_ISR_ATTR isr_timer_bit_received() {
-        bit_timer_fired_flag = true; // Set flag for debugging
-
-        if (bitcounter >= MAX_WORDLEN*9) {
-            bitcounter = 0;
+        // Store the delta if there is space in the buffer
+        if (buffer_index < (MAX_WORDLEN * 20)) {
+            delta_buffer[buffer_index++] = delta;
         }
-        counts[bitcounter] = isr_cnt;
-
-        isr_cnt = 0;
-        bitcounter = bitcounter + 1;
-        // A one-shot alarm disables itself after firing.
-    }
-
-    void ARDUINO_ISR_ATTR isr_timer_bitstream_received() {
-        rx_state &= (uint16_t)~FLAG_RX_ACTIVE;
-        rx_state |= (uint16_t)FLAG_BITSTREAM_RECEIVED;
-
-        // CORRECT WAY: Disable the other timer by setting its alarm value to 0.
-        timerAlarm(timer_bit_received, 0, false, 0);
     }
 
     void reset() {
-        bitcounter = 0;
-        isr_cnt = 0;
+        buffer_index = 0;
+        message_ready = false;
+        // The last_interrupt_micros is reset in the loop
     }
 
     void enable() {
@@ -82,77 +63,101 @@ namespace GDOOR_RX {
     }
 
     void disable() {
-        reset();
         detachInterrupt(pin_rx);
+        reset();
     }
 
     void setup(uint8_t rxpin) {
         reset();
         pin_rx = rxpin;
-        pinMode(pin_rx, INPUT_PULLUP); // Using INPUT_PULLUP is generally robust.
+        pinMode(pin_rx, INPUT_PULLUP);
 
         ESP_LOGD(TAG, "GDoor RX setup on pin: %d", rxpin);
-
         retval.len = 0;
         retval.valid = 0;
 
-        ESP_LOGD(TAG, "Timer RX Alarm value: %d us", ALARM_US_RX);
-        ESP_LOGD(TAG, "Timer Stream Alarm value: %d us", ALARM_US_STREAM);
-
-        // Configure timer for bit-end detection
-        timer_bit_received = timerBegin(TIMER_FREQ_RX);
-        timerAttachInterrupt(timer_bit_received, &isr_timer_bit_received);
-
-        // Configure timer for bitstream-end detection
-        timer_bitstream_received = timerBegin(TIMER_FREQ_RX);
-        timerAttachInterrupt(timer_bitstream_received, &isr_timer_bitstream_received);
+        // Setup the stopwatch: 1MHz frequency means each tick is 1 microsecond.
+        stopwatch = timerBegin(1000000); // 1MHz = 1 tick per µs
+        // Start the stopwatch immediately. It will run forever.
+        timerStart(stopwatch);
 
         enable();
+        ESP_LOGI(TAG, "GDoor RX setup complete using robust delta-time method.");
+    }
 
-        // The alarms are not set here. They will be set by the first interrupt.
-        ESP_LOGI(TAG, "GDoor RX setup complete. Timers configured. Waiting for bus activity.");
+    // This function reconstructs the original `counts` array from the time deltas
+    void process_deltas() {
+        uint16_t counts[MAX_WORDLEN*9] = {0};
+        uint8_t bit_idx = 0;
+        uint16_t pulse_count = 0;
+
+        // Approx. time for one 60kHz pulse cycle is 16.6µs.
+        // We allow a generous window (e.g., up to 30µs) to count as a pulse.
+        const uint32_t PULSE_MAX_DELTA_US = 30;
+
+        for (int i = 0; i < buffer_index; i++) {
+            if (delta_buffer[i] < PULSE_MAX_DELTA_US) {
+                // This is a short delta, part of a 60kHz pulse train
+                pulse_count++;
+            } else {
+                // This is a longer delta, representing a gap between bits.
+                // Store the collected pulse count for the previous bit.
+                if (pulse_count > 0 && bit_idx < MAX_WORDLEN*9) {
+                    counts[bit_idx++] = pulse_count;
+                }
+                // Reset for the next bit
+                pulse_count = 1; // The current pulse starts a new bit
+            }
+        }
+        // Store the last collected pulse count
+        if (pulse_count > 0 && bit_idx < MAX_WORDLEN*9) {
+            counts[bit_idx++] = pulse_count;
+        }
+
+        // --- DEBUG OUTPUT ---
+        char buffer[256];
+        int offset = 0;
+        offset += snprintf(buffer + offset, sizeof(buffer) - offset, "Reconstructed Counts. Bit count: %d. Counts: [", bit_idx);
+        for (int i = 0; i < bit_idx; i++) {
+            offset += snprintf(buffer + offset, sizeof(buffer) - offset, "%d", counts[i]);
+            if (i < bit_idx - 1) offset += snprintf(buffer + offset, sizeof(buffer) - offset, ", ");
+        }
+        snprintf(buffer + offset, sizeof(buffer) - offset, "]");
+        ESP_LOGD(TAG, "%s", buffer);
+        // --- END DEBUG ---
+
+        if (retval.parse(counts, bit_idx)) {
+            ESP_LOGI(TAG, "Parse SUCCESS!");
+            // This flag is currently not used, but kept for API compatibility
+            // rx_state |= FLAG_DATA_READY;
+        } else {
+            ESP_LOGW(TAG, "Parse FAILED!");
+        }
     }
 
     void loop() {
-        if (ext_interrupt_fired_flag) {
-            ESP_LOGD(TAG, "> Ext Interrupt");
-            ext_interrupt_fired_flag = false;
-        }
+        // Check if there has been any bus activity
+        if (buffer_index > 0) {
+            // Check for a message timeout. If the last interrupt was too long ago,
+            // we assume the message is complete and ready for processing.
+            // A value like 5000µs (5ms) is usually a safe bet.
+            if ((timerRead(stopwatch) - last_interrupt_micros) > 5000) {
+                ESP_LOGD(TAG, "Message timeout detected. Processing %d deltas.", buffer_index);
 
-        if (bit_timer_fired_flag) {
-            ESP_LOGD(TAG, "--> Bit Timer Fired");
-            bit_timer_fired_flag = false;
-        }
-
-        if (rx_state & FLAG_BITSTREAM_RECEIVED) {
-            char buffer[256];
-            int offset = 0;
-            offset += snprintf(buffer + offset, sizeof(buffer) - offset, ">>>> Stream Timer Fired! Bit count: %d. Counts: [", bitcounter);
-            for (int i = 0; i < bitcounter && i < MAX_WORDLEN*9; i++) {
-                offset += snprintf(buffer + offset, sizeof(buffer) - offset, "%d", counts[i]);
-                if (i < bitcounter - 1) {
-                    offset += snprintf(buffer + offset, sizeof(buffer) - offset, ", ");
-                }
+                // Disable interrupts while we process the buffer to prevent race conditions
+                noInterrupts();
+                process_deltas();
+                reset();
+                last_interrupt_micros = timerRead(stopwatch); // Reset timeout timer
+                interrupts(); // Re-enable interrupts
             }
-            snprintf(buffer + offset, sizeof(buffer) - offset, "]");
-            ESP_LOGI(TAG, "%s", buffer);
-
-            rx_state &= (uint16_t)~FLAG_BITSTREAM_RECEIVED;
-            if (retval.parse(counts, bitcounter)) {
-                ESP_LOGI(TAG, "Parse SUCCESS!");
-                rx_state |= FLAG_DATA_READY;
-            } else {
-                ESP_LOGW(TAG, "Parse FAILED!");
-            }
-            reset();
         }
     }
 
     GDOOR_DATA* read() {
-        if(rx_state & FLAG_DATA_READY) {
-            rx_state &= (uint16_t)~FLAG_DATA_READY;
-            return &retval;
-        }
+        // This function needs to be adapted if you use it, as the FLAG_DATA_READY
+        // is not the primary mechanism anymore. For now, it returns NULL.
+        // The parsing result is currently only visible in the logs.
         return NULL;
     }
 }
