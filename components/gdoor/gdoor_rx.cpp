@@ -34,7 +34,7 @@ namespace GDOOR_RX {
         if (edge_pos < EDGE_BUF_SIZE - 1) {
             edge_timings[++edge_pos] = micros();
         } else {
-            rx_state |= FLAG_OVF;             // Optional: Overflow-Flag
+            rx_state |= FLAG_OVF;             // Overflow-Flag
         }
     }
 
@@ -51,8 +51,10 @@ namespace GDOOR_RX {
 
     void loop() {
         if (rx_state & FLAG_OVF) {
+            #if ESPHOME_LOG_LEVEL >= ESPHOME_LOG_LEVEL_VERBOSE
             ESP_LOGW(TAG, "Edge-buffer overflow – Frame verworfen");
-            reset();                     // Buffer & State zurücksetzen
+            #endif
+            reset();                     // if Edge-buffer overflow: reset buffer & state
             rx_state &= ~FLAG_OVF;
             return;
         }
@@ -86,16 +88,22 @@ namespace GDOOR_RX {
                 }
             }
 
-            // Temporäres Debugging, um das rekonstruierte Array zu sehen
+            #if ESPHOME_LOG_LEVEL >= ESPHOME_LOG_LEVEL_VERBOSE          // only compile if loglevel VERBOSE (LOGV)
             char debug_buffer[256];
             int offset = 0;
-            offset += snprintf(debug_buffer, sizeof(debug_buffer), "Reconstructed Counts: [");
-            for(int i=0; i<bit_idx; i++) {
-                if(offset < 240) offset += snprintf(debug_buffer+offset, sizeof(debug_buffer)-offset, "%d, ", counts[i]);
+            offset += snprintf(debug_buffer, sizeof(debug_buffer),
+                               "Reconstructed Counts: [");
+            for (int i = 0; i < bit_idx; i++) {
+              if (offset < 240)
+                offset += snprintf(debug_buffer + offset,
+                                   sizeof(debug_buffer) - offset,
+                                   "%d, ", counts[i]);
             }
-            snprintf(debug_buffer+offset, sizeof(debug_buffer)-offset, "]");
-            ESP_LOGD(TAG, "%s", debug_buffer);
-            // Ende Debugging
+            snprintf(debug_buffer + offset,
+                     sizeof(debug_buffer) - offset, "]");
+            ESP_LOGV(TAG, "%s", debug_buffer);
+            #endif
+
             if (retval.parse(counts, bit_idx)) {
                 rx_state |= FLAG_DATA_READY;
             }
