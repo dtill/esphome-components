@@ -25,8 +25,8 @@ static const char *TAG = "gdoor_esphome.gdoor_tx";
 // ---------------------------------------------------------------------------
 // configurable timing constants (60 kHz carrier)
 // ---------------------------------------------------------------------------
-constexpr uint32_t CARRIER_HZ     = 60000;
-constexpr uint32_t HALF_WAVE_US   = 1000000UL / CARRIER_HZ;  // ≈ 17 µs
+constexpr uint32_t CARRIER_HZ     = 58000;
+constexpr uint32_t HALF_WAVE_US   = 1000000UL / CARRIER_HZ;  // ≈ 17.24 µs
 constexpr uint16_t START_PULSES   = 60;                      // 60 * 17 µs ≈ 1 ms
 constexpr uint16_t ONE_PULSES     = 12;                      // 12 * 17 µs ≈ 0.2 ms
 constexpr uint16_t ZERO_PULSES    = 32;                      // 32 * 17 µs ≈ 0.55 ms
