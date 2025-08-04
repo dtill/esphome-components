@@ -15,6 +15,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 #include <map>
+#include <cmath> // added for labs()
 #include "defines.h"
 #include "gdoor_data.h"
 #include "gdoor_utils.h"
@@ -54,54 +55,55 @@ std::map<int, const char*>GDOOR_DATA_ACTION = {
     { 0x00, "CTRL_PROGRAMMING_STOP"}
 };
 
+/**
+ * Parse function, reading in the raw timer count values,
+ * populating the GDOOR_DATA class elements.
+ *
+ * @param counts Array with pulse counts of bits
+ * @param len Number of elements in array
+ * @return true if parsing was successful
+*/
 bool GDOOR_DATA::parse_from_timings(uint32_t *timings, uint16_t len) {
-    // Pulse duration definitions from protocol, with generous tolerances
     const uint32_t START_BIT_DUR = 1000, BIT_0_DUR = 500, BIT_1_DUR = 250;
-    const uint32_t TOLERANCE = 150; // µs
+    const uint32_t TOLERANCE = 150;
 
     uint8_t wordcounter = 0;
     uint8_t bitindex = 0;
 
-    // We need at least 2 edges for one pulse
     if (len < 2) return false;
 
-    // Check if the first pulse is a valid Start-Bit
     uint32_t first_pulse_duration = timings[1] - timings[0];
-    if (abs(first_pulse_duration - START_BIT_DUR) > TOLERANCE) {
-        ESP_LOGW(TAG, "Parse failed: First pulse is not a valid Start-Bit (duration: %d µs)", first_pulse_duration);
+    if (labs((long)first_pulse_duration - (long)START_BIT_DUR) > TOLERANCE) {
         return false;
     }
 
-    // Iterate through the remaining pulses (2 edges at a time)
-    for (int i = 2; i < len; i += 2) {
+    // Start mit dem ersten Datenbit nach dem Startbit
+    for (uint16_t i = 2; i < len; i += 2) {
         if (wordcounter >= MAX_WORDLEN) break;
 
         if (bitindex == 0) {
-            this->data[wordcounter] = 0; // Clear byte for new data
+            this->data[wordcounter] = 0;
         }
 
         uint32_t pulse_duration = timings[i] - timings[i-1];
         uint8_t bit = 0;
 
-        if (abs(pulse_duration - BIT_0_DUR) < TOLERANCE) {
+        if (labs((long)pulse_duration - (long)BIT_0_DUR) < TOLERANCE) {
             bit = 0;
-        } else if (abs(pulse_duration - BIT_1_DUR) < TOLERANCE) {
+        } else if (labs((long)pulse_duration - (long)BIT_1_DUR) < TOLERANCE) {
             bit = 1;
         } else {
-            ESP_LOGW(TAG, "Parse failed: Unknown bit duration %d µs at bit %d of word %d", pulse_duration, bitindex, wordcounter);
-            return false; // Invalid bit, abort parsing
+            return false; // Ungültige Pulsdauer, Parsing abbrechen
         }
 
-        // Parity Bit
         if (bitindex == 8) {
             if (GDOOR_UTILS::parity_odd(this->data[wordcounter]) != bit) {
-                ESP_LOGW(TAG, "Parse failed: Parity check failed for word %d", wordcounter);
                 this->valid = 0;
                 return false;
             }
             bitindex = 0;
             wordcounter++;
-        } else { // Normal Data Bits
+        } else {
             this->data[wordcounter] |= (uint8_t)(bit << bitindex);
             bitindex++;
         }
@@ -109,16 +111,13 @@ bool GDOOR_DATA::parse_from_timings(uint32_t *timings, uint16_t len) {
 
     if (wordcounter == 0) return false;
 
-    // Final CRC check
     if (GDOOR_UTILS::crc(this->data, wordcounter - 1) != this->data[wordcounter - 1]) {
-        ESP_LOGW(TAG, "Parse failed: CRC check failed.");
         this->valid = 0;
         return false;
     }
 
     this->len = wordcounter;
     this->valid = 1;
-    ESP_LOGI(TAG, "Parse SUCCESS! Length: %d bytes.", this->len);
     return true;
 }
 

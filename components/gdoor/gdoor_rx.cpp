@@ -18,7 +18,7 @@
 #include "defines.h"
 #include "gdoor_rx.h"
 #include "gdoor_data.h"
-#include "esphome/core/log.h"
+#include "esphome/core/log.h" // Wird nur für TAG benötigt, kann aber bleiben
 
 static const char *TAG = "gdoor_esphome.gdoor_rx";
 namespace GDOOR_RX {
@@ -58,8 +58,6 @@ namespace GDOOR_RX {
 
             if (local_pos < 1) return;
 
-            // Der entscheidende Unterschied: Wir rufen eine neue Parse-Funktion auf,
-            // die direkt mit den rohen Zeitstempeln arbeitet.
             if (retval.parse_from_timings(local_timings, local_pos + 1)) {
                 rx_state |= FLAG_DATA_READY;
             }
