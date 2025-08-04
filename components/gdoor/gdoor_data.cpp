@@ -62,16 +62,12 @@ std::map<int, const char*>GDOOR_DATA_ACTION = {
  * @return true if parsing was successful
 */
 bool GDOOR_DATA::parse(uint16_t *counts, uint16_t len) {
-    uint8_t wordcounter = 0;
-    uint8_t current_pulsetrain_valid = 1;
-    // Die dynamische Schwelle wird nicht mehr benötigt:
-    // uint16_t bit_one_thres = 0;
+    uint8_t wordcounter = 0; //Current word index
+    uint8_t current_pulsetrain_valid = 1; //If parity or crc fails, this is set to 0
+    uint16_t bit_one_thres = 0; //Dynamic Bit 1/0 threshold, based on length of startpulse
 
-    // Wir verwenden eine feste Schwelle, die zwischen den Counts für '0' und '1' liegt.
-    const uint16_t STATIC_BIT_THRESHOLD = 25;
-
-    uint8_t is_startbit = 1;
-    uint8_t bitindex = 0;
+    uint8_t is_startbit = 1; // Flag to indicate current bit is start bit to determine 1/0 threshold based on its width
+    uint8_t bitindex = 0; //Current bit index inside current word, loops from 0 to 8 (9bits per word)
 
     bool success=false;
 
@@ -80,41 +76,51 @@ bool GDOOR_DATA::parse(uint16_t *counts, uint16_t len) {
         uint8_t bit = 0;
         this->raw[i] = cnt;
 
+        // Filter out smaller pulses, just ignore them
         if (cnt < BIT_MIN_LEN) {
             continue;
         }
 
+        // Check that first start bit is at least roughly in our expected range
         if(is_startbit && cnt < STARTBIT_MIN_LEN) {
             continue;
         }
 
+        // First bit is start bit and we use it to determine
+        // length of one bit and zero bit
         if (is_startbit) {
-            // Wir ignorieren die Länge des Start-Bits für die Schwellenwertberechnung
+            bit_one_thres = cnt/BIT_ONE_DIV;
             is_startbit = 0;
         } else { //Normal bit
+
+            // We start new receive word so preset the word with value 0
             if (bitindex == 0) {
                 this->data[wordcounter] = 0;
             }
 
-            // Erkennung mit der neuen, robusten statischen Schwelle
-            if (cnt < STATIC_BIT_THRESHOLD) {
+            //Detect zero or one bit value
+            if (cnt < bit_one_thres) {
                 bit = 1;
             }
 
+            // Parity Bit
             if (bitindex == 8) {
+                // Check if parity bit is as expected
                 if (GDOOR_UTILS::parity_odd(this->data[wordcounter]) != bit) {
                     current_pulsetrain_valid = 0;
                 }
                 bitindex = 0;
                 wordcounter = wordcounter + 1;
-            } else {
+            } else { // Normal Bits from 0 to 7
                 this->data[wordcounter] |= (uint8_t)(bit << bitindex);
                 bitindex = bitindex + 1;
             }
-        }
-    }
+
+        } //End normal bit
+    } //End for
 
     if(wordcounter != 0) {
+        //Check last word for crc value
         if (GDOOR_UTILS::crc(this->data, wordcounter-1) != this->data[wordcounter-1]) {
             current_pulsetrain_valid = 0;
         }
@@ -124,6 +130,7 @@ bool GDOOR_DATA::parse(uint16_t *counts, uint16_t len) {
     }
     return success;
 }
+
 
 /*
 * Constructor for GDOOR_DATA_PROTOCOL,

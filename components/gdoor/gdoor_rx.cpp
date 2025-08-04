@@ -77,6 +77,17 @@ namespace GDOOR_RX {
                 }
             }
 
+            // Temporäres Debugging, um das rekonstruierte Array zu sehen
+            char debug_buffer[256];
+            int offset = 0;
+            offset += snprintf(debug_buffer, sizeof(debug_buffer), "Reconstructed Counts: [");
+            for(int i=0; i<bit_idx; i++) {
+                if(offset < 240) offset += snprintf(debug_buffer+offset, sizeof(debug_buffer)-offset, "%d, ", counts[i]);
+            }
+            snprintf(debug_buffer+offset, sizeof(debug_buffer)-offset, "]");
+            ESP_LOGD(TAG, "%s", debug_buffer);
+            // Ende Debugging
+
             if (retval.parse(counts, bit_idx)) {
                 rx_state |= FLAG_DATA_READY;
             }
