@@ -21,10 +21,11 @@
 #include <esp32-hal-ledc.h>
 
 namespace GDOOR_TX { //Namespace as we can only use it once
-    bool busy();    // new helper for GDOOR::active()
+    void loop();    // drives the micros() state-machine
     void send(uint8_t *words, uint16_t len);
     void send(String str);
     void setup(uint8_t txpin, uint8_t txenpin);
+    bool busy();    // new helper for GDOOR::active()
 };
 
 #endif
