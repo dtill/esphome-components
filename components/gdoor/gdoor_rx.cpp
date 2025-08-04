@@ -35,21 +35,22 @@ namespace GDOOR_RX {
     uint8_t pin_rx = 0;
 
     void ARDUINO_ISR_ATTR isr_extint_rx() {
-        ext_interrupt_fired_flag = true; // Set flag for debug output
+        ext_interrupt_fired_flag = true; // Set flag for debugging
 
         rx_state |= (uint16_t)FLAG_RX_ACTIVE;
         isr_cnt = isr_cnt + 1;
 
-        // Let's try to start the timers here explicitly
-        timerStart(timer_bit_received);
-        timerStart(timer_bitstream_received);
-        // And also restart the count to 0
+        // NEW STRATEGY: Reset counter and enable the pre-configured alarm.
+        // This is often more reliable inside an ISR than timerStart/Restart.
         timerWrite(timer_bit_received, 0);
+        timerAlarmEnable(timer_bit_received);
+
         timerWrite(timer_bitstream_received, 0);
+        timerAlarmEnable(timer_bitstream_received);
     }
 
     void ARDUINO_ISR_ATTR isr_timer_bit_received() {
-        bit_timer_fired_flag = true; // Set flag for debug output
+        bit_timer_fired_flag = true; // Set flag for debugging
 
         if (bitcounter >= MAX_WORDLEN*9) {
             bitcounter = 0;
@@ -58,14 +59,14 @@ namespace GDOOR_RX {
 
         isr_cnt = 0;
         bitcounter = bitcounter + 1;
-        timerStop(timer_bit_received);
+        // The alarm is one-shot, so it disables itself. No need to call timerStop().
     }
 
     void ARDUINO_ISR_ATTR isr_timer_bitstream_received() {
         rx_state &= (uint16_t)~FLAG_RX_ACTIVE;
         rx_state |= (uint16_t)FLAG_BITSTREAM_RECEIVED;
-        timerStop(timer_bitstream_received);
-        timerStop(timer_bit_received);
+        // The alarm is one-shot. Let's also disable the other timer to be safe.
+        timerAlarmDisable(timer_bit_received);
     }
 
     void reset() {
@@ -86,7 +87,7 @@ namespace GDOOR_RX {
     void setup(uint8_t rxpin) {
         reset();
         pin_rx = rxpin;
-        pinMode(pin_rx, INPUT_PULLUP); // Using INPUT_PULLUP is often safer
+        pinMode(pin_rx, INPUT_PULLUP); // Using INPUT_PULLUP is generally robust.
 
         ESP_LOGD(TAG, "GDoor RX setup on pin: %d", rxpin);
 
@@ -95,43 +96,55 @@ namespace GDOOR_RX {
 
         constexpr uint32_t ALARM_US_RX = (20 * 1000000) / TIMER_FREQ_RX;
         constexpr uint32_t ALARM_US_STREAM = (6 * STARTBIT_MIN_LEN * 1000000) / TIMER_FREQ_RX;
-        ESP_LOGD(TAG, "Timer RX Alarm value: %d us", ALARM_US_RX);
-        ESP_LOGD(TAG, "Timer Stream Alarm value: %d us", ALARM_US_STREAM);
 
+        // Configure timer for bit-end detection
         timer_bit_received = timerBegin(TIMER_FREQ_RX);
         timerAttachInterrupt(timer_bit_received, &isr_timer_bit_received);
-        timerAlarm(timer_bit_received, ALARM_US_RX, false, 0);
+        timerAlarm(timer_bit_received, ALARM_US_RX, false, 0); // false = one-shot alarm
+        timerAlarmDisable(timer_bit_received); // Keep it disabled until needed
 
+        // Configure timer for bitstream-end detection
         timer_bitstream_received = timerBegin(TIMER_FREQ_RX);
         timerAttachInterrupt(timer_bitstream_received, &isr_timer_bitstream_received);
-        timerAlarm(timer_bitstream_received, ALARM_US_STREAM, false, 0);
+        timerAlarm(timer_bitstream_received, ALARM_US_STREAM, false, 0); // false = one-shot alarm
+        timerAlarmDisable(timer_bitstream_received); // Keep it disabled until needed
 
         enable();
 
-        // Timers are configured but will be started by the first external interrupt.
-        ESP_LOGI(TAG, "GDoor RX setup complete. Waiting for bus activity.");
+        ESP_LOGI(TAG, "GDoor RX setup complete. Timers configured and disabled. Waiting for bus activity.");
     }
 
     void loop() {
+        // Check flags in a safe order
         if (ext_interrupt_fired_flag) {
-            ESP_LOGD(TAG, ">>> Ext Interrupt Fired!");
+            ESP_LOGD(TAG, "> Ext Interrupt");
             ext_interrupt_fired_flag = false;
         }
 
         if (bit_timer_fired_flag) {
-            ESP_LOGD(TAG, "======> Bit Timer Fired! (isr_timer_bit_received was called)");
+            ESP_LOGD(TAG, "--> Bit Timer Fired");
             bit_timer_fired_flag = false;
         }
 
         if (rx_state & FLAG_BITSTREAM_RECEIVED) {
-            ESP_LOGI(TAG, ">>>>>>>>> Stream Timer Fired! Bit count: %d", bitcounter);
+            char buffer[256];
+            int offset = 0;
+            offset += snprintf(buffer + offset, sizeof(buffer) - offset, ">>>> Stream Timer Fired! Bit count: %d. Counts: [", bitcounter);
+            for (int i = 0; i < bitcounter && i < MAX_WORDLEN*9; i++) {
+                offset += snprintf(buffer + offset, sizeof(buffer) - offset, "%d", counts[i]);
+                if (i < bitcounter - 1) {
+                    offset += snprintf(buffer + offset, sizeof(buffer) - offset, ", ");
+                }
+            }
+            snprintf(buffer + offset, sizeof(buffer) - offset, "]");
+            ESP_LOGI(TAG, "%s", buffer);
 
             rx_state &= (uint16_t)~FLAG_BITSTREAM_RECEIVED;
             if (retval.parse(counts, bitcounter)) {
-                ESP_LOGI(TAG, "Gira RX was successfully parsed!");
+                ESP_LOGI(TAG, "Parse SUCCESS!");
                 rx_state |= FLAG_DATA_READY;
             } else {
-                ESP_LOGW(TAG, "Gira RX parse failed!");
+                ESP_LOGW(TAG, "Parse FAILED!");
             }
             reset();
         }
