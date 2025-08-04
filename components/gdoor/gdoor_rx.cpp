@@ -34,19 +34,20 @@ namespace GDOOR_RX {
 
     uint8_t pin_rx = 0;
 
+    // Pre-calculated alarm values to use in the ISR
+    constexpr uint32_t ALARM_US_RX = (20 * 1000000) / TIMER_FREQ_RX;
+    constexpr uint32_t ALARM_US_STREAM = (6 * STARTBIT_MIN_LEN * 1000000) / TIMER_FREQ_RX;
+
+
     void ARDUINO_ISR_ATTR isr_extint_rx() {
         ext_interrupt_fired_flag = true; // Set flag for debugging
 
         rx_state |= (uint16_t)FLAG_RX_ACTIVE;
         isr_cnt = isr_cnt + 1;
 
-        // NEW STRATEGY: Reset counter and enable the pre-configured alarm.
-        // This is often more reliable inside an ISR than timerStart/Restart.
-        timerWrite(timer_bit_received, 0);
-        timerAlarmEnable(timer_bit_received);
-
-        timerWrite(timer_bitstream_received, 0);
-        timerAlarmEnable(timer_bitstream_received);
+        // CORRECT WAY: (Re)set the alarm with a non-zero value to enable it.
+        timerAlarm(timer_bit_received, ALARM_US_RX, false, 0);
+        timerAlarm(timer_bitstream_received, ALARM_US_STREAM, false, 0);
     }
 
     void ARDUINO_ISR_ATTR isr_timer_bit_received() {
@@ -59,14 +60,15 @@ namespace GDOOR_RX {
 
         isr_cnt = 0;
         bitcounter = bitcounter + 1;
-        // The alarm is one-shot, so it disables itself. No need to call timerStop().
+        // A one-shot alarm disables itself after firing.
     }
 
     void ARDUINO_ISR_ATTR isr_timer_bitstream_received() {
         rx_state &= (uint16_t)~FLAG_RX_ACTIVE;
         rx_state |= (uint16_t)FLAG_BITSTREAM_RECEIVED;
-        // The alarm is one-shot. Let's also disable the other timer to be safe.
-        timerAlarmDisable(timer_bit_received);
+
+        // CORRECT WAY: Disable the other timer by setting its alarm value to 0.
+        timerAlarm(timer_bit_received, 0, false, 0);
     }
 
     void reset() {
@@ -94,28 +96,24 @@ namespace GDOOR_RX {
         retval.len = 0;
         retval.valid = 0;
 
-        constexpr uint32_t ALARM_US_RX = (20 * 1000000) / TIMER_FREQ_RX;
-        constexpr uint32_t ALARM_US_STREAM = (6 * STARTBIT_MIN_LEN * 1000000) / TIMER_FREQ_RX;
+        ESP_LOGD(TAG, "Timer RX Alarm value: %d us", ALARM_US_RX);
+        ESP_LOGD(TAG, "Timer Stream Alarm value: %d us", ALARM_US_STREAM);
 
         // Configure timer for bit-end detection
         timer_bit_received = timerBegin(TIMER_FREQ_RX);
         timerAttachInterrupt(timer_bit_received, &isr_timer_bit_received);
-        timerAlarm(timer_bit_received, ALARM_US_RX, false, 0); // false = one-shot alarm
-        timerAlarmDisable(timer_bit_received); // Keep it disabled until needed
 
         // Configure timer for bitstream-end detection
         timer_bitstream_received = timerBegin(TIMER_FREQ_RX);
         timerAttachInterrupt(timer_bitstream_received, &isr_timer_bitstream_received);
-        timerAlarm(timer_bitstream_received, ALARM_US_STREAM, false, 0); // false = one-shot alarm
-        timerAlarmDisable(timer_bitstream_received); // Keep it disabled until needed
 
         enable();
 
-        ESP_LOGI(TAG, "GDoor RX setup complete. Timers configured and disabled. Waiting for bus activity.");
+        // The alarms are not set here. They will be set by the first interrupt.
+        ESP_LOGI(TAG, "GDoor RX setup complete. Timers configured. Waiting for bus activity.");
     }
 
     void loop() {
-        // Check flags in a safe order
         if (ext_interrupt_fired_flag) {
             ESP_LOGD(TAG, "> Ext Interrupt");
             ext_interrupt_fired_flag = false;
