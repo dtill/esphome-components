@@ -14,7 +14,6 @@ namespace GDOOR_RX {
     GDOOR_DATA retval;
     uint16_t rx_state = 0;
 
-    // ISR remains simple: it just records the timestamp of every falling edge.
     void ARDUINO_ISR_ATTR isr_extint_rx() {
         if (edge_pos < ((MAX_WORDLEN * 20) - 1)) {
             edge_pos++;
@@ -41,8 +40,6 @@ namespace GDOOR_RX {
 
     void loop() {
         if (edge_pos < 0) return;
-
-        // Message timeout logic: if a long time has passed since the last pulse, the message is over.
         if ((micros() - edge_timings[edge_pos]) > 5000) {
             noInterrupts();
             int32_t local_pos = edge_pos;
@@ -58,46 +55,40 @@ namespace GDOOR_RX {
             uint16_t counts[MAX_WORDLEN * 9] = {0};
             uint8_t bit_idx = 0;
             uint16_t current_pulse_count = 0;
-
-            // Define the pause that signifies the end of a bit's pulse train.
-            // Original timer was 166µs. We'll use a value in that range.
             const uint32_t PAUSE_BETWEEN_BITS_US = 150;
 
             for (int i = 0; i <= local_pos; i++) {
-                current_pulse_count++; // Count the current pulse
-
-                // Check if we are at the last pulse or if the time to the next pulse is a long pause
+                current_pulse_count++;
                 bool is_last_pulse = (i == local_pos);
                 if (!is_last_pulse) {
                     uint32_t delta_to_next = local_timings[i+1] - local_timings[i];
                     if (delta_to_next > PAUSE_BETWEEN_BITS_US) {
-                        // A long pause was detected, this bit is over.
-                        if (bit_idx < (MAX_WORDLEN * 9)) {
-                            counts[bit_idx++] = current_pulse_count;
-                        }
-                        current_pulse_count = 0; // Reset for the next bit.
+                        if (bit_idx < (MAX_WORDLEN * 9)) counts[bit_idx++] = current_pulse_count;
+                        current_pulse_count = 0;
                     }
                 } else {
-                    // This is the last pulse of the message, store its count.
-                    if (bit_idx < (MAX_WORDLEN * 9)) {
-                        counts[bit_idx++] = current_pulse_count;
-                    }
+                    if (bit_idx < (MAX_WORDLEN * 9)) counts[bit_idx++] = current_pulse_count;
                 }
             }
 
-            // --- DEBUG OUTPUT and PARSING ---
-            char buffer[256];
+            char debug_buffer[256];
             int offset = 0;
-            offset += snprintf(buffer, sizeof(buffer), "Reconstructed Counts: [");
+            offset += snprintf(debug_buffer, sizeof(debug_buffer), "Reconstructed Counts: [");
             for(int i=0; i<bit_idx; i++) {
-                if(offset < 240) offset += snprintf(buffer+offset, sizeof(buffer)-offset, "%d, ", counts[i]);
+                if(offset < 240) offset += snprintf(debug_buffer+offset, sizeof(debug_buffer)-offset, "%d, ", counts[i]);
             }
-            snprintf(buffer+offset, sizeof(buffer)-offset, "]");
-            ESP_LOGD(TAG, "%s", buffer);
+            snprintf(debug_buffer+offset, sizeof(debug_buffer)-offset, "]");
+            ESP_LOGD(TAG, "%s", debug_buffer);
 
             if (retval.parse(counts, bit_idx)) {
-                GDOOR_DATA_PROTOCOL busmessage(&retval);
-                ESP_LOGI(TAG, "Parse SUCCESS! -> HEX: %s", busmessage.busdata_str().c_str());
+                // #######################################################
+                // ## HIER IST DIE TATSÄCHLICHE, FUNKTIONIERENDE KORREKTUR ##
+                // #######################################################
+                char hex_buffer[MAX_WORDLEN * 2 + 1];
+                retval.to_hex(hex_buffer);
+                ESP_LOGI(TAG, "Parse SUCCESS! -> HEX: %s", hex_buffer);
+                // #######################################################
+
                 rx_state |= FLAG_DATA_READY;
             } else {
                 ESP_LOGW(TAG, "Parse FAILED! (bit_idx=%d)", bit_idx);
