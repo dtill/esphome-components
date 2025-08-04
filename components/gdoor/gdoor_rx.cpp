@@ -108,22 +108,46 @@ namespace GDOOR_RX {
     }
 
     void loop() {
-        // --- DEBUGGING CHECK ---
-        // Check if the ISR has been triggered.
+        // --- DEBUGGING CHECK for external interrupt ---
+        // (This part can remain for now, it doesn't hurt)
         if (isr_triggered_flag) {
-            // Print a debug message from the safe context of the main loop.
             ESP_LOGD(TAG, "*** External interrupt triggered! (isr_extint_rx fired) ***");
-            // Reset the flag so we can detect the next event.
             isr_triggered_flag = false;
         }
 
-        // The original logic remains
+        // Check if the "bitstream received" timer has fired
         if (rx_state & FLAG_BITSTREAM_RECEIVED) {
+            // --- NEW DEBUGGING BLOCK ---
+            // Log the data we have collected before trying to parse it.
+
+            char buffer[256]; // A buffer to build the log string
+            int offset = 0;
+            // Print the number of bits (or pulse groups) detected
+            offset += snprintf(buffer + offset, sizeof(buffer) - offset, "Bitstream received. Bit count: %d. Counts: [", bitcounter);
+
+            // Print the pulse count for each detected bit
+            for (int i = 0; i < bitcounter && i < MAX_WORDLEN*9; i++) {
+                offset += snprintf(buffer + offset, sizeof(buffer) - offset, "%d", counts[i]);
+                if (i < bitcounter - 1) {
+                    offset += snprintf(buffer + offset, sizeof(buffer) - offset, ", ");
+                }
+            }
+            snprintf(buffer + offset, sizeof(buffer) - offset, "]");
+
+            // Print the complete string to the log
+            ESP_LOGD(TAG, "%s", buffer);
+
+            // --- END OF NEW DEBUGGING BLOCK ---
+
+
+            // Now, attempt to parse the data (original logic)
             rx_state &= (uint16_t)~FLAG_BITSTREAM_RECEIVED;
-            ESP_LOGVV(TAG, "Gira RX done");
+            ESP_LOGVV(TAG, "Gira RX done"); // This is a VERBOSE log level, you might not see it
             if (retval.parse(counts, bitcounter)) {
-                ESP_LOGVV(TAG, "Gira RX was successfully parsed");
+                ESP_LOGI(TAG, "Gira RX was successfully parsed!"); // Changed to INFO to be more visible
                 rx_state |= FLAG_DATA_READY;
+            } else {
+                ESP_LOGW(TAG, "Gira RX parse failed!"); // Added a warning if parsing fails
             }
             reset();
         }
