@@ -59,7 +59,7 @@ namespace GDOOR_RX {
     * so we should read out how many pulses we got for this bit (to decide 1 or 0)
     */
     void ARDUINO_ISR_ATTR isr_timer_bit_received() {
-        if (bitcounter > MAX_WORDLEN*9) {
+        if (bitcounter >= MAX_WORDLEN*9) {
             bitcounter = 0;
         }
         counts[bitcounter] = isr_cnt;
@@ -116,39 +116,31 @@ namespace GDOOR_RX {
         retval.len = 0;
         retval.valid = 0;
 
-        // after 20 120kHz Cycles (=10 60kHz Cycles)
-        constexpr uint32_t ALARM_US_RX   = 20 * 1000000 / TIMER_FREQ_RX;   // 20 Ticks → 166 µs
+        // Timeout für ein einzelnes Bit: 20 Zyklen bei TIMER_FREQ_RX (z.B. 120kHz)
+        // timerAlarm erwartet den Wert in Mikrosekunden.
+        constexpr uint32_t ALARM_US_RX = (20 * 1000000) / TIMER_FREQ_RX;
 
-        // Set bit_received timer frequency to 120kHz
+        // Timeout für den gesamten Bitstream: 6 * STARTBIT_MIN_LEN Zyklen bei TIMER_FREQ_RX
+        constexpr uint32_t ALARM_US_STREAM = (6 * STARTBIT_MIN_LEN * 1000000) / TIMER_FREQ_RX;
+
+        // Timer zur Erkennung des Bit-Endes konfigurieren
         timer_bit_received = timerBegin(TIMER_FREQ_RX);
-
-        // Attach isr_timer_bit_received function to bit_received timer.
         timerAttachInterrupt(timer_bit_received, &isr_timer_bit_received);
+        timerAlarm(timer_bit_received, ALARM_US_RX, /*autoreload=*/false, 0);
 
-        // Set alarm to call isr_timer_bit_received function
-        timerAlarm(timer_bit_received, ALARM_US_RX, /*autoreload=*/false, /*reload_count=*/0); // you restart manually!
-        // timerStart only in isr_extint_rx()
-
-        // after 6*STARTBIT_MIN_LEN 120kHz Cycles (= 3 * STARTBIT_MIN_LEN 60kHz Cycles)
-        constexpr uint32_t ALARM_US_STREAM = 6 * STARTBIT_MIN_LEN * 1000000 / TIMER_FREQ_RX;
-
-        // Set bit_received timer frequency to 120kHz
+        // Timer zur Erkennung des Bitstream-Endes konfigurieren
         timer_bitstream_received = timerBegin(TIMER_FREQ_RX);
-
-        // Attach isr_timer_bit_received function to bit_received timer.
         timerAttachInterrupt(timer_bitstream_received, &isr_timer_bitstream_received);
+        // KORREKTUR: Der korrekte Timer und der korrekte Alarmwert werden hier verwendet.
+        timerAlarm(timer_bitstream_received, ALARM_US_STREAM, /*autoreload=*/false, 0);
 
-        // Set alarm to call isr_timer_bit_received function
-        timerAlarm(timer_bit_received, ALARM_US_RX, /*autoreload=*/false, /*reload_count=*/0);
-
-        // Enable External RX Interrupt
+        // Externen RX-Interrupt aktivieren
         enable();
 
-        // Set Timers to default values, just to be sure
-        timerWrite(timer_bit_received, 0); //reset timer
-        timerWrite(timer_bitstream_received, 0); //reset timer
-        timerStop(timer_bitstream_received);
+        // Laut Dokumentation starten die Timer nach timerBegin() automatisch. [2]
+        // Wir stoppen sie hier, damit sie erst beim ersten Interrupt-Puls loslaufen.
         timerStop(timer_bit_received);
+        timerStop(timer_bitstream_received);
     }
 
     /*
