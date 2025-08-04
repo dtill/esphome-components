@@ -56,7 +56,7 @@ void GdoorComponent::setup() {
 
     // Configure RX threshold if conditions are met
     if (rx_pin_number == 22 && this->rx_sens_ != 1.65) {
-        GDOOR::setRxThreshold(rx_thresh_pin_number, this->rx_sens_);
+        //GDOOR::setRxThreshold(rx_thresh_pin_number, this->rx_sens_);
     }
 }
 
