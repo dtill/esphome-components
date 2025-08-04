@@ -18,7 +18,7 @@
 #include "defines.h"
 #include "gdoor_rx.h"
 #include "gdoor_data.h"
-#include "esphome/core/log.h" // Wird nur für TAG benötigt, kann aber bleiben
+#include "esphome/core/log.h"
 
 static const char *TAG = "gdoor_esphome.gdoor_rx";
 namespace GDOOR_RX {

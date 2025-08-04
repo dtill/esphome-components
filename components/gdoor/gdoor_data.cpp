@@ -14,12 +14,15 @@
  * You should have received a copy of the GNU General Public License 
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+
 #include <map>
 #include <cmath> // added for labs()
 #include "defines.h"
 #include "gdoor_data.h"
 #include "gdoor_utils.h"
 #include "esphome/core/log.h"   // for logging
+
+static const char *TAG = "gdoor_esphome.gdoor_data";
 
 // Map the HW Type field between bus value and human readable string
 std::map<int, const char*>GDOOR_DATA_HWTYPE = {
@@ -74,10 +77,10 @@ bool GDOOR_DATA::parse_from_timings(uint32_t *timings, uint16_t len) {
 
     uint32_t first_pulse_duration = timings[1] - timings[0];
     if (labs((long)first_pulse_duration - (long)START_BIT_DUR) > TOLERANCE) {
+        ESP_LOGW(TAG, "Parse REJECTED: First pulse is not a valid Start-Bit (duration: %u us)", first_pulse_duration);
         return false;
     }
 
-    // Start mit dem ersten Datenbit nach dem Startbit
     for (uint16_t i = 2; i < len; i += 2) {
         if (wordcounter >= MAX_WORDLEN) break;
 
@@ -93,11 +96,13 @@ bool GDOOR_DATA::parse_from_timings(uint32_t *timings, uint16_t len) {
         } else if (labs((long)pulse_duration - (long)BIT_1_DUR) < TOLERANCE) {
             bit = 1;
         } else {
-            return false; // Ungültige Pulsdauer, Parsing abbrechen
+            ESP_LOGW(TAG, "Parse REJECTED: Unknown bit duration %u us at bit #%d of word #%d", pulse_duration, bitindex, wordcounter);
+            return false;
         }
 
         if (bitindex == 8) {
             if (GDOOR_UTILS::parity_odd(this->data[wordcounter]) != bit) {
+                ESP_LOGW(TAG, "Parse REJECTED: Parity check failed for word #%d (byte: 0x%02X, parity_bit: %d)", wordcounter, this->data[wordcounter], bit);
                 this->valid = 0;
                 return false;
             }
@@ -112,12 +117,14 @@ bool GDOOR_DATA::parse_from_timings(uint32_t *timings, uint16_t len) {
     if (wordcounter == 0) return false;
 
     if (GDOOR_UTILS::crc(this->data, wordcounter - 1) != this->data[wordcounter - 1]) {
+        ESP_LOGW(TAG, "Parse REJECTED: CRC check failed.");
         this->valid = 0;
         return false;
     }
 
     this->len = wordcounter;
     this->valid = 1;
+    ESP_LOGI(TAG, "Parse SUCCESS! Length: %d bytes.", this->len);
     return true;
 }
 
