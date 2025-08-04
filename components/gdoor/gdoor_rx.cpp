@@ -18,16 +18,20 @@
 #include "defines.h"
 #include "gdoor_rx.h"
 #include "gdoor_data.h"
+#include "gdoor_utils.h"
 #include "esphome/core/log.h"
 
 static const char *TAG = "gdoor_esphome.gdoor_rx";
+
 namespace GDOOR_RX {
+
     static volatile uint32_t edge_timings[MAX_WORDLEN * 20] = {0};
     static volatile int32_t edge_pos = -1;
     uint8_t pin_rx = 0;
     GDOOR_DATA retval;
     uint16_t rx_state = 0;
 
+    // ISR zeichnet den Zeitstempel jeder FALLENDEN 60-kHz-Flanke auf.
     void ARDUINO_ISR_ATTR isr_extint_rx() {
         if (edge_pos < ((MAX_WORDLEN * 20) - 1)) {
             edge_pos++;
@@ -35,9 +39,17 @@ namespace GDOOR_RX {
         }
     }
 
-    void enable() { attachInterrupt(pin_rx, isr_extint_rx, CHANGE); }
-    void disable() { detachInterrupt(pin_rx); }
-    void reset() { edge_pos = -1; rx_state = 0; }
+    // Die von gdoor_tx.cpp benötigten Funktionen
+    void enable() {
+        attachInterrupt(pin_rx, isr_extint_rx, FALLING);
+    }
+    void disable() {
+        detachInterrupt(pin_rx);
+    }
+     void reset() {
+        edge_pos = -1;
+        rx_state = 0;
+    }
 
     void setup(uint8_t rxpin) {
         pin_rx = rxpin;
@@ -48,6 +60,7 @@ namespace GDOOR_RX {
 
     void loop() {
         if (edge_pos < 0) return;
+
         if ((micros() - edge_timings[edge_pos]) > 5000) {
             noInterrupts();
             int32_t local_pos = edge_pos;
@@ -58,7 +71,42 @@ namespace GDOOR_RX {
 
             if (local_pos < 1) return;
 
-            if (retval.parse_from_timings(local_timings, local_pos + 1)) {
+            uint16_t counts[MAX_WORDLEN * 9] = {0};
+            uint8_t bit_idx = 0;
+            uint16_t current_pulse_count = 0;
+
+            // Die "Bit-Ende"-Logik: Eine Pause ist >150µs.
+            const uint32_t PAUSE_BETWEEN_BITS_US = 150;
+
+            for (int i = 0; i <= local_pos; i++) {
+                current_pulse_count++;
+
+                bool is_last_pulse_in_message = (i == local_pos);
+                if (!is_last_pulse_in_message) {
+                    uint32_t delta_to_next = local_timings[i+1] - local_timings[i];
+                    if (delta_to_next > PAUSE_BETWEEN_BITS_US) {
+                        // Pause erkannt -> Bit ist zu Ende. Speichere den Zählerstand.
+                        if (bit_idx < (MAX_WORDLEN * 9)) counts[bit_idx++] = current_pulse_count;
+                        current_pulse_count = 0; // Zähler für das nächste Bit zurücksetzen.
+                    }
+                } else {
+                    // Letzter Impuls der Nachricht -> Speichere den finalen Zählerstand.
+                    if (bit_idx < (MAX_WORDLEN * 9)) counts[bit_idx++] = current_pulse_count;
+                }
+            }
+
+            // Temporäres Debugging, um das rekonstruierte Array zu sehen
+            char debug_buffer[256];
+            int offset = 0;
+            offset += snprintf(debug_buffer, sizeof(debug_buffer), "Reconstructed Counts: [");
+            for(int i=0; i<bit_idx; i++) {
+                if(offset < 240) offset += snprintf(debug_buffer+offset, sizeof(debug_buffer)-offset, "%d, ", counts[i]);
+            }
+            snprintf(debug_buffer+offset, sizeof(debug_buffer)-offset, "]");
+            ESP_LOGD(TAG, "%s", debug_buffer);
+            // Ende Debugging
+
+            if (retval.parse(counts, bit_idx)) {
                 rx_state |= FLAG_DATA_READY;
             }
         }

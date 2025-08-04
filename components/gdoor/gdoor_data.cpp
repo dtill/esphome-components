@@ -14,15 +14,10 @@
  * You should have received a copy of the GNU General Public License 
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-
 #include <map>
-#include <cmath> // added for labs()
 #include "defines.h"
 #include "gdoor_data.h"
 #include "gdoor_utils.h"
-#include "esphome/core/log.h"   // for logging
-
-static const char *TAG = "gdoor_esphome.gdoor_data";
 
 // Map the HW Type field between bus value and human readable string
 std::map<int, const char*>GDOOR_DATA_HWTYPE = {
@@ -66,66 +61,74 @@ std::map<int, const char*>GDOOR_DATA_ACTION = {
  * @param len Number of elements in array
  * @return true if parsing was successful
 */
-bool GDOOR_DATA::parse_from_timings(uint32_t *timings, uint16_t len) {
-    const uint32_t START_BIT_DUR = 1000, BIT_0_DUR = 500, BIT_1_DUR = 250;
-    const uint32_t TOLERANCE = 150;
+bool GDOOR_DATA::parse(uint16_t *counts, uint16_t len) {
+    uint8_t wordcounter = 0; //Current word index
+    uint8_t current_pulsetrain_valid = 1; //If parity or crc fails, this is set to 0
+    uint16_t bit_one_thres = 0; //Dynamic Bit 1/0 threshold, based on length of startpulse
 
-    uint8_t wordcounter = 0;
-    uint8_t bitindex = 0;
+    uint8_t is_startbit = 1; // Flag to indicate current bit is start bit to determine 1/0 threshold based on its width
+    uint8_t bitindex = 0; //Current bit index inside current word, loops from 0 to 8 (9bits per word)
 
-    if (len < 2) return false;
+    bool success=false;
 
-    uint32_t first_pulse_duration = timings[1] - timings[0];
-    if (labs((long)first_pulse_duration - (long)START_BIT_DUR) > TOLERANCE) {
-        ESP_LOGW(TAG, "Parse REJECTED: First pulse is not a valid Start-Bit (duration: %u us)", first_pulse_duration);
-        return false;
-    }
-
-    for (uint16_t i = 2; i < len; i += 2) {
-        if (wordcounter >= MAX_WORDLEN) break;
-
-        if (bitindex == 0) {
-            this->data[wordcounter] = 0;
-        }
-
-        uint32_t pulse_duration = timings[i] - timings[i-1];
+    for (uint8_t i=0; i<len; i++) {
+        uint16_t cnt = counts[i];
         uint8_t bit = 0;
+        this->raw[i] = cnt;
 
-        if (labs((long)pulse_duration - (long)BIT_0_DUR) < TOLERANCE) {
-            bit = 0;
-        } else if (labs((long)pulse_duration - (long)BIT_1_DUR) < TOLERANCE) {
-            bit = 1;
-        } else {
-            ESP_LOGW(TAG, "Parse REJECTED: Unknown bit duration %u us at bit #%d of word #%d", pulse_duration, bitindex, wordcounter);
-            return false;
+        // Filter out smaller pulses, just ignore them
+        if (cnt < BIT_MIN_LEN) {
+            continue;
         }
 
-        if (bitindex == 8) {
-            if (GDOOR_UTILS::parity_odd(this->data[wordcounter]) != bit) {
-                ESP_LOGW(TAG, "Parse REJECTED: Parity check failed for word #%d (byte: 0x%02X, parity_bit: %d)", wordcounter, this->data[wordcounter], bit);
-                this->valid = 0;
-                return false;
+        // Check that first start bit is at least roughly in our expected range
+        if(is_startbit && cnt < STARTBIT_MIN_LEN) {
+            continue;
+        }
+
+        // First bit is start bit and we use it to determine
+        // length of one bit and zero bit
+        if (is_startbit) {
+            bit_one_thres = cnt/BIT_ONE_DIV;
+            is_startbit = 0;
+        } else { //Normal bit
+
+            // We start new receive word so preset the word with value 0
+            if (bitindex == 0) {
+                this->data[wordcounter] = 0;
             }
-            bitindex = 0;
-            wordcounter++;
-        } else {
-            this->data[wordcounter] |= (uint8_t)(bit << bitindex);
-            bitindex++;
+
+            //Detect zero or one bit value
+            if (cnt < bit_one_thres) {
+                bit = 1;
+            }
+
+            // Parity Bit
+            if (bitindex == 8) {
+                // Check if parity bit is as expected
+                if (GDOOR_UTILS::parity_odd(this->data[wordcounter]) != bit) {
+                    current_pulsetrain_valid = 0;
+                }
+                bitindex = 0;
+                wordcounter = wordcounter + 1;
+            } else { // Normal Bits from 0 to 7
+                this->data[wordcounter] |= (uint8_t)(bit << bitindex);
+                bitindex = bitindex + 1;
+            }
+
+        } //End normal bit
+    } //End for
+
+    if(wordcounter != 0) {
+        //Check last word for crc value
+        if (GDOOR_UTILS::crc(this->data, wordcounter-1) != this->data[wordcounter-1]) {
+            current_pulsetrain_valid = 0;
         }
+        this->len = wordcounter;
+        this->valid = current_pulsetrain_valid;
+        success = true;
     }
-
-    if (wordcounter == 0) return false;
-
-    if (GDOOR_UTILS::crc(this->data, wordcounter - 1) != this->data[wordcounter - 1]) {
-        ESP_LOGW(TAG, "Parse REJECTED: CRC check failed.");
-        this->valid = 0;
-        return false;
-    }
-
-    this->len = wordcounter;
-    this->valid = 1;
-    ESP_LOGI(TAG, "Parse SUCCESS! Length: %d bytes.", this->len);
-    return true;
+    return success;
 }
 
 /*
