@@ -112,7 +112,7 @@ namespace GDOOR_TX {
     // 60 kHz carrier, 8-bit resolution (channel 0)
     ledc_chan = ledcAttach(tx_pin_hw, CARRIER_HZ, LEDC_BITS);
     ledcWrite(ledc_chan, 0);               // off by default
-    ESP_LOGCONFIG(TAG, "  LEDC channel   : %d", ledc_chan);
+    ESP_LOGD(TAG, "  LEDC channel   : %d", ledc_chan);
 
     ctx.state = IDLE;
   }
