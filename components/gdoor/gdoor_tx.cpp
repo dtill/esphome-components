@@ -125,25 +125,35 @@ namespace GDOOR_TX {
     ctx.bit_table[ctx.total_bits++] = START_PULSES;
 
     for (uint16_t i = 0; i < len; ++i) {
-      uint16_t word = byte2word(data[i]);
-      for (uint8_t b = 0; b < 9; ++b) {
+      uint16_t word = byte2word(data[i]);           // *your* bytes (CRC included)
+      for (uint8_t b = 0; b < 9; ++b)
         ctx.bit_table[ctx.total_bits++] = bit2pulses(word & (1 << b));
-      }
     }
-    uint8_t crc = GDOOR_UTILS::crc(data, len);
-    uint16_t word = byte2word(crc);
-    for (uint8_t b = 0; b < 9; ++b)
-      ctx.bit_table[ctx.total_bits++] = bit2pulses(word & (1 << b));
+
+    /* ----------------- DEBUG DUMP ----------------------------------------- */
+     #if ESPHOME_LOG_LEVEL >= ESPHOME_LOG_LEVEL_VERBOSE          // only compile if loglevel VERBOSE (LOGV)
+    {
+      char hex[256];  int off = 0;
+      off += snprintf(hex + off, sizeof(hex) - off, "Burst table (cnt=%u): [",
+                      ctx.total_bits);
+      for (uint16_t i = 0; i < ctx.total_bits && off < (int)sizeof(hex) - 8; ++i)
+        off += snprintf(hex + off, sizeof(hex) - off, "%u,", ctx.bit_table[i]);
+      snprintf(hex + off, sizeof(hex) - off, "]");
+      ESP_LOGV(TAG, "%s", hex);          // shows all pulse-counts
+    }
+    /* ---------------------------------------------------------------------- */
+    #endif
 
     // ------------------------------------------------------------ go live --
-    GDOOR_RX::disable();           // avoid self-echo
-    digitalWrite(tx_en_hw, HIGH); // connect driver
+    GDOOR_RX::disable();
+    digitalWrite(tx_en_hw, HIGH);        // driver on
 
-    ledcWrite(ledc_chan, 128);             // first carrier burst
+    ledcWrite(ledc_chan, 128);           // first carrier burst
     ctx.deadline_us = micros() + (uint32_t)START_PULSES * HALF_WAVE_US;
     ctx.state       = PULSE;
 
-    ESP_LOGV(TAG, "TX started, %u bits (LEDC ch=%d)", ctx.total_bits - 1, ledc_chan); // -1 = start
+    ESP_LOGV(TAG, "TX started, %u bits (LEDC ch=%d)",
+             ctx.total_bits - 1, ledc_chan);        // −1 = start-bit
   }
 
   void send(String hex) {
