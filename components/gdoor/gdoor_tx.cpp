@@ -112,7 +112,6 @@ namespace GDOOR_TX {
     // 60 kHz carrier, 8-bit resolution (channel 0)
     ledc_chan = ledcAttach(tx_pin_hw, CARRIER_HZ, LEDC_BITS);
     ledcWrite(ledc_chan, 0);               // off by default
-    ESP_LOGD(TAG, "  LEDC channel   : %d", ledc_chan);
 
     ctx.state = IDLE;
   }
@@ -144,7 +143,7 @@ namespace GDOOR_TX {
     ctx.deadline_us = micros() + (uint32_t)START_PULSES * HALF_WAVE_US;
     ctx.state       = PULSE;
 
-    ESP_LOGV(TAG, "TX started, %u bits", ctx.total_bits - 1); // -1 = start
+    ESP_LOGV(TAG, "TX started, %u bits (LEDC ch=%d)", ctx.total_bits - 1, ledc_chan); // -1 = start
   }
 
   void send(String hex) {
