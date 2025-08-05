@@ -1,17 +1,17 @@
 /* 
  * This file is part of the GDoor distribution (https://github.com/gdoor-org).
  * Copyright (c) 2024 GDoor authors.
- * 
- * This program is free software: you can redistribute it and/or modify  
- * it under the terms of the GNU General Public License as published by  
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3.
  *
- * This program is distributed in the hope that it will be useful, but 
- * WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License 
+ * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 #include "defines.h"
@@ -23,15 +23,15 @@
 static const char *TAG = "gdoor_esphome.gdoor_tx";
 
 // ---------------------------------------------------------------------------
-// configurable timing constants (60 kHz carrier)
+// configurable timing constants (58 kHz carrier)
 // ---------------------------------------------------------------------------
 constexpr uint32_t CARRIER_HZ     = 58000;
 constexpr uint32_t HALF_WAVE_US   = 1000000UL / CARRIER_HZ;  // ≈ 17.24 µs
-constexpr uint16_t START_PULSES   = 60;                      // 60 * 17 µs ≈ 1 ms
-constexpr uint16_t ONE_PULSES     = 12;                      // 12 * 17 µs ≈ 0.2 ms
-constexpr uint16_t ZERO_PULSES    = 32;                      // 32 * 17 µs ≈ 0.55 ms
+constexpr uint16_t START_PULSES   = 60;                      // ≈ 1 ms
+constexpr uint16_t ONE_PULSES     = 12;                      // ≈ 0.21 ms
+constexpr uint16_t ZERO_PULSES    = 32;                      // ≈ 0.55 ms
 constexpr uint32_t PAUSE_US       = 10 * HALF_WAVE_US;       // ≈ 0.17 ms gap
-constexpr uint8_t  LEDC_BITS      = 10;                      // finer granularity
+constexpr uint8_t  LEDC_BITS      =   8;                     // 1–14 bits resolution
 
 // ---------------------------------------------------------------------------
 // local TX state
@@ -40,78 +40,80 @@ namespace GDOOR_TX {
   enum TX_STATE : uint8_t { IDLE = 0, PULSE, GAP };
 
   struct TxContext {
-    uint16_t bit_table[MAX_WORDLEN * 9 + 1];   // start + data + CRC
+    uint16_t bit_table[MAX_WORDLEN * 9 + 1];   // start + data (incl CRC you supply)
     uint16_t total_bits      = 0;
     uint16_t index           = 0;
     uint32_t deadline_us     = 0;
     TX_STATE state           = IDLE;
   } ctx;
 
-  static uint8_t tx_pin_hw   = 0;   // outputs 60 kHz carrier
+  static uint8_t tx_pin_hw   = 0;   // outputs the PWM carrier
   static uint8_t tx_en_hw    = 0;   // high = connect driver
-  static int ledc_chan       = -1;  // storage variable
+  static int     ledc_ch     = -1;  // auto-chosen LEDC channel
 
   // -------------------------------------------------------------------------
-  // helpers
+  // simple helpers
   // -------------------------------------------------------------------------
   static inline uint16_t bit2pulses(bool bit) {
     return bit ? ONE_PULSES : ZERO_PULSES;
   }
 
   static inline uint16_t byte2word(uint8_t byte) {
-    uint16_t w = byte & 0xFF;
-    if (GDOOR_UTILS::parity_odd(byte)) w |= 0x100;  // add odd parity (9th bit)
+    uint16_t w = byte;
+    if (GDOOR_UTILS::parity_odd(byte)) w |= 0x100;  // add parity as bit 8
     return w;
   }
 
   // -------------------------------------------------------------------------
-  // loop-driven state machine (call from your main loop)
+  // must be called from your main loop()
   // -------------------------------------------------------------------------
   void loop() {
     if (ctx.state == IDLE) return;
-
-    // wait until current phase is over
+    // wait until the current burst or gap has elapsed
     if ((int32_t)(micros() - ctx.deadline_us) < 0) return;
 
-    switch (ctx.state) {
-      case PULSE: {               // finished sending carrier burst
-        ledcWrite(ledc_chan, 0);          // carrier off
-        ctx.state       = GAP;
-        ctx.deadline_us = micros() + PAUSE_US;
-        break;
-      }
-      case GAP: {                 // finished inter-bit gap
-        if (ctx.index >= ctx.total_bits) {   // frame done
-          digitalWrite(tx_en_hw, LOW);      // disconnect driver
-          ctx.state = IDLE;
-          GDOOR_RX::enable();                // re-enable RX
-          ESP_LOGV(TAG, "TX finished");
-          break;
-        }
-        // prepare next carrier burst
-        uint16_t pulses = ctx.bit_table[ctx.index++];
-        ctx.deadline_us = micros() + (uint32_t)pulses * HALF_WAVE_US;
-        ledcWrite(ledc_chan, 128);                   // 50 % duty ⇒ carrier on
-        ctx.state = PULSE;
-        break;
-      }
-      default: break;
+    if (ctx.state == PULSE) {
+      // just finished a carrier burst → start the inter-bit gap
+      ledcWrite(ledc_ch, 0);
+      ctx.state       = GAP;
+      ctx.deadline_us = micros() + PAUSE_US;
+      return;
     }
+
+    // GAP state
+    if (ctx.index >= ctx.total_bits) {
+      // all bits done
+      digitalWrite(tx_en_hw, LOW);
+      ctx.state = IDLE;
+      GDOOR_RX::enable();
+      ESP_LOGV(TAG, "TX finished");
+      return;
+    }
+    // start next burst
+    uint16_t pulses = ctx.bit_table[ctx.index++];
+    ledcWrite(ledc_ch, 1 << (LEDC_BITS - 1));  // 50 % duty
+    ctx.deadline_us = micros() + (uint32_t)pulses * HALF_WAVE_US;
+    ctx.state       = PULSE;
   }
 
   // -------------------------------------------------------------------------
   // public API
   // -------------------------------------------------------------------------
   void setup(uint8_t txpin, uint8_t txenpin) {
-    tx_pin_hw    = txpin;
-    tx_en_hw = txenpin;
+    tx_pin_hw = txpin;
+    tx_en_hw  = txenpin;
 
     pinMode(tx_en_hw, OUTPUT);
     digitalWrite(tx_en_hw, LOW);
 
-    // 60 kHz carrier, 8-bit resolution (channel 0)
-    ledc_chan = ledcAttach(tx_pin_hw, CARRIER_HZ, LEDC_BITS);
-    ledcWrite(ledc_chan, 0);               // off by default
+    // Attach and configure the carrier PWM in one call (v3.x API)
+    ledc_ch = ledcAttach(tx_pin_hw, CARRIER_HZ, LEDC_BITS);
+    ledcWrite(ledc_ch, 0);
+
+    ESP_LOGCONFIG(TAG, "  LEDC channel   : %d", ledc_ch);
+    ESP_LOGCONFIG(TAG, "  Carrier freq   : %u Hz", CARRIER_HZ);
+    ESP_LOGCONFIG(TAG, "  TX pin         : GPIO %u", tx_pin_hw);
+    ESP_LOGCONFIG(TAG, "  TX-EN pin      : GPIO %u", tx_en_hw);
 
     ctx.state = IDLE;
   }
@@ -119,48 +121,51 @@ namespace GDOOR_TX {
   void send(uint8_t *data, uint16_t len) {
     if (ctx.state != IDLE || len >= MAX_WORDLEN) return;
 
-    // ------------------------------------------------------ build bit table --
+    // ----------------------------------------------------------------------
+    // 1) build a flat table of pulse-counts: start + each bit of your data
+    // ----------------------------------------------------------------------
     ctx.index      = 0;
     ctx.total_bits = 0;
     ctx.bit_table[ctx.total_bits++] = START_PULSES;
 
     for (uint16_t i = 0; i < len; ++i) {
-      uint16_t word = byte2word(data[i]);           // *your* bytes (CRC included)
+      uint16_t word = byte2word(data[i]);
       for (uint8_t b = 0; b < 9; ++b)
         ctx.bit_table[ctx.total_bits++] = bit2pulses(word & (1 << b));
     }
 
-    /* ----------------- DEBUG DUMP ----------------------------------------- */
-     #if ESPHOME_LOG_LEVEL >= ESPHOME_LOG_LEVEL_VERBOSE          // only compile if loglevel VERBOSE (LOGV)
+    // ----------------------------------------------------------------------
+    // 2) optional VERBOSE dump of the table
+    // ----------------------------------------------------------------------
+    #if ESPHOME_LOG_LEVEL >= ESPHOME_LOG_LEVEL_VERBOSE
     {
-      char hex[256];  int off = 0;
-      off += snprintf(hex + off, sizeof(hex) - off, "Burst table (cnt=%u): [",
-                      ctx.total_bits);
-      for (uint16_t i = 0; i < ctx.total_bits && off < (int)sizeof(hex) - 8; ++i)
-        off += snprintf(hex + off, sizeof(hex) - off, "%u,", ctx.bit_table[i]);
-      snprintf(hex + off, sizeof(hex) - off, "]");
-      ESP_LOGV(TAG, "%s", hex);          // shows all pulse-counts
+      char buf[256];
+      int off = snprintf(buf, sizeof(buf), "Burst table (cnt=%u): [", ctx.total_bits);
+      for (uint16_t i = 0; i < ctx.total_bits && off + 8 < (int)sizeof(buf); ++i)
+        off += snprintf(buf + off, sizeof(buf) - off, "%u,", ctx.bit_table[i]);
+      snprintf(buf + off, sizeof(buf) - off, "]");
+      ESP_LOGV(TAG, "%s", buf);
     }
-    /* ---------------------------------------------------------------------- */
     #endif
 
-    // ------------------------------------------------------------ go live --
+    // ----------------------------------------------------------------------
+    // 3) fire off the first burst
+    // ----------------------------------------------------------------------
     GDOOR_RX::disable();
-    digitalWrite(tx_en_hw, HIGH);        // driver on
+    digitalWrite(tx_en_hw, HIGH);
 
-    ledcWrite(ledc_chan, 128);           // first carrier burst
+    ledcWrite(ledc_ch, 1 << (LEDC_BITS - 1));  // 50% duty = carrier on
     ctx.deadline_us = micros() + (uint32_t)START_PULSES * HALF_WAVE_US;
     ctx.state       = PULSE;
 
     ESP_LOGV(TAG, "TX started, %u bits (LEDC ch=%d)",
-             ctx.total_bits - 1, ledc_chan);        // −1 = start-bit
+             ctx.total_bits - 1, ledc_ch);  // -1 hides the start-burst
   }
 
   void send(String hex) {
     hex.toUpperCase();
     uint8_t buf[MAX_WORDLEN];
     uint16_t n = 0;
-
     for (uint16_t i = 0; i + 1 < hex.length() && n < MAX_WORDLEN; i += 2) {
       int hi = strchr("0123456789ABCDEF", hex[i])  - "0123456789ABCDEF";
       int lo = strchr("0123456789ABCDEF", hex[i+1]) - "0123456789ABCDEF";
@@ -172,4 +177,4 @@ namespace GDOOR_TX {
 
   bool busy() { return ctx.state != IDLE; }
 
-} // namespace
+}  // namespace GDOOR_TX
