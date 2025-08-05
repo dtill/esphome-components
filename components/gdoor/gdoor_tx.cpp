@@ -31,6 +31,7 @@ constexpr uint16_t START_PULSES   = 60;                      // 60 * 17 µs ≈ 
 constexpr uint16_t ONE_PULSES     = 12;                      // 12 * 17 µs ≈ 0.2 ms
 constexpr uint16_t ZERO_PULSES    = 32;                      // 32 * 17 µs ≈ 0.55 ms
 constexpr uint32_t PAUSE_US       = 10 * HALF_WAVE_US;       // ≈ 0.17 ms gap
+constexpr uint8_t  LEDC_BITS      = 10;                      // finer granularity
 
 // ---------------------------------------------------------------------------
 // local TX state
@@ -48,6 +49,7 @@ namespace GDOOR_TX {
 
   static uint8_t tx_pin_hw   = 0;   // outputs 60 kHz carrier
   static uint8_t tx_en_hw    = 0;   // high = connect driver
+  static int ledc_chan       = -1;  // storage variable
 
   // -------------------------------------------------------------------------
   // helpers
@@ -73,7 +75,7 @@ namespace GDOOR_TX {
 
     switch (ctx.state) {
       case PULSE: {               // finished sending carrier burst
-        ledcWrite(0, 0);          // carrier off
+        ledcWrite(ledc_chan, 0);          // carrier off
         ctx.state       = GAP;
         ctx.deadline_us = micros() + PAUSE_US;
         break;
@@ -89,7 +91,7 @@ namespace GDOOR_TX {
         // prepare next carrier burst
         uint16_t pulses = ctx.bit_table[ctx.index++];
         ctx.deadline_us = micros() + (uint32_t)pulses * HALF_WAVE_US;
-        ledcWrite(0, 128);                   // 50 % duty ⇒ carrier on
+        ledcWrite(ledc_chan, 128);                   // 50 % duty ⇒ carrier on
         ctx.state = PULSE;
         break;
       }
@@ -108,8 +110,9 @@ namespace GDOOR_TX {
     digitalWrite(tx_en_hw, LOW);
 
     // 60 kHz carrier, 8-bit resolution (channel 0)
-    ledcAttach(tx_pin_hw, CARRIER_HZ, 8);
-    ledcWrite(0, 0);               // off by default
+    ledc_chan = ledcAttach(tx_pin_hw, CARRIER_HZ, LEDC_BITS);
+    ledcWrite(ledc_chan, 0);               // off by default
+    ESP_LOGCONFIG(TAG, "  LEDC channel   : %d", ledc_chan);
 
     ctx.state = IDLE;
   }
@@ -137,7 +140,7 @@ namespace GDOOR_TX {
     GDOOR_RX::disable();           // avoid self-echo
     digitalWrite(tx_en_hw, HIGH); // connect driver
 
-    ledcWrite(0, 128);             // first carrier burst
+    ledcWrite(ledc_chan, 128);             // first carrier burst
     ctx.deadline_us = micros() + (uint32_t)START_PULSES * HALF_WAVE_US;
     ctx.state       = PULSE;
 
