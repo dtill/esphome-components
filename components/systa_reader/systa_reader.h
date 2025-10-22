@@ -15,7 +15,14 @@ class SystaReader : public uart::UARTDevice, public Component {
   void set_log_invalid(bool v) { this->log_invalid_ = v; }
   void set_device_type(const std::string &t) { this->device_type_ = t; }
 
-  // AQUA sensor setters
+  // sink interface
+  class HexSink { public: virtual void publish_frame_hex(const std::string &hex) = 0; };
+
+  // register sinks
+  void add_sink_all(HexSink *s)  { sinks_all_.push_back(s); }
+  void add_sink_aqua(HexSink *s) { sinks_aqua_.push_back(s); }
+
+  // AQUA sensor setters (unchanged if you already have them)
   void set_aqua_tsa_sensor(sensor::Sensor *s) { aqua_tsa_ = s; }
   void set_aqua_tse_sensor(sensor::Sensor *s) { aqua_tse_ = s; }
   void set_aqua_twu_sensor(sensor::Sensor *s) { aqua_twu_ = s; }
@@ -31,11 +38,6 @@ class SystaReader : public uart::UARTDevice, public Component {
   void loop() override;
   float get_setup_priority() const override { return setup_priority::DATA; }
 
-  // HEX-Ausgabe: alle Frames vs. nur AQUA
-  class HexSink { public: virtual void publish_frame_hex(const std::string &hex) = 0; };
-  void add_sink_all(HexSink *sink)  { sinks_all_.push_back(sink); }
-  void add_sink_aqua(HexSink *sink) { sinks_aqua_.push_back(sink); }
-
  protected:
   void process_buffer_();
   bool try_parse_fc_frame_();
@@ -49,8 +51,8 @@ class SystaReader : public uart::UARTDevice, public Component {
   static uint32_t read_u32_be_(const std::vector<uint8_t> &b, int i) { return (uint32_t(b[i])<<24) | (uint32_t(b[i+1])<<16) | (uint32_t(b[i+2])<<8) | uint32_t(b[i+3]); }
 
   std::deque<uint8_t> buf_{};
-  std::vector<HexSink *> sinks_all_{};
-  std::vector<HexSink *> sinks_aqua_{};
+  std::vector<HexSink*> sinks_all_{};
+  std::vector<HexSink*> sinks_aqua_{};
   bool log_invalid_{true};
   std::string device_type_{"aqua"};
 
@@ -67,14 +69,8 @@ class SystaReader : public uart::UARTDevice, public Component {
   text_sensor::TextSensor *aqua_timestamp_{nullptr};
 };
 
-// Textsensor „alle Frames“
-class SystaReaderTextSensorAll : public text_sensor::TextSensor, public Component, public SystaReader::HexSink {
- public:
-  void publish_frame_hex(const std::string &hex) override { this->publish_state(hex); }
-};
-
-// Textsensor „nur AQUA Frames“
-class SystaReaderTextSensorAqua : public text_sensor::TextSensor, public Component, public SystaReader::HexSink {
+// one concrete text sensor class used for both cases
+class SystaReaderTextSensor : public text_sensor::TextSensor, public Component, public SystaReader::HexSink {
  public:
   void publish_frame_hex(const std::string &hex) override { this->publish_state(hex); }
 };
