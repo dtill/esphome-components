@@ -14,22 +14,16 @@ SystaReaderTextSensor = systa_ns.class_(
 CONF_PARENT_ID = "systa_reader_id"
 
 
-CONFIG_SCHEMA = (
-text_sensor.text_sensor_schema(SystaReaderTextSensor)
-.extend(
-{
-cv.Required(CONF_NAME): cv.string,
-cv.Required(CONF_PARENT_ID): cv.use_id(SystaReader),
-cv.Optional(CONF_ICON, default="mdi:code-hex"): cv.icon,
-}
-)
-.extend(cv.COMPONENT_SCHEMA)
-)
+CONFIG_SCHEMA = ( text_sensor.text_sensor_schema(SystaReaderTextSensor).extend({
+    cv.Required(CONF_NAME): cv.string,
+    cv.Required(CONF_PARENT_ID): cv.use_id(SystaReader),
+    cv.Optional(CONF_ICON, default="mdi:code-hex"): cv.icon,
+}).extend(cv.COMPONENT_SCHEMA))
 
 
 async def to_code(config):
-parent = await cg.get_variable(config[CONF_PARENT_ID])
-var = cg.new_Pvariable(config[cv.GenerateID()])
-await cg.register_component(var, config)
-await text_sensor.register_text_sensor(var, config)
-cg.add(parent.add_sink(var))
+    parent = await cg.get_variable(config[CONF_PARENT_ID])
+    var = cg.new_Pvariable(config[cv.GenerateID()])
+    await cg.register_component(var, config)
+    await text_sensor.register_text_sensor(var, config)
+    cg.add(parent.add_sink(var))
