@@ -6,7 +6,7 @@ namespace systa_reader {
 
 static const char *const TAG_AQUA = "systa_reader.aqua";
 
-const char* AquaDecoder::status_text(uint8_t raw, uint8_t code_hex) {
+const char* AquaDecoder::status_text(uint8_t raw) {
   switch (raw) {
     case 0:  return "Kein Fehler";
     case 1:  return "Durchfluss im Solarkreis blockiert oder Pumpe defekt";
@@ -37,11 +37,12 @@ const char* AquaDecoder::status_text(uint8_t raw, uint8_t code_hex) {
 void AquaDecoder::on_fc_frame(const std::vector<uint8_t>& frame,
                               const std::vector<uint8_t>& payload,
                               const std::string &hex) {
-  // Erwarte AQUA: FC [len] 0B 01 ...
-  if (frame.size() < 6) return;
-  if (!(frame[0]==0xFC && frame[2]==0x0B && frame[3]==0x01)) return;
+  // Nur AQUA Frames: FC .. 0B 01 ..
+  if (frame.size()<6 || frame[0]!=0xFC || frame[2]!=0x0B || frame[3]!=0x01) return;
 
-  // Werte liegen in FULL-FRAME an festen Offsets (Big Endian)
+  // HEX auch in AQUA-only sink
+  r_.publish_hex_aqua(hex);
+
   if (payload.size() < 30) return;
 
   auto u16 = [&](int i){ return read_u16_be(frame, i); };
@@ -56,9 +57,8 @@ void AquaDecoder::on_fc_frame(const std::vector<uint8_t>& frame,
   float gesamt = u32(28);
 
   uint8_t status_raw  = payload[11];
-  uint8_t status_code = uint8_t((status_raw / 10) * 16 + (status_raw % 10)); // dec→hex-kodiert
+  uint8_t status_code = uint8_t((status_raw/10) * 16 + (status_raw%10));
 
-  // Publish numerisch
   r_.pub_aqua_tsa(tsa);
   r_.pub_aqua_tse(tse);
   r_.pub_aqua_twu(twu);
@@ -68,8 +68,7 @@ void AquaDecoder::on_fc_frame(const std::vector<uint8_t>& frame,
   r_.pub_aqua_ges(gesamt);
   r_.pub_aqua_status_code(status_code);
 
-  // Status-Text
-  if (const char* t = status_text(status_raw, status_code)) {
+  if (const char* t = status_text(status_raw)) {
     r_.pub_aqua_status_text(t);
   } else {
     char buf[40];
@@ -77,7 +76,6 @@ void AquaDecoder::on_fc_frame(const std::vector<uint8_t>& frame,
     r_.pub_aqua_status_text(buf);
   }
 
-  // Zeitstempel aus Payload BCD
   uint8_t hour   = bcd2dec(payload[14]);
   uint8_t minute = bcd2dec(payload[15]);
   uint8_t day    = bcd2dec(payload[16]);

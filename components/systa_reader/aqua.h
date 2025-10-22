@@ -6,7 +6,6 @@
 namespace esphome {
 namespace systa_reader {
 
-// Maximale Logik für AQUA hier drin
 class AquaDecoder {
  public:
   explicit AquaDecoder(SystaReader &owner) : r_(owner) {}
@@ -21,12 +20,8 @@ class AquaDecoder {
   static inline uint32_t read_u32_be(const std::vector<uint8_t> &b, int i) {
     return (uint32_t(b[i])<<24)|(uint32_t(b[i+1])<<16)|(uint32_t(b[i+2])<<8)|uint32_t(b[i+3]);
   }
-  static inline uint8_t bcd2dec(uint8_t v) {
-    return uint8_t(((v >> 4) * 10) + (v & 0x0F));
-  }
-
-  // Status-Text Mapping (kompakt)
-  static const char* status_text(uint8_t raw, uint8_t status_code_hex);
+  static inline uint8_t bcd2dec(uint8_t v) { return uint8_t(((v>>4)*10) + (v & 0x0F)); }
+  static const char* status_text(uint8_t raw);
 
   SystaReader &r_;
 };

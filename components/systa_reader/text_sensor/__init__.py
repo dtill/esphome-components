@@ -4,16 +4,49 @@ from esphome.components import text_sensor
 from esphome.const import CONF_ID
 from .. import systa_ns, SystaReader
 
-SystaReaderTextSensor = systa_ns.class_("SystaReaderTextSensor", text_sensor.TextSensor, cg.Component)
-CONF_PARENT_ID = "systa_reader_id"
+SystaReaderText = systa_ns.class_("SystaReaderTextSensor", text_sensor.TextSensor, cg.Component)
 
-CONFIG_SCHEMA = text_sensor.text_sensor_schema(SystaReaderTextSensor).extend({
-    cv.Required(CONF_PARENT_ID): cv.use_id(SystaReader),
-}).extend(cv.COMPONENT_SCHEMA)
+CONF_PARENT_ID = "systa_reader_id"
+CONF_MODE  = "mode"    # raw | field
+CONF_FILTER= "filter"  # all | aqua   (nur bei raw)
+CONF_KIND  = "kind"    # aqua_status_text | aqua_timestamp (nur bei field)
+
+MODE   = cv.one_of("raw", "field", lower=True)
+FILTER = cv.one_of("all", "aqua", lower=True)
+FIELD_KIND = cv.one_of("aqua_status_text", "aqua_timestamp", lower=True)
+
+def _validate(cfg):
+    if cfg[CONF_MODE] == "raw":
+        if CONF_KIND in cfg:
+            raise cv.Invalid("kind not allowed when mode: raw")
+    else:
+        if CONF_KIND not in cfg:
+            raise cv.Invalid("kind required when mode: field")
+    return cfg
+
+CONFIG_SCHEMA = cv.All(
+    text_sensor.text_sensor_schema(SystaReaderText).extend({
+        cv.Required(CONF_PARENT_ID): cv.use_id(SystaReader),
+        cv.Required(CONF_MODE): MODE,
+        cv.Optional(CONF_FILTER, default="all"): FILTER,
+        cv.Optional(CONF_KIND): FIELD_KIND,
+    }),
+    _validate
+)
 
 async def to_code(config):
     parent = await cg.get_variable(config[CONF_PARENT_ID])
-    var = cg.new_Pvariable(config[CONF_ID])  # <-- Wichtig: CONF_ID statt cv.GenerateID()
+    var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)
     await text_sensor.register_text_sensor(var, config)
-    cg.add(parent.add_sink(var))
+
+    if config[CONF_MODE] == "raw":
+        if config[CONF_FILTER] == "aqua":
+            cg.add(parent.add_sink_aqua(var))
+        else:
+            cg.add(parent.add_sink_all(var))
+    else:
+        # field mode → mappe auf konkrete Text-Slots
+        k = config[CONF_KIND]
+        if   k == "aqua_status_text": cg.add(parent.set_aqua_status_text_sensor(var))
+        elif k == "aqua_timestamp":   cg.add(parent.set_aqua_timestamp_text_sensor(var))

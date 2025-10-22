@@ -3,8 +3,6 @@ import esphome.config_validation as cv
 from esphome.components import sensor
 from .. import systa_ns, SystaReader
 
-Kind = systa_ns.enum("Kind")
-
 CONF_PARENT_ID = "systa_reader_id"
 CONF_KIND = "kind"
 
@@ -14,14 +12,6 @@ KIND = cv.one_of(
     lower=True
 )
 
-def kind_to_enum(v):
-    mapping = {
-        "aqua_tsa":"AQUA_TSA", "aqua_tse":"AQUA_TSE", "aqua_twu":"AQUA_TWU", "aqua_tw2":"AQUA_TW2",
-        "aqua_sol":"AQUA_SOL", "aqua_tag":"AQUA_TAG", "aqua_gesamt":"AQUA_GESAMT",
-        "aqua_status_code":"AQUA_STATUS_CODE",
-    }
-    return getattr(Kind, mapping[v])
-
 CONFIG_SCHEMA = sensor.sensor_schema().extend({
     cv.Required(CONF_PARENT_ID): cv.use_id(SystaReader),
     cv.Required(CONF_KIND): KIND,
@@ -29,6 +19,13 @@ CONFIG_SCHEMA = sensor.sensor_schema().extend({
 
 async def to_code(config):
     parent = await cg.get_variable(config[CONF_PARENT_ID])
-    var = await sensor.new_sensor(config)
-    k = kind_to_enum(config[CONF_KIND])  # ergibt esphome::systa_reader::Kind::AQUA_*
-    cg.add(parent.set_numeric_sensor(k, var))
+    s = await sensor.new_sensor(config)
+    k = config[CONF_KIND]
+    if   k == "aqua_tsa":          cg.add(parent.set_aqua_tsa_sensor(s))
+    elif k == "aqua_tse":          cg.add(parent.set_aqua_tse_sensor(s))
+    elif k == "aqua_twu":          cg.add(parent.set_aqua_twu_sensor(s))
+    elif k == "aqua_tw2":          cg.add(parent.set_aqua_tw2_sensor(s))
+    elif k == "aqua_sol":          cg.add(parent.set_aqua_sol_sensor(s))
+    elif k == "aqua_tag":          cg.add(parent.set_aqua_tag_sensor(s))
+    elif k == "aqua_gesamt":       cg.add(parent.set_aqua_ges_sensor(s))
+    elif k == "aqua_status_code":  cg.add(parent.set_aqua_status_code_sensor(s))

@@ -3,7 +3,6 @@ import esphome.config_validation as cv
 from esphome.components import uart
 from esphome.const import CONF_ID
 
-MULTI_CONF = True
 AUTO_LOAD = ["sensor", "text_sensor"]
 CODEOWNERS = ["@dtill"]
 DEPENDENCIES = ["uart", "sensor", "text_sensor"]

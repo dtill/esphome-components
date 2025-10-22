@@ -14,20 +14,21 @@ class AquaDecoder;  // forward
 
 class SystaReader : public uart::UARTDevice, public Component {
  public:
-  // --- Konfiguration ---
+  // config
   void set_log_invalid(bool v) { log_invalid_ = v; }
   void set_device_type(const std::string &t) { device_type_ = t; }
 
-  // --- Lifecycle ---
+  // lifecycle
   void setup() override {}
   void loop() override;
   float get_setup_priority() const override { return setup_priority::DATA; }
 
-  // --- HEX-Sink Interface (für Textsensor RAW-HEX) ---
+  // raw sinks
   class HexSink { public: virtual void publish_frame_hex(const std::string &hex) = 0; virtual ~HexSink() = default; };
-  void add_sink(HexSink *s) { sinks_all_.push_back(s); }          // ALL frames
+  void add_sink_all(HexSink *s)  { sinks_all_.push_back(s); }
+  void add_sink_aqua(HexSink *s) { sinks_aqua_.push_back(s); }
 
-  // --- Setter aus Python (__init__.py) -> Sensor-Pointer registrieren ---
+  // setters (werden von Subplatforms aufgerufen)
   // AQUA numeric
   void set_aqua_tsa_sensor(sensor::Sensor *s)         { aqua_tsa_ = s; }
   void set_aqua_tse_sensor(sensor::Sensor *s)         { aqua_tse_ = s; }
@@ -41,46 +42,43 @@ class SystaReader : public uart::UARTDevice, public Component {
   void set_aqua_status_text_sensor(text_sensor::TextSensor *t) { aqua_status_text_ = t; }
   void set_aqua_timestamp_text_sensor(text_sensor::TextSensor *t) { aqua_timestamp_ = t; }
 
-  // --- Publish-Helfer (vom Decoder benutzt; NULL-safe) ---
-  inline void pub_aqua_tsa(float v)           { if (aqua_tsa_) aqua_tsa_->publish_state(v); }
-  inline void pub_aqua_tse(float v)           { if (aqua_tse_) aqua_tse_->publish_state(v); }
-  inline void pub_aqua_twu(float v)           { if (aqua_twu_) aqua_twu_->publish_state(v); }
-  inline void pub_aqua_tw2(float v)           { if (aqua_tw2_) aqua_tw2_->publish_state(v); }
-  inline void pub_aqua_sol(float v)           { if (aqua_sol_) aqua_sol_->publish_state(v); }
-  inline void pub_aqua_tag(float v)           { if (aqua_tag_) aqua_tag_->publish_state(v); }
-  inline void pub_aqua_ges(float v)           { if (aqua_ges_) aqua_ges_->publish_state(v); }
-  inline void pub_aqua_status_code(float v)   { if (aqua_status_code_) aqua_status_code_->publish_state(v); }
-  inline void pub_aqua_status_text(const std::string &s) { if (aqua_status_text_) aqua_status_text_->publish_state(s); }
-  inline void pub_aqua_timestamp(const std::string &s)   { if (aqua_timestamp_)   aqua_timestamp_->publish_state(s); }
+  // publish helpers
+  void pub_aqua_tsa(float v)           { if (aqua_tsa_) aqua_tsa_->publish_state(v); }
+  void pub_aqua_tse(float v)           { if (aqua_tse_) aqua_tse_->publish_state(v); }
+  void pub_aqua_twu(float v)           { if (aqua_twu_) aqua_twu_->publish_state(v); }
+  void pub_aqua_tw2(float v)           { if (aqua_tw2_) aqua_tw2_->publish_state(v); }
+  void pub_aqua_sol(float v)           { if (aqua_sol_) aqua_sol_->publish_state(v); }
+  void pub_aqua_tag(float v)           { if (aqua_tag_) aqua_tag_->publish_state(v); }
+  void pub_aqua_ges(float v)           { if (aqua_ges_) aqua_ges_->publish_state(v); }
+  void pub_aqua_status_code(float v)   { if (aqua_status_code_) aqua_status_code_->publish_state(v); }
+  void pub_aqua_status_text(const std::string &s) { if (aqua_status_text_) aqua_status_text_->publish_state(s); }
+  void pub_aqua_timestamp(const std::string &s)   { if (aqua_timestamp_)   aqua_timestamp_->publish_state(s); }
 
-  // --- Logging-Flag ---
   bool log_invalid() const { return log_invalid_; }
-
-  // --- Utility: HEX an alle Sinks rausgeben ---
-  void publish_hex_to_all(const std::string &hex) {
-    for (auto *s : sinks_all_) s->publish_frame_hex(hex);
-  }
+  void publish_hex_all(const std::string &hex)  { for (auto *s : sinks_all_)  s->publish_frame_hex(hex); }
+  void publish_hex_aqua(const std::string &hex) { for (auto *s : sinks_aqua_) s->publish_frame_hex(hex); }
 
  private:
-  // --- Parser ---
+  // parsing
   void process_buffer_();
-  bool try_parse_display_frame_(); // 0F 22 04 00 ... 37 Bytes
-  bool try_parse_fc_frame_();      // FC [len] [func_hi] [func_lo] ... checksum
+  bool try_parse_display_frame_();
+  bool try_parse_fc_frame_();
 
-  // --- Checksummen/Utils ---
+  // utils
   static uint8_t     checksum_twos_complement_(const std::vector<uint8_t> &data_wo_last);
   static std::string to_hex_(const std::vector<uint8_t> &buf);
 
-  // --- Zustand ---
-  std::deque<uint8_t> buf_{};
-  std::vector<HexSink*> sinks_all_{};
+  // state
+  std::deque<uint8_t> buf_;
+  std::vector<HexSink*> sinks_all_;
+  std::vector<HexSink*> sinks_aqua_;
   bool log_invalid_{true};
   std::string device_type_{"aqua"};
 
-  // AQUA Decoder-Instanz
+  // decoder instances
   AquaDecoder *aqua_{nullptr};
 
-  // Registrierte Sensoren (AQUA)
+  // AQUA sensors
   sensor::Sensor *aqua_tsa_{nullptr};
   sensor::Sensor *aqua_tse_{nullptr};
   sensor::Sensor *aqua_twu_{nullptr};
@@ -91,11 +89,9 @@ class SystaReader : public uart::UARTDevice, public Component {
   sensor::Sensor *aqua_status_code_{nullptr};
   text_sensor::TextSensor *aqua_status_text_{nullptr};
   text_sensor::TextSensor *aqua_timestamp_{nullptr};
-
-  friend class AquaDecoder;  // Decoder darf auf Owner zugreifen falls nötig
 };
 
-// Konkreter Textsensor als HEX-Sink
+// concrete text sensor sink
 class SystaReaderTextSensor : public text_sensor::TextSensor, public Component, public SystaReader::HexSink {
  public:
   void publish_frame_hex(const std::string &hex) override { this->publish_state(hex); }
