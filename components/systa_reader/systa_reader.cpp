@@ -124,7 +124,6 @@ void SystaReader::route_display_frame_to_device_(const std::vector<uint8_t>& fra
   // else if (device_type_ == "modula") { /* modula_->on_fc_frame(...) */ }
   // else if (device_type_ == "espresso") { ... }
   // else if (device_type_ == "solar") { ... }
-}
 
 uint8_t SystaReader::checksum_twos_complement_(const std::vector<uint8_t> &v) {
   uint32_t sum=0; for (auto b: v) sum+=b;
