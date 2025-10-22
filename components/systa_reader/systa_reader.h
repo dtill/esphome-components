@@ -98,6 +98,13 @@ class SystaReader : public uart::UARTDevice, public Component {
   text_sensor::TextSensor *aqua_timestamp_{nullptr};
 };
 
+// Sink-Interface (bestehend)
+class SystaReaderTextSink {
+ public:
+  virtual void publish_frame_hex(const std::string &hex) = 0;
+  virtual ~SystaReaderTextSink() = default;
+};
+
 // concrete text sensor sink
 class SystaReaderTextSensor : public text_sensor::TextSensor, public Component, public SystaReader::HexSink {
  public:
