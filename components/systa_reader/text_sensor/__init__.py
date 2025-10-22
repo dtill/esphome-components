@@ -13,8 +13,7 @@ CONF_KIND  = "kind"    # aqua_status_text | aqua_timestamp (nur bei field)
 
 MODE   = cv.one_of("raw", "field", lower=True)
 FILTER = cv.one_of("all", "aqua", lower=True)
-FIELD_KIND = cv.one_of("aqua_status_text", "aqua_timestamp", lower=True)
-
+FIELD_KIND = cv.one_of("aqua_status_text", "aqua_timestamp", "aqua_display_text", lower=True)
 def _validate(cfg):
     if cfg[CONF_MODE] == "raw":
         if CONF_KIND in cfg:
@@ -50,3 +49,4 @@ async def to_code(config):
         k = config[CONF_KIND]
         if   k == "aqua_status_text": cg.add(parent.set_aqua_status_text_sensor(var))
         elif k == "aqua_timestamp":   cg.add(parent.set_aqua_timestamp_text_sensor(var))
+        elif k == "aqua_display_text": cg.add(parent.set_aqua_display_text_sensor(var))

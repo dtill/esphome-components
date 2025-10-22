@@ -42,7 +42,7 @@ void AquaDecoder::on_fc_frame(const std::vector<uint8_t>& frame,
 
   // HEX auch in AQUA-only sink
   r_.publish_hex_aqua(hex);
-  ESP_LOGD(TAG_AQUA, "AQUA len=%u, frame.size()=%u, payload.size()=%u",
+  ESP_LOGV(TAG_AQUA, "AQUA len=%u, frame.size()=%u, payload.size()=%u",
          frame[1], (unsigned)frame.size(), (unsigned)payload.size());
   if (payload.size() < 18) return;
 
@@ -87,6 +87,28 @@ void AquaDecoder::on_fc_frame(const std::vector<uint8_t>& frame,
 
   ESP_LOGD(TAG_AQUA, "AQUA: TSA=%.1f TSE=%.1f TWU=%.1f TW2=%.1f SOL=%.0f TAG=%.0f GES=%.0f code=%02X",
            tsa, tse, twu, tw2, sol, tag, gesamt, status_code);
+}
+void AquaDecoder::on_display_frame(const std::vector<uint8_t>& /*frame*/,
+                                   const std::vector<uint8_t>& payload,
+                                   const std::string &/*hex*/) {
+  // payload ist 32 Byte ASCII (mit evtl. non-printables → '.' ersetzen)
+  std::string ascii; ascii.reserve(payload.size());
+  for (auto b : payload) ascii += (b >= 32 && b <= 126) ? char(b) : '.';
+
+  if (ascii == last_display_) return;  // unverändert
+
+  const uint32_t now = millis();
+  if (last_display_ms_ != 0 && (uint32_t)(now - last_display_ms_) < DISPLAY_MIN_INTERVAL_MS) {
+    // innerhalb 5 min: nur leise loggen
+    ESP_LOGV(TAG_AQUA, "Display change suppressed (interval): \"%s\"", ascii.c_str());
+    last_display_ = ascii;  // trotzdem aktualisieren, damit nach Ablauf nicht „altes“ kommt
+    return;
+  }
+
+  ESP_LOGD(TAG_AQUA, "Display-Text geändert: \"%s\"", ascii.c_str());
+  r_.pub_aqua_display_text(ascii);
+  last_display_   = ascii;
+  last_display_ms_= now;
 }
 
 } // namespace systa_reader

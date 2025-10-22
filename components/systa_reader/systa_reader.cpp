@@ -38,7 +38,7 @@ bool SystaReader::try_parse_display_frame_() {
   if (buf_.size() < 4) return false;
   if (!(buf_[0]==0x0F && buf_[1]==0x22 && buf_[2]==0x04 && buf_[3]==0x00)) return false;
 
-  const size_t total = 37;
+  const size_t total = 37;  // 0F 22 04 00 + 32 + 1
   if (buf_.size() < total) return false;
 
   std::vector<uint8_t> frame(total);
@@ -46,12 +46,20 @@ bool SystaReader::try_parse_display_frame_() {
 
   const uint8_t calc = checksum_twos_complement_(std::vector<uint8_t>(frame.begin(), frame.end()-1));
   const uint8_t got  = frame.back();
-  if (calc != got && log_invalid_)
-    ESP_LOGW(TAG, "Display checksum invalid (got %02X, expected %02X)", got, calc);
+  if (calc != got) {
+    if (log_invalid_) ESP_LOGW(TAG, "Display checksum invalid (got %02X, expected %02X)", got, calc);
+    // trotzdem Bytes verwerfen, um nicht zu hängen
+    for (size_t i=0;i<total;i++) buf_.pop_front();
+    return true;
+  }
 
   const std::string hex = to_hex_(frame);
+  // ALL-Sink (HEX) beibehalten, falls gewünscht
   publish_hex_all(hex);
-  ESP_LOGD(TAG, "Display HEX: %s", hex.c_str());
+
+  // Payload 0..31 (ASCII) an Gerätemodul geben
+  std::vector<uint8_t> payload(frame.begin()+4, frame.begin()+36);
+  this->route_display_frame_to_device_(frame, payload, hex);
 
   for (size_t i=0;i<total;i++) buf_.pop_front();
   return true;
@@ -78,10 +86,10 @@ bool SystaReader::try_parse_fc_frame_() {
   for (auto *s : sinks_) s->publish_frame_hex(hex);
   ESP_LOGV(TAG, "FC HEX: %s", hex.c_str());
 
-  // 🔹 Payload ohne Header/Checksumme
+  // Payload ohne Header/Checksumme
   std::vector<uint8_t> payload(frame.begin() + 4, frame.end() - 1);
 
-  // 🔹 Gerätespezifisches Routing (keine Dekodier-Logik hier!)
+  // Gerätespezifisches Routing (keine Dekodier-Logik hier!)
   this->route_fc_frame_to_device_(frame, payload, hex);
 
   for (size_t i = 0; i < total; i++) buf_.pop_front();
@@ -91,15 +99,22 @@ bool SystaReader::try_parse_fc_frame_() {
 void SystaReader::route_fc_frame_to_device_(const std::vector<uint8_t>& frame,
                                             const std::vector<uint8_t>& payload,
                                             const std::string &hex) {
-  // 🔹 Nur wenn AQUA gewählt ist → lazy Decoder erstellen & aufrufen
   if (device_type_ == "aqua") {
-    if (aqua_ == nullptr) {
-      aqua_ = new AquaDecoder(*this);  // wird nie erstellt, wenn Gerät ≠ aqua
-    }
-    aqua_->on_fc_frame(frame, payload, hex);  // vollständige Logik in aqua.cpp
+    if (aqua_ == nullptr) aqua_ = new AquaDecoder(*this);
+    // nur AQUA-Header FC .. 0B 01 weiterreichen
+    if (frame.size() >= 4 && frame[0]==0xFC && frame[2]==0x0B && frame[3]==0x01)
+      aqua_->on_fc_frame(frame, payload, hex);
   }
-
-  // 🔸 Weitere Geräte in Zukunft:
+}
+void SystaReader::route_display_frame_to_device_(const std::vector<uint8_t>& frame,
+                                                 const std::vector<uint8_t>& payload,
+                                                 const std::string &hex) {
+  if (device_type_ == "aqua") {
+    if (aqua_ == nullptr) aqua_ = new AquaDecoder(*this);
+    aqua_->on_display_frame(frame, payload, hex);
+  }
+}
+  // Weitere Geräte in Zukunft:
   // else if (device_type_ == "modula") { /* modula_->on_fc_frame(...) */ }
   // else if (device_type_ == "espresso") { ... }
   // else if (device_type_ == "solar") { ... }

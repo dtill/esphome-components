@@ -43,6 +43,11 @@ class SystaReader : public uart::UARTDevice, public Component {
   void set_aqua_status_text_sensor(text_sensor::TextSensor *t) { aqua_status_text_ = t; }
   void set_aqua_timestamp_text_sensor(text_sensor::TextSensor *t) { aqua_timestamp_ = t; }
 
+  // AQUA Display
+  void set_aqua_display_text_sensor(text_sensor::TextSensor *t) { aqua_display_text_ = t; }
+  inline void pub_aqua_display_text(const std::string &s) { if (aqua_display_text_) aqua_display_text_->publish_state(s); }
+
+
   // publish helpers
   void pub_aqua_tsa(float v)           { if (aqua_tsa_) aqua_tsa_->publish_state(v); }
   void pub_aqua_tse(float v)           { if (aqua_tse_) aqua_tse_->publish_state(v); }
@@ -69,6 +74,10 @@ class SystaReader : public uart::UARTDevice, public Component {
   void route_fc_frame_to_device_(const std::vector<uint8_t>& frame,
                                  const std::vector<uint8_t>& payload,
                                  const std::string &hex);
+  // kleiner Router für 0F-Frames (ruft nur das gewählte Gerät auf)
+  void route_display_frame_to_device_(const std::vector<uint8_t>& frame,
+                                      const std::vector<uint8_t>& payload,
+                                      const std::string &hex);
 
   // utils
   static uint8_t     checksum_twos_complement_(const std::vector<uint8_t> &data_wo_last);
@@ -96,6 +105,7 @@ class SystaReader : public uart::UARTDevice, public Component {
   sensor::Sensor *aqua_status_code_{nullptr};
   text_sensor::TextSensor *aqua_status_text_{nullptr};
   text_sensor::TextSensor *aqua_timestamp_{nullptr};
+  text_sensor::TextSensor *aqua_display_text_{nullptr};
 };
 
 // Sink-Interface (bestehend)
