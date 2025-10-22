@@ -1,0 +1,87 @@
+# Systa-Reader ESPHome Component
+An esphome component for the SystaReaDER-V2-Bus-Adapter.
+
+
+Supported Features: read Paradigma SystaBus messages
+
+Tested hardware: SystaSolar/Aqua/Modulo II/Espresso.
+
+[Example YAML](../../example_systa_reader.yaml) configuration:
+```yaml
+uart:
+  id: uart_bus
+  tx_pin: GPIO1
+  rx_pin: GPIO13
+  baud_rate: 9600
+  data_bits: 8
+  parity: NONE
+  stop_bits: 1
+
+systa_reader:
+  id: sysbus_aqua
+  uart_id: uart_bus
+  log_invalid: true
+  #systa_device: aqua
+
+sensor:
+  - platform: systa_reader
+    systa_reader_id: sysbus_aqua
+    kind: aqua_tsa
+    name: "AQUA TSA (Kollektor)"
+  - platform: systa_reader
+    systa_reader_id: sysbus_aqua
+    kind: aqua_tse
+    name: "AQUA TSE (Eintritt)"
+  - platform: systa_reader
+    systa_reader_id: sysbus_aqua
+    kind: aqua_twu
+    name: "AQUA TWU (unten)"
+  - platform: systa_reader
+    systa_reader_id: sysbus_aqua
+    kind: aqua_tw2
+    name: "AQUA TW2 (oben)"
+  - platform: systa_reader
+    systa_reader_id: sysbus_aqua
+    kind: aqua_sol
+    name: "AQUA Solare Leistung"
+  - platform: systa_reader
+    systa_reader_id: sysbus_aqua
+    kind: aqua_tag
+    name: "AQUA Tagesgewinn"
+  - platform: systa_reader
+    systa_reader_id: sysbus_aqua
+    kind: aqua_gesamt
+    name: "AQUA Solargewinn gesamt"
+  - platform: systa_reader
+    systa_reader_id: sysbus_aqua
+    kind: aqua_status_code
+    name: "AQUA Status Code"
+
+text_sensor:
+  - platform: systa_reader
+    systa_reader_id: sysbus_aqua
+    mode: raw
+    filter: all
+    name: "Systa Raw HEX (ALL)"
+  - platform: systa_reader
+    systa_reader_id: sysbus_aqua
+    mode: raw
+    filter: aqua
+    name: "Systa Raw HEX (AQUA)"
+
+  - platform: systa_reader
+    systa_reader_id: sysbus_aqua
+    mode: field
+    kind: aqua_status_text
+    name: "AQUA Status Text"
+  - platform: systa_reader
+    systa_reader_id: sysbus_aqua
+    mode: field
+    kind: aqua_timestamp
+    name: "AQUA Zeitstempel"
+  - platform: systa_reader
+    systa_reader_id: sysbus_aqua
+    mode: field
+    kind: aqua_display_text
+    name: "AQUA Displaytext"
+```
