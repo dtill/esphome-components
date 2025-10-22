@@ -7,6 +7,8 @@ AUTO_LOAD = ["sensor", "text_sensor"]
 CODEOWNERS = ["@dtill"]
 DEPENDENCIES = ["uart", "sensor", "text_sensor"]
 
+MULTI_CONF = True
+
 systa_ns = cg.esphome_ns.namespace("systa_reader")
 SystaReader = systa_ns.class_("SystaReader", uart.UARTDevice, cg.Component)
 
