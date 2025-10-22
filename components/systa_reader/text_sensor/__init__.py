@@ -1,6 +1,7 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.components import text_sensor
+from esphome.const import CONF_ID  # <-- WICHTIG: für new_Pvariable(...)
 from .. import systa_ns, SystaReader
 
 SystaReaderText = systa_ns.class_("SystaReaderTextSensor", text_sensor.TextSensor, cg.Component)
@@ -31,7 +32,7 @@ CONFIG_SCHEMA = (
 
 async def to_code(config):
     parent = await cg.get_variable(config[CONF_PARENT_ID])
-    var = cg.new_Pvariable(config[cg.CONF_ID])
+    var = cg.new_Pvariable(config[CONF_ID])  # <-- korrekt (nicht cg.CONF_ID)
     await cg.register_component(var, config)
     await text_sensor.register_text_sensor(var, config)
 
@@ -41,6 +42,5 @@ async def to_code(config):
         else:
             cg.add(parent.add_sink_all(var))
     else:
-        # field mode -> text field subscriber
         k = field_kind_to_enum(config[CONF_KIND])
         cg.add(parent.set_text_sensor(k, var))

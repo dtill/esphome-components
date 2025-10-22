@@ -6,11 +6,13 @@
 #include <deque>
 #include <map>
 #include <vector>
+#include <memory>
+#include <string>
 
 namespace esphome {
 namespace systa_reader {
 
-// Messwert-Keys (stabil über YAML)
+// stabile Schlüssel für Messwerte und Textfelder
 enum class Kind : uint8_t {
   TSA, TSE, TWU, TW2, SOL, TAG, GESAMT, STATUS_CODE, STATUS_TEXT, TIMESTAMP
 };
@@ -19,52 +21,51 @@ class DeviceBase;
 
 class SystaReader : public uart::UARTDevice, public Component {
  public:
-  // config
-  void set_log_invalid(bool v) { log_invalid_ = v; }
-  void set_device_type(const std::string &t) { device_type_ = t; }
+  // Konfiguration
+  void set_log_invalid(bool v);
+  void set_device_type(const std::string &t);
 
-  // Sinks für RAW-HEX
-  class HexSink { public: virtual void publish_frame_hex(const std::string &hex) = 0; };
-  void add_sink_all(HexSink *s)  { sinks_all_.push_back(s); }
-  void add_sink_aqua(HexSink *s) { sinks_aqua_.push_back(s); }
+  // RAW-HEX-Sinks
+  class HexSink { public: virtual void publish_frame_hex(const std::string &hex) = 0; virtual ~HexSink() = default; };
+  void add_sink_all(HexSink *s);
+  void add_sink_aqua(HexSink *s);
 
-  // Registrierung: numerische Sensoren & Text-Sensoren (Felder)
-  void set_numeric_sensor(Kind k, sensor::Sensor *s) { num_sensors_[k] = s; }
-  void set_text_sensor(Kind k, text_sensor::TextSensor *t) { txt_sensors_[k] = t; }
+  // Registrierung der Entities
+  void set_numeric_sensor(Kind k, sensor::Sensor *s);
+  void set_text_sensor(Kind k, text_sensor::TextSensor *t);
 
-  // Publish-Helfer (für Devices)
-  void publish_numeric(Kind k, float v) { if (auto it=num_sensors_.find(k); it!=num_sensors_.end() && it->second) it->second->publish_state(v); }
-  void publish_text(Kind k, const std::string &v) { if (auto it=txt_sensors_.find(k); it!=txt_sensors_.end() && it->second) it->second->publish_state(v); }
+  // Publish (von Devices benutzt)
+  void publish_numeric(Kind k, float v);
+  void publish_text(Kind k, const std::string &v);
 
-  // lifecycle
-  void setup() override {}
+  // Component
+  void setup() override;
   void loop() override;
   float get_setup_priority() const override { return setup_priority::DATA; }
 
  protected:
+  // Parser
   void process_buffer_();
   bool try_parse_fc_frame_();
   bool try_parse_display_frame_();
 
-  static uint8_t  checksum_twos_complement_(const std::vector<uint8_t> &data_wo);
+  // Helfer
+  static uint8_t checksum_twos_complement_(const std::vector<uint8_t> &data_wo);
   static std::string to_hex_(const std::vector<uint8_t> &buf);
 
-  // state
-  std::deque<uint8_t> buf_{};
-  std::vector<HexSink*> sinks_all_{};
-  std::vector<HexSink*> sinks_aqua_{};
+  // Zustand
+  std::deque<uint8_t> buf_;
+  std::vector<HexSink*> sinks_all_;
+  std::vector<HexSink*> sinks_aqua_;
   bool log_invalid_{true};
   std::string device_type_{"aqua"};
 
   std::unique_ptr<DeviceBase> device_;
-
-  std::map<Kind, sensor::Sensor*>        num_sensors_{};
-  std::map<Kind, text_sensor::TextSensor*> txt_sensors_{};
-
-  friend class DeviceBase;
+  std::map<Kind, sensor::Sensor*>            num_sensors_;
+  std::map<Kind, text_sensor::TextSensor*>   txt_sensors_;
 };
 
-// Basis-Interface für Geräte
+// Basisklasse für Gerätespezifika
 class DeviceBase {
  public:
   explicit DeviceBase(SystaReader &owner) : r_(owner) {}
@@ -79,7 +80,7 @@ class DeviceBase {
   SystaReader &r_;
 };
 
-// Ein Textsensor, der HEX empfängt (RAW-Streams)
+// Textsensor, der HEX-Sinks bedienen kann
 class SystaReaderTextSensor : public text_sensor::TextSensor, public Component, public SystaReader::HexSink {
  public:
   void publish_frame_hex(const std::string &hex) override { this->publish_state(hex); }
