@@ -19,16 +19,12 @@ void SystaReader::process_buffer_() {
   while (true) {
     if (buf_.size() < 4) return;
 
-    // Seek sync
     while (!buf_.empty() && buf_.front() != 0xFC && buf_.front() != 0x0F) buf_.pop_front();
     if (buf_.size() < 4) return;
 
     bool progressed = false;
-    if (buf_.front() == 0x0F) {
-      progressed = this->try_parse_display_frame_();
-    } else if (buf_.front() == 0xFC) {
-      progressed = this->try_parse_fc_frame_();
-    }
+    if (buf_.front() == 0x0F)      progressed = this->try_parse_display_frame_();
+    else if (buf_.front() == 0xFC) progressed = this->try_parse_fc_frame_();
 
     if (!progressed) buf_.pop_front();
   }
@@ -51,7 +47,7 @@ bool SystaReader::try_parse_display_frame_() {
   }
 
   const std::string hex = to_hex_(frame);
-  for (auto *s : sinks_) s->publish_frame_hex(hex);
+  for (auto *s : sinks_all_) s->publish_frame_hex(hex);
   ESP_LOGV(TAG, "Display frame HEX: %s", hex.c_str());
 
   for (size_t i = 0; i < total; i++) buf_.pop_front();
@@ -63,7 +59,7 @@ bool SystaReader::try_parse_fc_frame_() {
 
   const uint8_t len = buf_[1];
   const size_t total = size_t(2) + len + 1;  // 0xFC, len, payload, checksum
-  if (len < 2) { if (this->log_invalid_) ESP_LOGV(TAG, "Rejecting FC frame len=%u", len); return false; }
+  if (len < 2) { if (this->log_invalid_) ESP_LOGV(TAG, "Reject FC len=%u", len); return false; }
   if (buf_.size() < total) return false;
 
   std::vector<uint8_t> frame(total);
@@ -72,43 +68,40 @@ bool SystaReader::try_parse_fc_frame_() {
   uint8_t calc = checksum_twos_complement_(std::vector<uint8_t>(frame.begin(), frame.end() - 1));
   uint8_t got  = frame.back();
   if (calc != got && this->log_invalid_) {
-    ESP_LOGW(TAG, "FC frame checksum invalid (got %02X, expected %02X)", got, calc);
+    ESP_LOGW(TAG, "FC checksum invalid (got %02X, expected %02X)", got, calc);
   }
 
   const std::string hex = to_hex_(frame);
-  for (auto *s : sinks_) s->publish_frame_hex(hex);
+  for (auto *s : sinks_all_) s->publish_frame_hex(hex);
   ESP_LOGV(TAG, "FC frame HEX: %s", hex.c_str());
 
-  // AQUA interpretieren: FC [len] 0B 01 ...
-  if (this->device_type_ == "aqua") {
-    if (frame.size() >= 4 && frame[0] == 0xFC && frame[2] == 0x0B && frame[3] == 0x01) {
-      // payload sind Bytes 4..(total-2)
-      std::vector<uint8_t> payload(frame.begin() + 4, frame.end() - 1);
-      this->handle_aqua_payload_(frame, payload);
-    }
+  // AQUA?  FC [len] 0B 01 ...
+  if (this->device_type_ == "aqua" && frame.size() >= 4 && frame[0] == 0xFC && frame[2] == 0x0B && frame[3] == 0x01) {
+    std::vector<uint8_t> payload(frame.begin() + 4, frame.end() - 1);
+    this->handle_aqua_payload_(frame, payload);
+    // nur AQUA-HEX an spezielle Sinks
+    for (auto *s : sinks_aqua_) s->publish_frame_hex(hex);
   }
 
   for (size_t i = 0; i < total; i++) buf_.pop_front();
   return true;
 }
 
-void SystaReader::handle_aqua_payload_(const std::vector<uint8_t> &bytes, const std::vector<uint8_t> &payload) {
-  if (payload.size() < 30) return; // Mindestlänge prüfen
+void SystaReader::handle_aqua_payload_(const std::vector<uint8_t> &frame, const std::vector<uint8_t> &payload) {
+  if (payload.size() < 30) return;
 
-  auto read_u16 = [&](int i) -> uint16_t { return read_u16_be_(bytes, i); };
-  auto read_u32 = [&](int i) -> uint32_t { return read_u32_be_(bytes, i); };
+  auto read_u16 = [&](int i) -> uint16_t { return read_u16_be_(frame, i); };
+  auto read_u32 = [&](int i) -> uint32_t { return read_u32_be_(frame, i); };
 
-  // Werte nach deiner Spezifikation (Big Endian aus dem Frame, /10 bei Temperaturen)
-  float tsa    = read_u16(4) / 10.0f;
-  float tse    = read_u16(6) / 10.0f;
-  float twu    = read_u16(8) / 10.0f;
+  float tsa    = read_u16(4)  / 10.0f;
+  float tse    = read_u16(6)  / 10.0f;
+  float twu    = read_u16(8)  / 10.0f;
   float tw2    = read_u16(10) / 10.0f;
   float sol    = read_u16(24);      // kW
   float tag    = read_u16(26);      // kWh
   float gesamt = read_u32(28);      // kWh
 
-  // Status-Code / Text
-  uint8_t status_raw = payload[11];
+  uint8_t status_raw  = payload[11];
   uint8_t status_code = uint8_t((status_raw / 10) * 16 + (status_raw % 10));
   const char *desc = nullptr;
   switch (status_raw) {
@@ -137,7 +130,6 @@ void SystaReader::handle_aqua_payload_(const std::vector<uint8_t> &bytes, const 
     default: desc = nullptr; break;
   }
 
-  // Datum/Zeit (BCD in payload[14..17])
   uint8_t hour   = bcd2dec_(payload[14]);
   uint8_t minute = bcd2dec_(payload[15]);
   uint8_t day    = bcd2dec_(payload[16]);
@@ -145,15 +137,14 @@ void SystaReader::handle_aqua_payload_(const std::vector<uint8_t> &bytes, const 
   char timestamp[16];
   snprintf(timestamp, sizeof(timestamp), "%02d.%02d %02d:%02d", day, month, hour, minute);
 
-  // Publish falls Sensoren existieren
-  if (aqua_tsa_) aqua_tsa_->publish_state(tsa);
-  if (aqua_tse_) aqua_tse_->publish_state(tse);
-  if (aqua_twu_) aqua_twu_->publish_state(twu);
-  if (aqua_tw2_) aqua_tw2_->publish_state(tw2);
-  if (aqua_sol_) aqua_sol_->publish_state(sol);
-  if (aqua_tag_) aqua_tag_->publish_state(tag);
-  if (aqua_ges_) aqua_ges_->publish_state(gesamt);
-  if (aqua_status_code_) aqua_status_code_->publish_state(status_code);
+  if (aqua_tsa_)          aqua_tsa_->publish_state(tsa);
+  if (aqua_tse_)          aqua_tse_->publish_state(tse);
+  if (aqua_twu_)          aqua_twu_->publish_state(twu);
+  if (aqua_tw2_)          aqua_tw2_->publish_state(tw2);
+  if (aqua_sol_)          aqua_sol_->publish_state(sol);
+  if (aqua_tag_)          aqua_tag_->publish_state(tag);
+  if (aqua_ges_)          aqua_ges_->publish_state(gesamt);
+  if (aqua_status_code_)  aqua_status_code_->publish_state(status_code);
   if (aqua_status_text_) {
     if (desc) aqua_status_text_->publish_state(desc);
     else {
@@ -162,7 +153,7 @@ void SystaReader::handle_aqua_payload_(const std::vector<uint8_t> &bytes, const 
       aqua_status_text_->publish_state(buf);
     }
   }
-  if (aqua_timestamp_) aqua_timestamp_->publish_state(timestamp);
+  if (aqua_timestamp_)    aqua_timestamp_->publish_state(timestamp);
 
   ESP_LOGV(TAG, "AQUA: TSA=%.1f TSE=%.1f TWU=%.1f TW2=%.1f SOL=%.0f TAG=%.0f GES=%.0f",
            tsa, tse, twu, tw2, sol, tag, gesamt);
