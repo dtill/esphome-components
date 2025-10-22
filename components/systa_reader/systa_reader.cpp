@@ -78,20 +78,26 @@ bool SystaReader::try_parse_fc_frame_() {
 
   const uint8_t calc = checksum_twos_complement_(std::vector<uint8_t>(frame.begin(), frame.end() - 1));
   const uint8_t got  = frame.back();
-  if (calc != got && log_invalid_) {
-    ESP_LOGW(TAG, "FC checksum invalid (got %02X, expected %02X)", got, calc);
+  const bool checksum_ok = (calc == got);
+
+  if (!checksum_ok) {
+    if (log_invalid_) ESP_LOGW(TAG, "FC checksum invalid (got %02X, expected %02X)", got, calc);
+    // Frame verwerfen, aber aus dem Buffer entfernen, damit wir vorankommen
+    for (size_t i = 0; i < total; i++) buf_.pop_front();
+    return true;  // wir haben Bytes konsumiert
   }
 
   const std::string hex = to_hex_(frame);
   for (auto *s : sinks_) s->publish_frame_hex(hex);
   ESP_LOGV(TAG, "FC HEX: %s", hex.c_str());
 
-  // Payload ohne Header/Checksumme
+  // Payload (falls Decoder es braucht)
   std::vector<uint8_t> payload(frame.begin() + 4, frame.end() - 1);
 
-  // Gerätespezifisches Routing (keine Dekodier-Logik hier!)
+  // AB HIER nur noch gültige Frames routen
   this->route_fc_frame_to_device_(frame, payload, hex);
 
+  // konsumieren
   for (size_t i = 0; i < total; i++) buf_.pop_front();
   return true;
 }
