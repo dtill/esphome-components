@@ -10,6 +10,8 @@
 namespace esphome {
 namespace systa_reader {
 
+class AquaDecoder;
+class ModulaDecoder;
 class SystaReaderTextSink;  // forward
 
 class SystaReader : public uart::UARTDevice, public Component {
