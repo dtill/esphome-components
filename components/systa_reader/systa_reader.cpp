@@ -51,7 +51,7 @@ bool SystaReader::try_parse_display_frame_() {
 
   const std::string hex = to_hex_(frame);
   publish_hex_all(hex);
-  ESP_LOGV(TAG, "Display HEX: %s", hex.c_str());
+  ESP_LOGD(TAG, "Display HEX: %s", hex.c_str());
 
   for (size_t i=0;i<total;i++) buf_.pop_front();
   return true;
@@ -76,6 +76,7 @@ bool SystaReader::try_parse_fc_frame_() {
   const std::string hex = to_hex_(frame);
   publish_hex_all(hex);
   ESP_LOGV(TAG, "FC HEX: %s", hex.c_str());
+
 
   // payload only
   std::vector<uint8_t> payload(frame.begin()+4, frame.end()-1);
