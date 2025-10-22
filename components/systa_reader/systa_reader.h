@@ -77,6 +77,7 @@ class SystaReader : public uart::UARTDevice, public Component {
   std::deque<uint8_t> buf_;
   std::vector<HexSink*> sinks_all_;
   std::vector<HexSink*> sinks_aqua_;
+  std::vector<SystaReaderTextSink *> sinks_{};
   bool log_invalid_{true};
   std::string device_type_{"aqua"};
 
