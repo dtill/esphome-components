@@ -67,12 +67,6 @@ class SystaReader : public uart::UARTDevice, public Component {
   // utils
   static uint8_t     checksum_twos_complement_(const std::vector<uint8_t> &data_wo_last);
   static std::string to_hex_(const std::vector<uint8_t> &buf);
-  static inline uint16_t read_u16_be_(const std::vector<uint8_t> &b, int i) { return uint16_t((b[i]<<8) | b[i+1]); }
-  static inline uint32_t read_u32_be_(const std::vector<uint8_t> &b, int i) {
-    return (uint32_t(b[i])<<24)|(uint32_t(b[i+1])<<16)|(uint32_t(b[i+2])<<8)|uint32_t(b[i+3]);
-  }
-  static inline uint8_t  bcd2dec_(uint8_t v) { return uint8_t(((v>>4)*10) + (v & 0x0F)); }
-
 
   // state
   std::deque<uint8_t> buf_;
@@ -97,15 +91,8 @@ class SystaReader : public uart::UARTDevice, public Component {
   text_sensor::TextSensor *aqua_timestamp_{nullptr};
 };
 
-// Sink-Interface (bestehend)
-class SystaReaderTextSink {
- public:
-  virtual void publish_frame_hex(const std::string &hex) = 0;
-  virtual ~SystaReaderTextSink() = default;
-};
-
-// Konkreter Textsensor (bestehend)
-class SystaReaderTextSensor : public text_sensor::TextSensor, public Component, public SystaReaderTextSink {
+// concrete text sensor sink
+class SystaReaderTextSensor : public text_sensor::TextSensor, public Component, public SystaReader::HexSink {
  public:
   void publish_frame_hex(const std::string &hex) override { this->publish_state(hex); }
 };
