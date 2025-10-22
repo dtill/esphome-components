@@ -30,9 +30,9 @@ static const char *TAG = "gdoor_esphome.gdoor_tx";
 constexpr uint32_t CARRIER_HZ   = 58000;                    // target carrier
 constexpr uint8_t  LEDC_BITS    =  8;                       // 1–14 bit PWM
 constexpr uint32_t HALF_WAVE_US = 1000000UL / CARRIER_HZ;   // ≈17.24 µs
-constexpr uint16_t START_PULSES = 64;                       // ≈1 ms start burst
+constexpr uint16_t START_PULSES = 60;                       // ≈1 ms start burst
 constexpr uint16_t ONE_PULSES   = 12;                       // ≈0.21 ms (“1” bit)
-constexpr uint16_t ZERO_PULSES  = 33;                       // ≈0.55 ms (“0” bit)
+constexpr uint16_t ZERO_PULSES  = 32;                       // ≈0.55 ms (“0” bit)
 constexpr uint32_t PAUSE_US     = 10 * HALF_WAVE_US;        // ≈0.17 ms gap
 
 namespace GDOOR_TX {
