@@ -3,7 +3,7 @@ import esphome.config_validation as cv
 from esphome.components import uart, sensor as sensor_comp, text_sensor as text_comp
 from esphome.const import CONF_ID
 
-AUTO_LOAD = ["text_sensor"]  # raw HEX bleibt verfügbar
+AUTO_LOAD = ["sensor", "text_sensor"]
 CODEOWNERS = ["@dtill"]
 DEPENDENCIES = ["uart", "sensor", "text_sensor"]
 MULTI_CONF = True
