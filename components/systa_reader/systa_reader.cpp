@@ -66,26 +66,43 @@ bool SystaReader::try_parse_fc_frame_() {
   if (buf_.size() < total) return false;
 
   std::vector<uint8_t> frame(total);
-  for (size_t i=0;i<total;i++) frame[i]=buf_[i];
+  for (size_t i = 0; i < total; i++) frame[i] = buf_[i];
 
-  const uint8_t calc = checksum_twos_complement_(std::vector<uint8_t>(frame.begin(), frame.end()-1));
+  const uint8_t calc = checksum_twos_complement_(std::vector<uint8_t>(frame.begin(), frame.end() - 1));
   const uint8_t got  = frame.back();
-  if (calc != got && log_invalid_)
+  if (calc != got && log_invalid_) {
     ESP_LOGW(TAG, "FC checksum invalid (got %02X, expected %02X)", got, calc);
+  }
 
   const std::string hex = to_hex_(frame);
-  publish_hex_all(hex);
+  for (auto *s : sinks_) s->publish_frame_hex(hex);
   ESP_LOGV(TAG, "FC HEX: %s", hex.c_str());
 
+  // 🔹 Payload ohne Header/Checksumme
+  std::vector<uint8_t> payload(frame.begin() + 4, frame.end() - 1);
 
-  // payload only
-  std::vector<uint8_t> payload(frame.begin()+4, frame.end()-1);
+  // 🔹 Gerätespezifisches Routing (keine Dekodier-Logik hier!)
+  this->route_fc_frame_to_device_(frame, payload, hex);
 
-  // AQUA specific (FC .. 0B 01 ..)
-  if (aqua_) aqua_->on_fc_frame(frame, payload, hex);
-
-  for (size_t i=0;i<total;i++) buf_.pop_front();
+  for (size_t i = 0; i < total; i++) buf_.pop_front();
   return true;
+}
+
+void SystaReader::route_fc_frame_to_device_(const std::vector<uint8_t>& frame,
+                                            const std::vector<uint8_t>& payload,
+                                            const std::string &hex) {
+  // 🔹 Nur wenn AQUA gewählt ist → lazy Decoder erstellen & aufrufen
+  if (device_type_ == "aqua") {
+    if (aqua_ == nullptr) {
+      aqua_ = new AquaDecoder(*this);  // wird nie erstellt, wenn Gerät ≠ aqua
+    }
+    aqua_->on_fc_frame(frame, payload, hex);  // vollständige Logik in aqua.cpp
+  }
+
+  // 🔸 Weitere Geräte in Zukunft:
+  // else if (device_type_ == "modula") { /* modula_->on_fc_frame(...) */ }
+  // else if (device_type_ == "espresso") { ... }
+  // else if (device_type_ == "solar") { ... }
 }
 
 uint8_t SystaReader::checksum_twos_complement_(const std::vector<uint8_t> &v) {
