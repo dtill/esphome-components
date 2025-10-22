@@ -35,6 +35,7 @@ class SystaReader : public uart::UARTDevice, public Component {
   friend class AquaDecoder;
 
   // setters (werden von Subplatforms aufgerufen)
+
   // AQUA numeric
   void set_aqua_tsa_sensor(sensor::Sensor *s)         { aqua_tsa_ = s; }
   void set_aqua_tse_sensor(sensor::Sensor *s)         { aqua_tse_ = s; }
@@ -65,6 +66,34 @@ class SystaReader : public uart::UARTDevice, public Component {
   void pub_aqua_status_text(const std::string &s) { if (aqua_status_text_) aqua_status_text_->publish_state(s); }
   void pub_aqua_timestamp(const std::string &s)   { if (aqua_timestamp_)   aqua_timestamp_->publish_state(s); }
 
+  // MODULA setters
+  void set_modula_two_sensor(sensor::Sensor *s) { modula_two_ = s; }
+  void set_modula_tbv_sensor(sensor::Sensor *s) { modula_tbv_ = s; }
+  void set_modula_tbr_sensor(sensor::Sensor *s) { modula_tbr_ = s; }
+  void set_modula_tv_sensor(sensor::Sensor *s)  { modula_tv_ = s; }
+  void set_modula_tv2_sensor(sensor::Sensor *s) { modula_tv2_ = s; }
+  void set_modula_tr_sensor(sensor::Sensor *s)  { modula_tr_ = s; }
+  void set_modula_tr2_sensor(sensor::Sensor *s) { modula_tr2_ = s; }
+  void set_modula_tpo_sensor(sensor::Sensor *s) { modula_tpo_ = s; }
+  void set_modula_tpu_sensor(sensor::Sensor *s) { modula_tpu_ = s; }
+  void set_modula_tzr_sensor(sensor::Sensor *s) { modula_tzr_ = s; }
+  void set_modula_timestamp_text_sensor(text_sensor::TextSensor *t) { modula_timestamp_ = t; }
+
+  // MODULA publish helpers
+  inline void pub_modula_two(float v) { if (modula_two_) modula_two_->publish_state(v); }
+  inline void pub_modula_tbv(float v) { if (modula_tbv_) modula_tbv_->publish_state(v); }
+  inline void pub_modula_tbr(float v) { if (modula_tbr_) modula_tbr_->publish_state(v); }
+  inline void pub_modula_tv(float v)  { if (modula_tv_)  modula_tv_->publish_state(v); }
+  inline void pub_modula_tv2(float v) { if (modula_tv2_) modula_tv2_->publish_state(v); }
+  inline void pub_modula_tr(float v)  { if (modula_tr_)  modula_tr_->publish_state(v); }
+  inline void pub_modula_tr2(float v) { if (modula_tr2_) modula_tr2_->publish_state(v); }
+  inline void pub_modula_tpo(float v) { if (modula_tpo_) modula_tpo_->publish_state(v); }
+  inline void pub_modula_tpu(float v) { if (modula_tpu_) modula_tpu_->publish_state(v); }
+  inline void pub_modula_tzr(float v) { if (modula_tzr_) modula_tzr_->publish_state(v); }
+  inline void pub_modula_timestamp(const std::string &s) { if (modula_timestamp_) modula_timestamp_->publish_state(s); }
+
+
+  // General setters
   bool log_invalid() const { return log_invalid_; }
   void publish_hex_all(const std::string &hex)  { for (auto *s : sinks_all_)  s->publish_frame_hex(hex); }
   void publish_hex_aqua(const std::string &hex) { for (auto *s : sinks_aqua_) s->publish_frame_hex(hex); }
@@ -127,32 +156,6 @@ class SystaReader : public uart::UARTDevice, public Component {
   sensor::Sensor *modula_tpu_{nullptr};
   sensor::Sensor *modula_tzr_{nullptr};
   text_sensor::TextSensor *modula_timestamp_{nullptr};
-
-  // MODULA setters
-  void set_modula_two_sensor(sensor::Sensor *s) { modula_two_ = s; }
-  void set_modula_tbv_sensor(sensor::Sensor *s) { modula_tbv_ = s; }
-  void set_modula_tbr_sensor(sensor::Sensor *s) { modula_tbr_ = s; }
-  void set_modula_tv_sensor(sensor::Sensor *s)  { modula_tv_ = s; }
-  void set_modula_tv2_sensor(sensor::Sensor *s) { modula_tv2_ = s; }
-  void set_modula_tr_sensor(sensor::Sensor *s)  { modula_tr_ = s; }
-  void set_modula_tr2_sensor(sensor::Sensor *s) { modula_tr2_ = s; }
-  void set_modula_tpo_sensor(sensor::Sensor *s) { modula_tpo_ = s; }
-  void set_modula_tpu_sensor(sensor::Sensor *s) { modula_tpu_ = s; }
-  void set_modula_tzr_sensor(sensor::Sensor *s) { modula_tzr_ = s; }
-  void set_modula_timestamp_text_sensor(text_sensor::TextSensor *t) { modula_timestamp_ = t; }
-
-  // MODULA publish helpers
-  inline void pub_modula_two(float v) { if (modula_two_) modula_two_->publish_state(v); }
-  inline void pub_modula_tbv(float v) { if (modula_tbv_) modula_tbv_->publish_state(v); }
-  inline void pub_modula_tbr(float v) { if (modula_tbr_) modula_tbr_->publish_state(v); }
-  inline void pub_modula_tv(float v)  { if (modula_tv_)  modula_tv_->publish_state(v); }
-  inline void pub_modula_tv2(float v) { if (modula_tv2_) modula_tv2_->publish_state(v); }
-  inline void pub_modula_tr(float v)  { if (modula_tr_)  modula_tr_->publish_state(v); }
-  inline void pub_modula_tr2(float v) { if (modula_tr2_) modula_tr2_->publish_state(v); }
-  inline void pub_modula_tpo(float v) { if (modula_tpo_) modula_tpo_->publish_state(v); }
-  inline void pub_modula_tpu(float v) { if (modula_tpu_) modula_tpu_->publish_state(v); }
-  inline void pub_modula_tzr(float v) { if (modula_tzr_) modula_tzr_->publish_state(v); }
-  inline void pub_modula_timestamp(const std::string &s) { if (modula_timestamp_) modula_timestamp_->publish_state(s); }
 };
 
 // Sink-Interface (bestehend)
