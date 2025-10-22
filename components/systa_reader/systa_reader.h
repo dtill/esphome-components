@@ -12,9 +12,13 @@
 namespace esphome {
 namespace systa_reader {
 
-// stabile Schlüssel für Messwerte und Textfelder
-enum class Kind : uint8_t {
-  TSA, TSE, TWU, TW2, SOL, TAG, GESAMT, STATUS_CODE, STATUS_TEXT, TIMESTAMP
+// stabile Schlüssel für Messwerte/Text je Device
+enum class Kind : uint16_t {
+  // AQUA
+  AQUA_TSA, AQUA_TSE, AQUA_TWU, AQUA_TW2, AQUA_SOL, AQUA_TAG, AQUA_GESAMT, AQUA_STATUS_CODE,
+  AQUA_STATUS_TEXT, AQUA_TIMESTAMP,
+
+  // Platzhalter für weitere Devices (modula/espresso/solar) …
 };
 
 class DeviceBase;

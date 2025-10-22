@@ -64,22 +64,22 @@ void AquaDevice::on_fc_frame(const std::vector<uint8_t>& frame,
   uint8_t month  = DeviceBase::bcd2dec(payload[17]);
   char ts[16]; snprintf(ts, sizeof(ts), "%02d.%02d %02d:%02d", day, month, hour, minute);
 
-  r_.publish_numeric(Kind::TSA,    tsa);
-  r_.publish_numeric(Kind::TSE,    tse);
-  r_.publish_numeric(Kind::TWU,    twu);
-  r_.publish_numeric(Kind::TW2,    tw2);
-  r_.publish_numeric(Kind::SOL,    sol);
-  r_.publish_numeric(Kind::TAG,    tag);
-  r_.publish_numeric(Kind::GESAMT, gesamt);
-  r_.publish_numeric(Kind::STATUS_CODE, status_code);
+  r_.publish_numeric(Kind::AQUA_TSA,    tsa);
+  r_.publish_numeric(Kind::AQUA_TSE,    tse);
+  r_.publish_numeric(Kind::AQUA_TWU,    twu);
+  r_.publish_numeric(Kind::AQUA_TW2,    tw2);
+  r_.publish_numeric(Kind::AQUA_SOL,    sol);
+  r_.publish_numeric(Kind::AQUA_TAG,    tag);
+  r_.publish_numeric(Kind::AQUA_GESAMT, gesamt);
+  r_.publish_numeric(Kind::AQUA_STATUS_CODE, status_code);
 
-  if (desc) r_.publish_text(Kind::STATUS_TEXT, desc);
+  if (desc) r_.publish_text(Kind::AQUA_STATUS_TEXT, desc);
   else {
     char buf[32];
     snprintf(buf, sizeof(buf), "Unbekannter Status (%02X)", status_code);
-    r_.publish_text(Kind::STATUS_TEXT, buf);
+    r_.publish_text(Kind::AQUA_STATUS_TEXT, buf);
   }
-  r_.publish_text(Kind::TIMESTAMP, ts);
+  r_.publish_text(Kind::AQUA_TIMESTAMP, ts);
 
   ESP_LOGV(TAG_AQUA, "AQUA: TSA=%.1f TSE=%.1f TWU=%.1f TW2=%.1f SOL=%.0f TAG=%.0f GES=%.0f",
            tsa, tse, twu, tw2, sol, tag, gesamt);

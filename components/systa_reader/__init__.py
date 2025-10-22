@@ -4,7 +4,7 @@ from esphome.components import uart
 from esphome.const import CONF_ID
 
 MULTI_CONF = True
-AUTO_LOAD = ["sensor", "text_sensor"]
+AUTO_LOAD = ["sensor", "text_sensor"]  # lädt unsere Subplatforms
 CODEOWNERS = ["@dtill"]
 DEPENDENCIES = ["uart"]
 

@@ -106,8 +106,7 @@ bool SystaReader::try_parse_fc_frame_() {
   ESP_LOGV(TAG, "FC HEX: %s", hex.c_str());
 
   if (device_) {
-    // payload ist 0-basiert ab [2] bis vor checksum; Funktionscode sitzt bei [2]/[3]
-    std::vector<uint8_t> payload(frame.begin()+4, frame.end()-1);
+    std::vector<uint8_t> payload(frame.begin()+4, frame.end()-1); // nach FC,len,func_hi,func_lo
     device_->on_fc_frame(frame, payload, hex);
   }
 

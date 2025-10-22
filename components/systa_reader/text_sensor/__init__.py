@@ -1,7 +1,7 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.components import text_sensor
-from esphome.const import CONF_ID  # <-- WICHTIG: für new_Pvariable(...)
+from esphome.const import CONF_ID
 from .. import systa_ns, SystaReader
 
 SystaReaderText = systa_ns.class_("SystaReaderTextSensor", text_sensor.TextSensor, cg.Component)
@@ -14,10 +14,10 @@ CONF_KIND = "kind"
 
 MODE = cv.one_of("raw", "field", lower=True)
 FILTER = cv.one_of("all", "aqua", lower=True)
-FIELD_KIND = cv.one_of("status_text", "timestamp", lower=True)
+FIELD_KIND = cv.one_of("aqua_status_text", "aqua_timestamp", lower=True)
 
 def field_kind_to_enum(v):
-    mapping = {"status_text": "STATUS_TEXT", "timestamp": "TIMESTAMP"}
+    mapping = {"aqua_status_text":"AQUA_STATUS_TEXT", "aqua_timestamp":"AQUA_TIMESTAMP"}
     return getattr(Kind, mapping[v])
 
 CONFIG_SCHEMA = (
@@ -25,14 +25,14 @@ CONFIG_SCHEMA = (
     .extend({
         cv.Required(CONF_PARENT_ID): cv.use_id(SystaReader),
         cv.Required(CONF_MODE): MODE,
-        cv.Optional(CONF_FILTER, default="all"): FILTER,
-        cv.Optional(CONF_KIND): FIELD_KIND,
+        cv.Optional(CONF_FILTER, default="all"): FILTER,     # nur für mode: raw
+        cv.Optional(CONF_KIND): FIELD_KIND,                  # nur für mode: field
     })
 )
 
 async def to_code(config):
     parent = await cg.get_variable(config[CONF_PARENT_ID])
-    var = cg.new_Pvariable(config[CONF_ID])  # <-- korrekt (nicht cg.CONF_ID)
+    var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)
     await text_sensor.register_text_sensor(var, config)
 

@@ -3,21 +3,23 @@ import esphome.config_validation as cv
 from esphome.components import sensor
 from .. import systa_ns, SystaReader
 
-# Zugriff auf C++-Enum Kind
 Kind = systa_ns.enum("Kind")
 
 CONF_PARENT_ID = "systa_reader_id"
 CONF_KIND = "kind"
 
+# nur gültige Kinds anbieten (Device-präfix!)
 KIND = cv.one_of(
-    "tsa", "tse", "twu", "tw2", "sol", "tag", "gesamt", "status_code",
+    # AQUA
+    "aqua_tsa", "aqua_tse", "aqua_twu", "aqua_tw2",
+    "aqua_sol", "aqua_tag", "aqua_gesamt", "aqua_status_code",
     lower=True
 )
 
 def kind_to_enum(v):
     mapping = {
-        "tsa": "TSA", "tse": "TSE", "twu": "TWU", "tw2": "TW2",
-        "sol": "SOL", "tag": "TAG", "gesamt": "GESAMT", "status_code": "STATUS_CODE",
+        "aqua_tsa":"AQUA_TSA", "aqua_tse":"AQUA_TSE", "aqua_twu":"AQUA_TWU", "aqua_tw2":"AQUA_TW2",
+        "aqua_sol":"AQUA_SOL", "aqua_tag":"AQUA_TAG", "aqua_gesamt":"AQUA_GESAMT", "aqua_status_code":"AQUA_STATUS_CODE",
     }
     return getattr(Kind, mapping[v])
 
