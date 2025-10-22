@@ -30,5 +30,5 @@ CONFIG_SCHEMA = sensor.sensor_schema().extend({
 async def to_code(config):
     parent = await cg.get_variable(config[CONF_PARENT_ID])
     var = await sensor.new_sensor(config)
-    k = kind_to_enum(config[CONF_KIND])  # -> systa_reader::Kind::AQUA_*
+    k = kind_to_enum(config[CONF_KIND])  # ergibt esphome::systa_reader::Kind::AQUA_*
     cg.add(parent.set_numeric_sensor(k, var))

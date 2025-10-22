@@ -1,6 +1,6 @@
 #include "systa_reader.h"
 #include "esphome/core/log.h"
-#include "devices/aqua.h"  // AQUA-Decoder
+#include "devices/aqua.h"
 
 namespace esphome {
 namespace systa_reader {
@@ -17,12 +17,13 @@ void SystaReader::loop() {
 }
 
 void SystaReader::process_buffer_() {
-  // Device-Factory (nur AQUA for now)
+  // Device-Factory (erstmal nur AQUA)
   if (!device_) device_.reset(new AquaDevice(*this));
 
   while (true) {
     if (buf_.size() < 4) return;
-    // sync
+
+    // sync auf 0xFC / 0x0F
     while (!buf_.empty() && buf_.front()!=0xFC && buf_.front()!=0x0F) buf_.pop_front();
     if (buf_.size() < 4) return;
 
@@ -38,7 +39,7 @@ bool SystaReader::try_parse_display_frame_() {
   if (buf_.size() < 4) return false;
   if (!(buf_[0]==0x0F && buf_[1]==0x22 && buf_[2]==0x04 && buf_[3]==0x00)) return false;
 
-  const size_t total = 37;
+  const size_t total = 37; // 0F 22 04 00 + 32 payload + 1 checksum
   if (buf_.size() < total) return false;
 
   std::vector<uint8_t> frame(total);
@@ -75,7 +76,7 @@ bool SystaReader::try_parse_fc_frame_() {
   for (auto *s : sinks_all_) s->publish_frame_hex(hex);
   ESP_LOGV(TAG, "FC HEX: %s", hex.c_str());
 
-  // Payload (ohne FC,len,func_hi,func_lo, ohne checksum)
+  // Payload (reine Daten)
   std::vector<uint8_t> payload(frame.begin()+4, frame.end()-1);
 
   // Gerätespezifische Auswertung

@@ -9,10 +9,10 @@ static const char *const TAG_AQUA = "systa_reader.aqua";
 void AquaDevice::on_fc_frame(const std::vector<uint8_t>& frame,
                              const std::vector<uint8_t>& payload,
                              const std::string &hex) {
-  // Nur FC .. 0B 01
+  // Nur AQUA: FC .. 0B 01 ..
   if (frame.size()<4 || frame[0]!=0xFC || frame[2]!=0x0B || frame[3]!=0x01) return;
 
-  // AQUA-HEX (nur für aqua-Sink)
+  // HEX an AQUA-spezifische Sinks
   for (auto *s : r_.sinks_aqua_) s->publish_frame_hex(hex);
 
   if (payload.size() < 30) return;

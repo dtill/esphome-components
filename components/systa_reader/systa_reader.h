@@ -12,7 +12,7 @@
 namespace esphome {
 namespace systa_reader {
 
-// stabile Schlüssel mit Device-Präfix
+// Stabile Schlüssel (per-Device Präfix)
 enum class Kind : uint16_t {
   // AQUA
   AQUA_TSA, AQUA_TSE, AQUA_TWU, AQUA_TW2, AQUA_SOL, AQUA_TAG, AQUA_GESAMT,
@@ -36,7 +36,7 @@ class SystaReader : public uart::UARTDevice, public Component {
   void set_numeric_sensor(Kind k, sensor::Sensor *s) { num_sensors_[k] = s; }
   void set_text_sensor(Kind k, text_sensor::TextSensor *t) { txt_sensors_[k] = t; }
 
-  // Publish (von Devices genutzt)
+  // Publish
   void publish_numeric(Kind k, float v) {
     auto it = num_sensors_.find(k);
     if (it != num_sensors_.end() && it->second) it->second->publish_state(v);
@@ -60,11 +60,6 @@ class SystaReader : public uart::UARTDevice, public Component {
   // Helfer
   static uint8_t     checksum_twos_complement_(const std::vector<uint8_t> &data_wo);
   static std::string to_hex_(const std::vector<uint8_t> &buf);
-  static uint8_t     bcd2dec(uint8_t v) { return uint8_t(((v>>4)*10) + (v & 0x0F)); }
-  static uint16_t    read_u16_be(const std::vector<uint8_t> &b, int i) { return uint16_t((b[i]<<8) | b[i+1]); }
-  static uint32_t    read_u32_be(const std::vector<uint8_t> &b, int i) {
-    return (uint32_t(b[i])<<24)|(uint32_t(b[i+1])<<16)|(uint32_t(b[i+2])<<8)|uint32_t(b[i+3]);
-  }
 
   // Zustand
   std::deque<uint8_t> buf_;
@@ -73,24 +68,29 @@ class SystaReader : public uart::UARTDevice, public Component {
   bool log_invalid_{true};
   std::string device_type_{"aqua"};
 
-  std::unique_ptr<DeviceBase> device_; // optional später (für weitere Geräte)
+  // Gerätespezifischer Decoder
+  std::unique_ptr<DeviceBase> device_;
 
   std::map<Kind, sensor::Sensor*>            num_sensors_;
   std::map<Kind, text_sensor::TextSensor*>   txt_sensors_;
 };
 
-// Basisklasse für Gerätespezifika
+// Basisklasse für Gerätespezifika (hat eigene Helper → keine Abhängigkeit auf SystaReader::protected)
 class DeviceBase {
  public:
   explicit DeviceBase(SystaReader &owner) : r_(owner) {}
   virtual ~DeviceBase() = default;
+
   virtual void on_fc_frame(const std::vector<uint8_t>& frame,
                            const std::vector<uint8_t>& payload,
                            const std::string &hex) = 0;
+
  protected:
-  static uint8_t  bcd2dec(uint8_t v) { return SystaReader::bcd2dec(v); }
-  static uint16_t read_u16_be(const std::vector<uint8_t> &b, int i) { return SystaReader::read_u16_be(b, i); }
-  static uint32_t read_u32_be(const std::vector<uint8_t> &b, int i) { return SystaReader::read_u32_be(b, i); }
+  static uint8_t  bcd2dec(uint8_t v) { return uint8_t(((v>>4)*10) + (v & 0x0F)); }
+  static uint16_t read_u16_be(const std::vector<uint8_t> &b, int i) { return uint16_t((b[i]<<8) | b[i+1]); }
+  static uint32_t read_u32_be(const std::vector<uint8_t> &b, int i) {
+    return (uint32_t(b[i])<<24)|(uint32_t(b[i+1])<<16)|(uint32_t(b[i+2])<<8)|uint32_t(b[i+3]);
+  }
   SystaReader &r_;
 };
 

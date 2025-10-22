@@ -1,7 +1,5 @@
 #pragma once
 #include "../systa_reader.h"
-#include <vector>
-#include <string>
 
 namespace esphome {
 namespace systa_reader {
