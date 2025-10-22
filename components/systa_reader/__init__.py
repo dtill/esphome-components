@@ -23,6 +23,6 @@ CONFIG_SCHEMA = cv.Schema({
 async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)
-    parent = await cg.get_variable(config[CONF_UART_ID])
-    cg.add(var.set_uart(parent))
+    # Korrekt: als UART-Device registrieren (kein set_parent)
+    await uart.register_uart_device(var, config)
     cg.add(var.set_log_invalid(config[CONF_LOG_INVALID]))
