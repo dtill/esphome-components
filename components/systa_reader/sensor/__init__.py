@@ -8,7 +8,6 @@ Kind = systa_ns.enum("Kind")
 CONF_PARENT_ID = "systa_reader_id"
 CONF_KIND = "kind"
 
-# Per-Device Kinds (AQUA)
 KIND = cv.one_of(
     "aqua_tsa", "aqua_tse", "aqua_twu", "aqua_tw2",
     "aqua_sol", "aqua_tag", "aqua_gesamt", "aqua_status_code",
@@ -31,5 +30,5 @@ CONFIG_SCHEMA = sensor.sensor_schema().extend({
 async def to_code(config):
     parent = await cg.get_variable(config[CONF_PARENT_ID])
     var = await sensor.new_sensor(config)
-    k = kind_to_enum(config[CONF_KIND])
+    k = kind_to_enum(config[CONF_KIND])  # -> systa_reader::Kind::AQUA_*
     cg.add(parent.set_numeric_sensor(k, var))

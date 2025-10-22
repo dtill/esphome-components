@@ -1,5 +1,6 @@
 #include "systa_reader.h"
 #include "esphome/core/log.h"
+#include "devices/aqua.h"  // AQUA-Decoder
 
 namespace esphome {
 namespace systa_reader {
@@ -16,10 +17,12 @@ void SystaReader::loop() {
 }
 
 void SystaReader::process_buffer_() {
+  // Device-Factory (nur AQUA for now)
+  if (!device_) device_.reset(new AquaDevice(*this));
+
   while (true) {
     if (buf_.size() < 4) return;
-
-    // sync auf 0xFC/0x0F
+    // sync
     while (!buf_.empty() && buf_.front()!=0xFC && buf_.front()!=0x0F) buf_.pop_front();
     if (buf_.size() < 4) return;
 
@@ -72,81 +75,11 @@ bool SystaReader::try_parse_fc_frame_() {
   for (auto *s : sinks_all_) s->publish_frame_hex(hex);
   ESP_LOGV(TAG, "FC HEX: %s", hex.c_str());
 
-  // AQUA-Frames: FC [len] 0B 01 ...
-  if (device_type_ == "aqua" && frame.size() >= 6 && frame[0]==0xFC && frame[2]==0x0B && frame[3]==0x01) {
-    // payload (nur Daten)
-    std::vector<uint8_t> payload(frame.begin()+4, frame.end()-1);
+  // Payload (ohne FC,len,func_hi,func_lo, ohne checksum)
+  std::vector<uint8_t> payload(frame.begin()+4, frame.end()-1);
 
-    // Werte aus dem FULL FRAME (Big Endian)
-    auto u16 = [&](int i){ return read_u16_be(frame, i); };
-    auto u32 = [&](int i){ return read_u32_be(frame, i); };
-
-    if (payload.size() >= 30) {
-      float tsa    = u16(4)  / 10.0f;
-      float tse    = u16(6)  / 10.0f;
-      float twu    = u16(8)  / 10.0f;
-      float tw2    = u16(10) / 10.0f;
-      float sol    = u16(24);
-      float tag    = u16(26);
-      float gesamt = u32(28);
-
-      uint8_t status_raw  = payload[11];
-      uint8_t status_code = uint8_t((status_raw/10) * 16 + (status_raw%10));
-
-      publish_numeric(Kind::AQUA_TSA, tsa);
-      publish_numeric(Kind::AQUA_TSE, tse);
-      publish_numeric(Kind::AQUA_TWU, twu);
-      publish_numeric(Kind::AQUA_TW2, tw2);
-      publish_numeric(Kind::AQUA_SOL, sol);
-      publish_numeric(Kind::AQUA_TAG, tag);
-      publish_numeric(Kind::AQUA_GESAMT, gesamt);
-      publish_numeric(Kind::AQUA_STATUS_CODE, status_code);
-
-      const char *desc = nullptr;
-      switch (status_raw) {
-        case 0:  desc="Kein Fehler"; break;
-        case 1:  desc="Durchfluss im Solarkreis blockiert oder Pumpe defekt"; break;
-        case 2:  desc="Luft in der Anlage"; break;
-        case 3:  desc="Kein Volumenstrom im Frostschutz"; break;
-        case 4:  desc="Vorlauf-/Rücklauf Kollektor vertauscht"; break;
-        case 5:  desc="Rückschlagklappe undicht"; break;
-        case 6:  desc="Falsche Uhrzeit"; break;
-        case 7:  desc="Druckabfall in der Anlage"; break;
-        case 8:  desc="Volumenstrom zu hoch"; break;
-        case 9:  desc="Hydraulischer Anschluss fehlerhaft"; break;
-        case 10: desc="Anlage nicht frostsicher"; break;
-        case 11: desc="Keine permanente Spannungsversorgung"; break;
-        case 12: desc="Speicherfühler/ULV/Wärmetauscher Problem"; break;
-        case 13: desc="Volumenstrom zu niedrig"; break;
-        case 14: desc="Speicher unterkühlt"; break;
-        case 22: desc="Fühler TSA defekt"; break;
-        case 23: desc="Fühler TSE defekt"; break;
-        case 24: desc="Fühler TWU defekt"; break;
-        case 26: desc="Fühler TW2 defekt"; break;
-        case 34: desc="Speicher überhitzt"; break;
-        case 35: desc="Speicher 2 überhitzt"; break;
-        case 50: desc="Frostgefahr"; break;
-        default: break;
-      }
-
-      if (desc) publish_text(Kind::AQUA_STATUS_TEXT, desc);
-      else {
-        char buf[32];
-        snprintf(buf, sizeof(buf), "Unbekannter Status (%02X)", status_code);
-        publish_text(Kind::AQUA_STATUS_TEXT, buf);
-      }
-
-      uint8_t hour   = bcd2dec(payload[14]);
-      uint8_t minute = bcd2dec(payload[15]);
-      uint8_t day    = bcd2dec(payload[16]);
-      uint8_t month  = bcd2dec(payload[17]);
-      char ts[16]; snprintf(ts, sizeof(ts), "%02d.%02d %02d:%02d", day, month, hour, minute);
-      publish_text(Kind::AQUA_TIMESTAMP, ts);
-    }
-
-    // AQUA-HEX nur für AQUA-Sink
-    for (auto *s : sinks_aqua_) s->publish_frame_hex(hex);
-  }
+  // Gerätespezifische Auswertung
+  if (device_) device_->on_fc_frame(frame, payload, hex);
 
   for (size_t i=0;i<total;i++) buf_.pop_front();
   return true;
@@ -158,6 +91,14 @@ uint8_t SystaReader::checksum_twos_complement_(const std::vector<uint8_t> &v) {
 }
 
 std::string SystaReader::to_hex_(const std::vector<uint8_t> &buf) {
-  static const char *digits="0123456789ABCDEF";
+  static const char *digits = "0123456789ABCDEF";
   std::string out; out.reserve(buf.size()*2);
-  for (au
+  for (auto b : buf) {
+    out.push_back(digits[(b >> 4) & 0x0F]);
+    out.push_back(digits[b & 0x0F]);
+  }
+  return out;
+}
+
+}  // namespace systa_reader
+}  // namespace esphome

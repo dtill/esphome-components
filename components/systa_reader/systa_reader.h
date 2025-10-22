@@ -12,6 +12,7 @@
 namespace esphome {
 namespace systa_reader {
 
+// stabile Schlüssel mit Device-Präfix
 enum class Kind : uint16_t {
   // AQUA
   AQUA_TSA, AQUA_TSE, AQUA_TWU, AQUA_TW2, AQUA_SOL, AQUA_TAG, AQUA_GESAMT,
@@ -22,11 +23,11 @@ class DeviceBase;
 
 class SystaReader : public uart::UARTDevice, public Component {
  public:
-  // Konfiguration
+  // Konfig
   void set_log_invalid(bool v) { log_invalid_ = v; }
   void set_device_type(const std::string &t) { device_type_ = t; }
 
-  // RAW-HEX sinks
+  // HEX-Sinks
   class HexSink { public: virtual void publish_frame_hex(const std::string &hex) = 0; virtual ~HexSink() = default; };
   void add_sink_all(HexSink *s)  { sinks_all_.push_back(s); }
   void add_sink_aqua(HexSink *s) { sinks_aqua_.push_back(s); }
@@ -35,7 +36,7 @@ class SystaReader : public uart::UARTDevice, public Component {
   void set_numeric_sensor(Kind k, sensor::Sensor *s) { num_sensors_[k] = s; }
   void set_text_sensor(Kind k, text_sensor::TextSensor *t) { txt_sensors_[k] = t; }
 
-  // Publish
+  // Publish (von Devices genutzt)
   void publish_numeric(Kind k, float v) {
     auto it = num_sensors_.find(k);
     if (it != num_sensors_.end() && it->second) it->second->publish_state(v);
@@ -51,10 +52,12 @@ class SystaReader : public uart::UARTDevice, public Component {
   float get_setup_priority() const override { return setup_priority::DATA; }
 
  protected:
+  // Parser
   void process_buffer_();
   bool try_parse_fc_frame_();
   bool try_parse_display_frame_();
 
+  // Helfer
   static uint8_t     checksum_twos_complement_(const std::vector<uint8_t> &data_wo);
   static std::string to_hex_(const std::vector<uint8_t> &buf);
   static uint8_t     bcd2dec(uint8_t v) { return uint8_t(((v>>4)*10) + (v & 0x0F)); }
@@ -70,8 +73,25 @@ class SystaReader : public uart::UARTDevice, public Component {
   bool log_invalid_{true};
   std::string device_type_{"aqua"};
 
+  std::unique_ptr<DeviceBase> device_; // optional später (für weitere Geräte)
+
   std::map<Kind, sensor::Sensor*>            num_sensors_;
   std::map<Kind, text_sensor::TextSensor*>   txt_sensors_;
+};
+
+// Basisklasse für Gerätespezifika
+class DeviceBase {
+ public:
+  explicit DeviceBase(SystaReader &owner) : r_(owner) {}
+  virtual ~DeviceBase() = default;
+  virtual void on_fc_frame(const std::vector<uint8_t>& frame,
+                           const std::vector<uint8_t>& payload,
+                           const std::string &hex) = 0;
+ protected:
+  static uint8_t  bcd2dec(uint8_t v) { return SystaReader::bcd2dec(v); }
+  static uint16_t read_u16_be(const std::vector<uint8_t> &b, int i) { return SystaReader::read_u16_be(b, i); }
+  static uint32_t read_u32_be(const std::vector<uint8_t> &b, int i) { return SystaReader::read_u32_be(b, i); }
+  SystaReader &r_;
 };
 
 // Textsensor, der HEX-Sinks bedienen kann

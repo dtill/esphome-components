@@ -33,8 +33,8 @@ CONFIG_SCHEMA = cv.All(
     text_sensor.text_sensor_schema(SystaReaderText).extend({
         cv.Required(CONF_PARENT_ID): cv.use_id(SystaReader),
         cv.Required(CONF_MODE): MODE,
-        cv.Optional(CONF_FILTER, default="all"): FILTER,
-        cv.Optional(CONF_KIND): FIELD_KIND,
+        cv.Optional(CONF_FILTER, default="all"): FILTER,  # for mode: raw
+        cv.Optional(CONF_KIND): FIELD_KIND,               # for mode: field
     }),
     _validate_text_sensor
 )

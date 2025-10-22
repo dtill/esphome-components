@@ -11,7 +11,6 @@ DEPENDENCIES = ["uart", "sensor", "text_sensor"]
 systa_ns = cg.esphome_ns.namespace("systa_reader")
 SystaReader = systa_ns.class_("SystaReader", uart.UARTDevice, cg.Component)
 
-# Geräteauswahl (ohne msg=, sonst ValueError)
 SYSTA_DEVICE = cv.one_of("aqua", "modula", "espresso", "solar", lower=True)
 
 CONF_UART_ID = "uart_id"
