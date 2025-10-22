@@ -42,8 +42,9 @@ void AquaDecoder::on_fc_frame(const std::vector<uint8_t>& frame,
 
   // HEX auch in AQUA-only sink
   r_.publish_hex_aqua(hex);
-
-  if (payload.size() < 30) return;
+  ESP_LOGD(TAG_AQUA, "AQUA len=%u, frame.size()=%u, payload.size()=%u",
+         frame[1], (unsigned)frame.size(), (unsigned)payload.size());
+  if (payload.size() < 18) return;
 
   auto u16 = [&](int i){ return read_u16_be(frame, i); };
   auto u32 = [&](int i){ return read_u32_be(frame, i); };
