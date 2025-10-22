@@ -10,11 +10,11 @@
 namespace esphome {
 namespace systa_reader {
 
-class AquaDecoder;  // forward
-class SystaReaderTextSink; // forward
+class SystaReaderTextSink;  // forward
 
 class SystaReader : public uart::UARTDevice, public Component {
  public:
+
   // config
   void set_log_invalid(bool v) { log_invalid_ = v; }
   void set_device_type(const std::string &t) { device_type_ = t; }
@@ -28,6 +28,9 @@ class SystaReader : public uart::UARTDevice, public Component {
   class HexSink { public: virtual void publish_frame_hex(const std::string &hex) = 0; virtual ~HexSink() = default; };
   void add_sink_all(HexSink *s)  { sinks_all_.push_back(s); }
   void add_sink_aqua(HexSink *s) { sinks_aqua_.push_back(s); }
+
+  friend class ModulaDecoder;
+  friend class AquaDecoder;
 
   // setters (werden von Subplatforms aufgerufen)
   // AQUA numeric
