@@ -1,38 +1,46 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.components import text_sensor
-from esphome.const import CONF_ICON, CONF_NAME
 from .. import systa_ns, SystaReader
 
-# one class only
-SystaReaderTextSensor = systa_ns.class_("SystaReaderTextSensor", text_sensor.TextSensor, cg.Component)
+SystaReaderText = systa_ns.class_("SystaReaderTextSensor", text_sensor.TextSensor, cg.Component)
+Kind = systa_ns.enum("Kind")
 
 CONF_PARENT_ID = "systa_reader_id"
+CONF_MODE = "mode"
 CONF_FILTER = "filter"
+CONF_KIND = "kind"
+
+MODE = cv.one_of("raw", "field", lower=True)
 FILTER = cv.one_of("all", "aqua", lower=True)
+FIELD_KIND = cv.one_of("status_text", "timestamp", lower=True)
+
+def field_kind_to_enum(v):
+    mapping = {"status_text": "STATUS_TEXT", "timestamp": "TIMESTAMP"}
+    return getattr(Kind, mapping[v])
 
 CONFIG_SCHEMA = (
-    text_sensor.text_sensor_schema(SystaReaderTextSensor)
-    .extend(
-        {
-            cv.Required(CONF_NAME): cv.string,
-            cv.Required(CONF_PARENT_ID): cv.use_id(SystaReader),
-            cv.Optional(CONF_ICON, default="mdi:code-hex"): cv.icon,
-            cv.Optional(CONF_FILTER, default="all"): FILTER,
-        }
-    )
-    .extend(cv.COMPONENT_SCHEMA)
+    text_sensor.text_sensor_schema(SystaReaderText)
+    .extend({
+        cv.Required(CONF_PARENT_ID): cv.use_id(SystaReader),
+        cv.Required(CONF_MODE): MODE,
+        cv.Optional(CONF_FILTER, default="all"): FILTER,
+        cv.Optional(CONF_KIND): FIELD_KIND,
+    })
 )
 
 async def to_code(config):
     parent = await cg.get_variable(config[CONF_PARENT_ID])
-    var = cg.new_Pvariable(config[cv.GenerateID()])
+    var = cg.new_Pvariable(config[cg.CONF_ID])
     await cg.register_component(var, config)
     await text_sensor.register_text_sensor(var, config)
 
-    if config.get(CONF_FILTER, "all") == "aqua":
-        # register this text sensor to receive only AQUA frames
-        cg.add(parent.add_sink_aqua(var))
+    if config[CONF_MODE] == "raw":
+        if config[CONF_FILTER] == "aqua":
+            cg.add(parent.add_sink_aqua(var))
+        else:
+            cg.add(parent.add_sink_all(var))
     else:
-        # register to receive all frames
-        cg.add(parent.add_sink_all(var))
+        # field mode -> text field subscriber
+        k = field_kind_to_enum(config[CONF_KIND])
+        cg.add(parent.set_text_sensor(k, var))
