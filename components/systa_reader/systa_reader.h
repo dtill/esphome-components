@@ -64,6 +64,11 @@ class SystaReader : public uart::UARTDevice, public Component {
   bool try_parse_display_frame_();
   bool try_parse_fc_frame_();
 
+  // kleiner Router für FC-Frames (ruft nur das gewählte Gerät auf)
+  void route_fc_frame_to_device_(const std::vector<uint8_t>& frame,
+                                 const std::vector<uint8_t>& payload,
+                                 const std::string &hex);
+
   // utils
   static uint8_t     checksum_twos_complement_(const std::vector<uint8_t> &data_wo_last);
   static std::string to_hex_(const std::vector<uint8_t> &buf);
