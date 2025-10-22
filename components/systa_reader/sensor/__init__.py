@@ -1,20 +1,20 @@
-# systa_reader/sensor/__init__.py
 import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.components import sensor
 from .. import systa_ns, SystaReader
 
 Kind = systa_ns.enum("Kind")
+
 CONF_PARENT_ID = "systa_reader_id"
 CONF_KIND = "kind"
 
-# Nur AQUA-Kinds anbieten – später für MODULA/… analog erweitern
 KIND = cv.one_of(
+    # AQUA only (erweiterbar)
     "aqua_tsa", "aqua_tse", "aqua_twu", "aqua_tw2",
     "aqua_sol", "aqua_tag", "aqua_gesamt", "aqua_status_code",
     lower=True,
-    msg="kind must be one of the AQUA kinds: "
-        "aqua_tsa|aqua_tse|aqua_twu|aqua_tw2|aqua_sol|aqua_tag|aqua_gesamt|aqua_status_code"
+    msg=("kind must be one of the AQUA kinds: "
+         "aqua_tsa|aqua_tse|aqua_twu|aqua_tw2|aqua_sol|aqua_tag|aqua_gesamt|aqua_status_code")
 )
 
 def kind_to_enum(v):

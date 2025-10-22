@@ -1,8 +1,7 @@
-# systa_reader/text_sensor/__init__.py
 import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.components import text_sensor
-from esphome.const import CONF_ID, CONF_NAME
+from esphome.const import CONF_ID
 from .. import systa_ns, SystaReader
 
 SystaReaderText = systa_ns.class_("SystaReaderTextSensor", text_sensor.TextSensor, cg.Component)
@@ -27,7 +26,6 @@ def field_kind_to_enum(v):
 
 def _validate_text_sensor(cfg):
     if cfg[CONF_MODE] == "raw":
-        # kind nicht erlaubt
         if CONF_KIND in cfg:
             raise cv.Invalid("kind is not allowed when mode: raw. Remove 'kind' or set mode: field.")
     else:  # field
@@ -39,8 +37,8 @@ CONFIG_SCHEMA = cv.All(
     text_sensor.text_sensor_schema(SystaReaderText).extend({
         cv.Required(CONF_PARENT_ID): cv.use_id(SystaReader),
         cv.Required(CONF_MODE): MODE,
-        cv.Optional(CONF_FILTER, default="all"): FILTER,   # only raw
-        cv.Optional(CONF_KIND): FIELD_KIND,                # only field
+        cv.Optional(CONF_FILTER, default="all"): FILTER,   # nur für mode: raw
+        cv.Optional(CONF_KIND): FIELD_KIND,                # nur für mode: field
     }),
     _validate_text_sensor
 )

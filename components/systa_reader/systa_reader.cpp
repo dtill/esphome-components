@@ -34,7 +34,7 @@ void SystaReader::publish_text(Kind k, const std::string &v) {
 }
 
 void SystaReader::setup() {
-  // nothing
+  // nothing for now
 }
 
 void SystaReader::loop() {
@@ -53,6 +53,8 @@ void SystaReader::process_buffer_() {
 
   while (true) {
     if (buf_.size() < 4) return;
+
+    // syncen auf 0xFC (FC-Frames) oder 0x0F (Display-Frames)
     while (!buf_.empty() && buf_.front()!=0xFC && buf_.front()!=0x0F) buf_.pop_front();
     if (buf_.size() < 4) return;
 
@@ -60,7 +62,7 @@ void SystaReader::process_buffer_() {
     if (buf_.front()==0x0F)      progressed = try_parse_display_frame_();
     else if (buf_.front()==0xFC) progressed = try_parse_fc_frame_();
 
-    if (!progressed) buf_.pop_front();
+    if (!progressed) buf_.pop_front(); // desync -> Byte verwerfen
   }
 }
 
@@ -68,7 +70,7 @@ bool SystaReader::try_parse_display_frame_() {
   if (buf_.size() < 4) return false;
   if (!(buf_[0]==0x0F && buf_[1]==0x22 && buf_[2]==0x04 && buf_[3]==0x00)) return false;
 
-  const size_t total = 37;
+  const size_t total = 37; // 0F 22 04 00 + 32 payload + 1 checksum
   if (buf_.size() < total) return false;
 
   std::vector<uint8_t> frame(total);
@@ -106,7 +108,8 @@ bool SystaReader::try_parse_fc_frame_() {
   ESP_LOGV(TAG, "FC HEX: %s", hex.c_str());
 
   if (device_) {
-    std::vector<uint8_t> payload(frame.begin()+4, frame.end()-1); // nach FC,len,func_hi,func_lo
+    // payload nach FC,len,func_hi,func_lo:
+    std::vector<uint8_t> payload(frame.begin()+4, frame.end()-1);
     device_->on_fc_frame(frame, payload, hex);
   }
 

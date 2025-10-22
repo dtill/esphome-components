@@ -12,13 +12,12 @@
 namespace esphome {
 namespace systa_reader {
 
-// stabile Schlüssel für Messwerte/Text je Device
+// stabile Schlüssel je Device (mit Präfix)
 enum class Kind : uint16_t {
   // AQUA
-  AQUA_TSA, AQUA_TSE, AQUA_TWU, AQUA_TW2, AQUA_SOL, AQUA_TAG, AQUA_GESAMT, AQUA_STATUS_CODE,
-  AQUA_STATUS_TEXT, AQUA_TIMESTAMP,
-
-  // Platzhalter für weitere Devices (modula/espresso/solar) …
+  AQUA_TSA, AQUA_TSE, AQUA_TWU, AQUA_TW2, AQUA_SOL, AQUA_TAG, AQUA_GESAMT,
+  AQUA_STATUS_CODE, AQUA_STATUS_TEXT, AQUA_TIMESTAMP,
+  // weitere Devices hier hinzufügen...
 };
 
 class DeviceBase;
@@ -29,16 +28,16 @@ class SystaReader : public uart::UARTDevice, public Component {
   void set_log_invalid(bool v);
   void set_device_type(const std::string &t);
 
-  // RAW-HEX-Sinks
+  // RAW-HEX Sinks
   class HexSink { public: virtual void publish_frame_hex(const std::string &hex) = 0; virtual ~HexSink() = default; };
   void add_sink_all(HexSink *s);
   void add_sink_aqua(HexSink *s);
 
-  // Registrierung der Entities
+  // Registrierung von Entities (numerisch/Text)
   void set_numeric_sensor(Kind k, sensor::Sensor *s);
   void set_text_sensor(Kind k, text_sensor::TextSensor *t);
 
-  // Publish (von Devices benutzt)
+  // Publish (von Devices aufgerufen)
   void publish_numeric(Kind k, float v);
   void publish_text(Kind k, const std::string &v);
 
@@ -54,19 +53,19 @@ class SystaReader : public uart::UARTDevice, public Component {
   bool try_parse_display_frame_();
 
   // Helfer
-  static uint8_t checksum_twos_complement_(const std::vector<uint8_t> &data_wo);
-  static std::string to_hex_(const std::vector<uint8_t> &buf);
+  static uint8_t      checksum_twos_complement_(const std::vector<uint8_t> &data_wo);
+  static std::string  to_hex_(const std::vector<uint8_t> &buf);
 
   // Zustand
-  std::deque<uint8_t> buf_;
-  std::vector<HexSink*> sinks_all_;
-  std::vector<HexSink*> sinks_aqua_;
-  bool log_invalid_{true};
-  std::string device_type_{"aqua"};
+  std::deque<uint8_t>                   buf_;
+  std::vector<HexSink*>                 sinks_all_;
+  std::vector<HexSink*>                 sinks_aqua_;
+  bool                                  log_invalid_{true};
+  std::string                           device_type_{"aqua"};
 
-  std::unique_ptr<DeviceBase> device_;
-  std::map<Kind, sensor::Sensor*>            num_sensors_;
-  std::map<Kind, text_sensor::TextSensor*>   txt_sensors_;
+  std::unique_ptr<DeviceBase>           device_;
+  std::map<Kind, sensor::Sensor*>       num_sensors_;
+  std::map<Kind, text_sensor::TextSensor*> txt_sensors_;
 };
 
 // Basisklasse für Gerätespezifika
@@ -74,9 +73,11 @@ class DeviceBase {
  public:
   explicit DeviceBase(SystaReader &owner) : r_(owner) {}
   virtual ~DeviceBase() = default;
+
   virtual void on_fc_frame(const std::vector<uint8_t>& frame,
                            const std::vector<uint8_t>& payload,
                            const std::string &hex) = 0;
+
  protected:
   static uint8_t  bcd2dec(uint8_t v) { return uint8_t(((v>>4)*10) + (v & 0x0F)); }
   static uint16_t read_u16_be(const std::vector<uint8_t> &b, int i) { return uint16_t((b[i]<<8) | b[i+1]); }
