@@ -8,21 +8,17 @@ CODEOWNERS = ["@dtill"]
 DEPENDENCIES = ["uart"]
 DOMAIN = "systa_reader"
 
-
 systa_ns = cg.esphome_ns.namespace("systa_reader")
 SystaReader = systa_ns.class_("SystaReader", uart.UARTDevice, cg.Component)
 
-
 CONF_UART_ID = "uart_id"
 CONF_LOG_INVALID = "log_invalid"
-
 
 CONFIG_SCHEMA = cv.Schema({
         cv.GenerateID(): cv.declare_id(SystaReader),
         cv.Required(CONF_UART_ID): cv.use_id(uart.UARTComponent),
         cv.Optional(CONF_LOG_INVALID, default=True): cv.boolean,
     }).extend(cv.COMPONENT_SCHEMA)
-
 
 async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
