@@ -6,13 +6,13 @@ from esphome.const import CONF_ID
 MULTI_CONF = True
 AUTO_LOAD = ["sensor", "text_sensor"]   # lädt unsere Subplatforms
 CODEOWNERS = ["@dtill"]
-DEPENDENCIES = ["uart"]
+DEPENDENCIES = ["uart", "sensor", "text_sensor"]
 
 systa_ns = cg.esphome_ns.namespace("systa_reader")
 SystaReader = systa_ns.class_("SystaReader", uart.UARTDevice, cg.Component)
 
-SYSTA_DEVICE = cv.one_of("aqua", "modula", "espresso", "solar", lower=True,
-                         msg="systa_device must be one of: aqua | modula | espresso | solar")
+# ALT (macht ValueError)
+SYSTA_DEVICE = cv.one_of("aqua", "modula", "espresso", "solar", lower=True)
 
 CONF_UART_ID = "uart_id"
 CONF_LOG_INVALID = "log_invalid"

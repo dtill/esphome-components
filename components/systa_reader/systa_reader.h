@@ -26,7 +26,7 @@ class SystaReader : public uart::UARTDevice, public Component {
  public:
   // Konfiguration
   void set_log_invalid(bool v);
-  void set_device_type(const std::string &t);
+  void set_device_type(const std::string &t) { device_type_ = t; }
 
   // RAW-HEX Sinks
   class HexSink { public: virtual void publish_frame_hex(const std::string &hex) = 0; virtual ~HexSink() = default; };
