@@ -31,7 +31,7 @@ class SystaReader : public uart::UARTDevice, public Component {
   void loop() override;
   float get_setup_priority() const override { return setup_priority::DATA; }
 
-  // Sinks für HEX-Ausgabe
+  // HEX-Ausgabe: alle Frames vs. nur AQUA
   class HexSink { public: virtual void publish_frame_hex(const std::string &hex) = 0; };
   void add_sink_all(HexSink *sink)  { sinks_all_.push_back(sink); }
   void add_sink_aqua(HexSink *sink) { sinks_aqua_.push_back(sink); }

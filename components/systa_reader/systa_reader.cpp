@@ -42,9 +42,8 @@ bool SystaReader::try_parse_display_frame_() {
 
   uint8_t calc = checksum_twos_complement_(std::vector<uint8_t>(frame.begin(), frame.end() - 1));
   uint8_t got  = frame.back();
-  if (calc != got && this->log_invalid_) {
+  if (calc != got && this->log_invalid_)
     ESP_LOGW(TAG, "Display frame checksum invalid (got %02X, expected %02X)", got, calc);
-  }
 
   const std::string hex = to_hex_(frame);
   for (auto *s : sinks_all_) s->publish_frame_hex(hex);
@@ -67,9 +66,8 @@ bool SystaReader::try_parse_fc_frame_() {
 
   uint8_t calc = checksum_twos_complement_(std::vector<uint8_t>(frame.begin(), frame.end() - 1));
   uint8_t got  = frame.back();
-  if (calc != got && this->log_invalid_) {
+  if (calc != got && this->log_invalid_)
     ESP_LOGW(TAG, "FC checksum invalid (got %02X, expected %02X)", got, calc);
-  }
 
   const std::string hex = to_hex_(frame);
   for (auto *s : sinks_all_) s->publish_frame_hex(hex);
@@ -79,7 +77,7 @@ bool SystaReader::try_parse_fc_frame_() {
   if (this->device_type_ == "aqua" && frame.size() >= 4 && frame[0] == 0xFC && frame[2] == 0x0B && frame[3] == 0x01) {
     std::vector<uint8_t> payload(frame.begin() + 4, frame.end() - 1);
     this->handle_aqua_payload_(frame, payload);
-    // nur AQUA-HEX an spezielle Sinks
+    // nur AQUA-HEX separat publishen
     for (auto *s : sinks_aqua_) s->publish_frame_hex(hex);
   }
 
@@ -93,13 +91,14 @@ void SystaReader::handle_aqua_payload_(const std::vector<uint8_t> &frame, const 
   auto read_u16 = [&](int i) -> uint16_t { return read_u16_be_(frame, i); };
   auto read_u32 = [&](int i) -> uint32_t { return read_u32_be_(frame, i); };
 
+  // Werte nach deiner Spezifikation
   float tsa    = read_u16(4)  / 10.0f;
   float tse    = read_u16(6)  / 10.0f;
   float twu    = read_u16(8)  / 10.0f;
   float tw2    = read_u16(10) / 10.0f;
-  float sol    = read_u16(24);      // kW
-  float tag    = read_u16(26);      // kWh
-  float gesamt = read_u32(28);      // kWh
+  float sol    = read_u16(24);
+  float tag    = read_u16(26);
+  float gesamt = read_u32(28);
 
   uint8_t status_raw  = payload[11];
   uint8_t status_code = uint8_t((status_raw / 10) * 16 + (status_raw % 10));

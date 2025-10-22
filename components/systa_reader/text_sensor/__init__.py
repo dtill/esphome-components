@@ -12,7 +12,7 @@ CONF_FILTER = "filter"
 FILTER = cv.one_of("all", "aqua", lower=True)
 
 CONFIG_SCHEMA = (
-    text_sensor.TEXT_SENSOR_SCHEMA
+    text_sensor.text_sensor_schema(SystaReaderTextSensorAll)  # Basis-Schema
     .extend(
         {
             cv.Required(CONF_NAME): cv.string,
