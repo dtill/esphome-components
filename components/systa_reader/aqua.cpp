@@ -1,0 +1,94 @@
+#include "aqua.h"
+#include "esphome/core/log.h"
+
+namespace esphome {
+namespace systa_reader {
+
+static const char *const TAG_AQUA = "systa_reader.aqua";
+
+const char* AquaDecoder::status_text(uint8_t raw, uint8_t code_hex) {
+  switch (raw) {
+    case 0:  return "Kein Fehler";
+    case 1:  return "Durchfluss im Solarkreis blockiert oder Pumpe defekt";
+    case 2:  return "Luft in der Anlage";
+    case 3:  return "Kein Volumenstrom im Frostschutz";
+    case 4:  return "Vorlauf-/Rücklauf Kollektor vertauscht";
+    case 5:  return "Rückschlagklappe undicht";
+    case 6:  return "Falsche Uhrzeit";
+    case 7:  return "Druckabfall in der Anlage";
+    case 8:  return "Volumenstrom zu hoch";
+    case 9:  return "Hydraulischer Anschluss fehlerhaft";
+    case 10: return "Anlage nicht frostsicher";
+    case 11: return "Keine permanente Spannungsversorgung";
+    case 12: return "Speicherfühler/ULV/Wärmetauscher Problem";
+    case 13: return "Volumenstrom zu niedrig";
+    case 14: return "Speicher unterkühlt";
+    case 22: return "Fühler TSA defekt";
+    case 23: return "Fühler TSE defekt";
+    case 24: return "Fühler TWU defekt";
+    case 26: return "Fühler TW2 defekt";
+    case 34: return "Speicher überhitzt";
+    case 35: return "Speicher 2 überhitzt";
+    case 50: return "Frostgefahr";
+    default: return nullptr;
+  }
+}
+
+void AquaDecoder::on_fc_frame(const std::vector<uint8_t>& frame,
+                              const std::vector<uint8_t>& payload,
+                              const std::string &hex) {
+  // Erwarte AQUA: FC [len] 0B 01 ...
+  if (frame.size() < 6) return;
+  if (!(frame[0]==0xFC && frame[2]==0x0B && frame[3]==0x01)) return;
+
+  // Werte liegen in FULL-FRAME an festen Offsets (Big Endian)
+  if (payload.size() < 30) return;
+
+  auto u16 = [&](int i){ return read_u16_be(frame, i); };
+  auto u32 = [&](int i){ return read_u32_be(frame, i); };
+
+  float tsa    = u16(4)  / 10.0f;
+  float tse    = u16(6)  / 10.0f;
+  float twu    = u16(8)  / 10.0f;
+  float tw2    = u16(10) / 10.0f;
+  float sol    = u16(24);
+  float tag    = u16(26);
+  float gesamt = u32(28);
+
+  uint8_t status_raw  = payload[11];
+  uint8_t status_code = uint8_t((status_raw / 10) * 16 + (status_raw % 10)); // dec→hex-kodiert
+
+  // Publish numerisch
+  r_.pub_aqua_tsa(tsa);
+  r_.pub_aqua_tse(tse);
+  r_.pub_aqua_twu(twu);
+  r_.pub_aqua_tw2(tw2);
+  r_.pub_aqua_sol(sol);
+  r_.pub_aqua_tag(tag);
+  r_.pub_aqua_ges(gesamt);
+  r_.pub_aqua_status_code(status_code);
+
+  // Status-Text
+  if (const char* t = status_text(status_raw, status_code)) {
+    r_.pub_aqua_status_text(t);
+  } else {
+    char buf[40];
+    snprintf(buf, sizeof(buf), "Unbekannter Status (%02X)", status_code);
+    r_.pub_aqua_status_text(buf);
+  }
+
+  // Zeitstempel aus Payload BCD
+  uint8_t hour   = bcd2dec(payload[14]);
+  uint8_t minute = bcd2dec(payload[15]);
+  uint8_t day    = bcd2dec(payload[16]);
+  uint8_t month  = bcd2dec(payload[17]);
+  char ts[16];
+  snprintf(ts, sizeof(ts), "%02d.%02d %02d:%02d", day, month, hour, minute);
+  r_.pub_aqua_timestamp(ts);
+
+  ESP_LOGV(TAG_AQUA, "AQUA: TSA=%.1f TSE=%.1f TWU=%.1f TW2=%.1f SOL=%.0f TAG=%.0f GES=%.0f code=%02X",
+           tsa, tse, twu, tw2, sol, tag, gesamt, status_code);
+}
+
+} // namespace systa_reader
+} // namespace esphome
