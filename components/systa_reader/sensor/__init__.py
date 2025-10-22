@@ -8,13 +8,11 @@ Kind = systa_ns.enum("Kind")
 CONF_PARENT_ID = "systa_reader_id"
 CONF_KIND = "kind"
 
+# Per-Device Kinds (AQUA)
 KIND = cv.one_of(
-    # AQUA only (erweiterbar)
     "aqua_tsa", "aqua_tse", "aqua_twu", "aqua_tw2",
     "aqua_sol", "aqua_tag", "aqua_gesamt", "aqua_status_code",
-    lower=True,
-    msg=("kind must be one of the AQUA kinds: "
-         "aqua_tsa|aqua_tse|aqua_twu|aqua_tw2|aqua_sol|aqua_tag|aqua_gesamt|aqua_status_code")
+    lower=True
 )
 
 def kind_to_enum(v):

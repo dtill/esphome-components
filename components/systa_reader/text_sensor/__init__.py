@@ -12,13 +12,9 @@ CONF_MODE = "mode"
 CONF_FILTER = "filter"
 CONF_KIND = "kind"
 
-MODE = cv.one_of("raw", "field", lower=True, msg="mode must be 'raw' or 'field'")
-FILTER = cv.one_of("all", "aqua", lower=True, msg="filter must be 'all' or 'aqua'")
-FIELD_KIND = cv.one_of(
-    "aqua_status_text", "aqua_timestamp",
-    lower=True,
-    msg="kind must be one of: aqua_status_text | aqua_timestamp"
-)
+MODE = cv.one_of("raw", "field", lower=True)
+FILTER = cv.one_of("all", "aqua", lower=True)
+FIELD_KIND = cv.one_of("aqua_status_text", "aqua_timestamp", lower=True)
 
 def field_kind_to_enum(v):
     mapping = {"aqua_status_text":"AQUA_STATUS_TEXT", "aqua_timestamp":"AQUA_TIMESTAMP"}
@@ -27,18 +23,18 @@ def field_kind_to_enum(v):
 def _validate_text_sensor(cfg):
     if cfg[CONF_MODE] == "raw":
         if CONF_KIND in cfg:
-            raise cv.Invalid("kind is not allowed when mode: raw. Remove 'kind' or set mode: field.")
-    else:  # field
+            raise cv.Invalid("kind is not allowed when mode: raw.")
+    else:
         if CONF_KIND not in cfg:
-            raise cv.Invalid("When mode: field, you must also set 'kind' (e.g. 'aqua_status_text').")
+            raise cv.Invalid("When mode: field, you must set 'kind'.")
     return cfg
 
 CONFIG_SCHEMA = cv.All(
     text_sensor.text_sensor_schema(SystaReaderText).extend({
         cv.Required(CONF_PARENT_ID): cv.use_id(SystaReader),
         cv.Required(CONF_MODE): MODE,
-        cv.Optional(CONF_FILTER, default="all"): FILTER,   # nur für mode: raw
-        cv.Optional(CONF_KIND): FIELD_KIND,                # nur für mode: field
+        cv.Optional(CONF_FILTER, default="all"): FILTER,
+        cv.Optional(CONF_KIND): FIELD_KIND,
     }),
     _validate_text_sensor
 )
