@@ -14,7 +14,7 @@ void EspressoDecoder::on_fc_frame(const std::vector<uint8_t>& frame,
     return;
 
   // Mindestlänge prüfen: wir lesen bis Index 34 (T12)
-  if (payload.size() < 35) return;
+  //if (payload.size() < 35) return;
 
   auto u16 = [&](int i){ return read_u16_be(frame, i); };
 
