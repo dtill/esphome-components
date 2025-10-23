@@ -15,7 +15,9 @@ void ModulaDecoder::on_fc_frame(const std::vector<uint8_t>& frame,
   const uint8_t len = frame[1];
   // Wir lesen bis frame[33] (u16 bei 32..33) -> total = 2 + len + 1 muss > 33 -> len >= 32
   if (len < 32) {
-    ESP_LOGV(TAG_MODULA, "Frame too short for MODULA: len=%u", len);
+    #if ESPHOME_LOG_LEVEL >= ESPHOME_LOG_LEVEL_VERBOSE
+    ESP_LOGW(TAG_MODULA, "Frame too short for MODULA: len=%u", len);
+    #endif
     return;
   }
 
@@ -55,7 +57,7 @@ void ModulaDecoder::on_fc_frame(const std::vector<uint8_t>& frame,
   r_.pub_modula_tpu(tpu);
   r_.pub_modula_tzr(tzr);
 
-  ESP_LOGD(TAG_MODULA, "TWO=%.1f TV=%.1f TV2=%.1f TR=%.1f TR2=%.1f TPO=%.1f TPU=%.1f TZR=%.1f TBV=%.1f TBR=%.1f",
+  ESP_LOGI(TAG_MODULA, "TWO=%.1f TV=%.1f TV2=%.1f TR=%.1f TR2=%.1f TPO=%.1f TPU=%.1f TZR=%.1f TBV=%.1f TBR=%.1f",
            two, tv, tv2, tr, tr2, tpo, tpu, tzr, tbv, tbr);
 }
 

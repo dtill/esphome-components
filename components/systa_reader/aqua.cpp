@@ -44,7 +44,7 @@ void AquaDecoder::on_fc_frame(const std::vector<uint8_t>& frame,
   r_.publish_hex_aqua(hex);
   ESP_LOGV(TAG_AQUA, "AQUA len=%u, frame.size()=%u, payload.size()=%u",
          frame[1], (unsigned)frame.size(), (unsigned)payload.size());
-  //if (payload.size() < 18) return;
+
 
   auto u16 = [&](int i){ return read_u16_be(frame, i); };
   auto u32 = [&](int i){ return read_u32_be(frame, i); };
@@ -85,7 +85,7 @@ void AquaDecoder::on_fc_frame(const std::vector<uint8_t>& frame,
   snprintf(ts, sizeof(ts), "%02d.%02d %02d:%02d", day, month, hour, minute);
   r_.pub_aqua_timestamp(ts);
 
-  ESP_LOGD(TAG_AQUA, "AQUA: TSA=%.1f TSE=%.1f TWU=%.1f TW2=%.1f SOL=%.0f TAG=%.0f GES=%.0f code=%02X",
+  ESP_LOGI(TAG_AQUA, "AQUA: TSA=%.1f TSE=%.1f TWU=%.1f TW2=%.1f SOL=%.0f TAG=%.0f GES=%.0f code=%02X",
            tsa, tse, twu, tw2, sol, tag, gesamt, status_code);
 }
 void AquaDecoder::on_display_frame(const std::vector<uint8_t>& /*frame*/,
