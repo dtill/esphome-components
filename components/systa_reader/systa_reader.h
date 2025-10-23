@@ -30,13 +30,12 @@ class SystaReader : public uart::UARTDevice, public Component {
 
   // config
   void set_log_invalid(bool v) { log_invalid_ = v; }
-  void set_device_type(const std::string &t) { device_type_ = t;}
 
   // lifecycle
   void setup() override;
   void loop() override;
   float get_setup_priority() const override { return setup_priority::DATA; }
-  void set_enabled_mask(uint8_t m) { enabled_mask_ = m; }
+  void set_enabled_mask(uint32_t m) { enabled_mask_ = m; }
 
   // raw sinks
   class HexSink { public: virtual void publish_frame_hex(const std::string &hex) = 0; virtual ~HexSink() = default; };
@@ -176,7 +175,6 @@ class SystaReader : public uart::UARTDevice, public Component {
   std::vector<HexSink*> sinks_aqua_;
   std::vector<SystaReaderTextSink *> sinks_{};
   bool log_invalid_{true};
-  std::string device_type_{"aqua"};
 
   // decoder instances
   AquaDecoder *aqua_{nullptr};
