@@ -14,12 +14,11 @@ uart:
   parity: NONE
   stop_bits: 1
 
-systa_reader:                         # can be multiple systa_reader but only one per uart.
+systa_reader:                             # can be multiple systa_reader but only one per uart.
   - id: systa_bus_01
     uart_id: uart_bus
-    log_invalid: true                 # logs invalid frames for debugging purpose
-    # call one or more devices that are on your SystaBUS example[aqua,modula,espresso]
-    systa_device: [aqua,modula,espresso]
+    systa_device: [aqua, modula, espresso]  # call one or more devices [aqua,modula,espresso]
+    log_invalid: true                     # logs invalid frames for debugging purpose
 
 sensor:
     # AQUA sensors:
