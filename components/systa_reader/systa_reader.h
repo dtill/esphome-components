@@ -128,6 +128,18 @@ class SystaReader : public uart::UARTDevice, public Component {
   void publish_hex_aqua(const std::string &hex) { for (auto *s : sinks_aqua_) s->publish_frame_hex(hex); }
 
  private:
+  enum class RxState { SEEK, COLLECT };
+  RxState rx_state_{RxState::SEEK};
+
+  // current in-progress frame buffer and target size when known
+  std::vector<uint8_t> cur_;
+  size_t need_total_{0};  // 0 => unknown yet
+
+  // how many frames we’ll cut per loop() call (keeps latency low)
+  static constexpr uint8_t kMaxFramesPerLoop = 3;
+
+  // compute expected total size from partial header; SIZE_MAX => hard desync
+  size_t expect_total_if_known_(const std::vector<uint8_t>& v) const;
   // parsing
   void process_buffer_();
   bool try_parse_display_frame_();
