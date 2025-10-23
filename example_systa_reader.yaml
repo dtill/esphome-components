@@ -1,3 +1,10 @@
+external_components:
+  - source:
+      type: git
+      url: https://github.com/dtill/esphome-components
+    components: [systa_reader]
+    refresh: 0s
+
 uart:
   id: uart_bus
   tx_pin: GPIO1
@@ -8,12 +15,17 @@ uart:
   stop_bits: 1
 
 systa_reader:
-  id: sysbus_aqua
-  uart_id: uart_bus
-  log_invalid: true
-  #systa_device: aqua
+  - id: sysbus_aqua
+    uart_id: uart_bus
+    log_invalid: true
+    systa_device: aqua
+  - id: sysbus_modula
+    uart_id: uart_bus
+    log_invalid: true
+    systa_device: modula
 
 sensor:
+    # AQUA sensors:
   - platform: systa_reader
     systa_reader_id: sysbus_aqua
     kind: aqua_tsa
@@ -47,7 +59,50 @@ sensor:
     kind: aqua_status_code
     name: "AQUA Status Code"
 
+    # MODULA sensors:
+  - platform: systa_reader
+    systa_reader_id: sysbus_modula
+    kind: modula_two
+    name: "MODULA TWO"
+  - platform: systa_reader
+    systa_reader_id: sysbus_modula
+    kind: modula_tbv
+    name: "MODULA TBV"
+  - platform: systa_reader
+    systa_reader_id: sysbus_modula
+    kind: modula_tbr
+    name: "MODULA TBR"
+  - platform: systa_reader
+    systa_reader_id: sysbus_modula
+    kind: modula_tv
+    name: "MODULA TV"
+  - platform: systa_reader
+    systa_reader_id: sysbus_modula
+    kind: modula_tv2
+    name: "MODULA TV2"
+  - platform: systa_reader
+    systa_reader_id: sysbus_modula
+    kind: modula_tr
+    name: "MODULA TR"
+  - platform: systa_reader
+    systa_reader_id: sysbus_modula
+    kind: modula_tr2
+    name: "MODULA TR2"
+  - platform: systa_reader
+    systa_reader_id: sysbus_modula
+    kind: modula_tpo
+    name: "MODULA TPO"
+  - platform: systa_reader
+    systa_reader_id: sysbus_modula
+    kind: modula_tpu
+    name: "MODULA TPU"
+  - platform: systa_reader
+    systa_reader_id: sysbus_modula
+    kind: modula_tzr
+    name: "MODULA TZR"
+
 text_sensor:
+  # General BUS Frames in RAW HEX format:
   - platform: systa_reader
     systa_reader_id: sysbus_aqua
     mode: raw
@@ -59,6 +114,7 @@ text_sensor:
     filter: aqua
     name: "Systa Raw HEX (AQUA)"
 
+  # AQUA text sensors:
   - platform: systa_reader
     systa_reader_id: sysbus_aqua
     mode: field
@@ -74,3 +130,10 @@ text_sensor:
     mode: field
     kind: aqua_display_text
     name: "AQUA Displaytext"
+
+  # MODULA text sensors:
+  - platform: systa_reader
+    systa_reader_id: sysbus_modula
+    mode: field
+    kind: modula_timestamp
+    name: "MODULA Zeitstempel"
