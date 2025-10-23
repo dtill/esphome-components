@@ -12,6 +12,10 @@ KIND = cv.one_of(
     # MODULA
     "modula_two","modula_tbv","modula_tbr","modula_tv","modula_tv2",
     "modula_tr","modula_tr2","modula_tpo","modula_tpu","modula_tzr",
+    # ESPRESSO
+    "espresso_t01","espresso_t02","espresso_t03","espresso_t04","espresso_t05",
+    "espresso_pk","espresso_t06","espresso_t07","espresso_t08","espresso_t09",
+    "espresso_t10","espresso_t11","espresso_t12",
     lower=True
 )
 
@@ -42,3 +46,16 @@ async def to_code(config):
     elif k == "modula_tpo":         cg.add(parent.set_modula_tpo_sensor(s))
     elif k == "modula_tpu":         cg.add(parent.set_modula_tpu_sensor(s))
     elif k == "modula_tzr":         cg.add(parent.set_modula_tzr_sensor(s))
+    elif k == "espresso_t01":       cg.add(parent.set_espresso_t01_sensor(s))
+    elif k == "espresso_t02":       cg.add(parent.set_espresso_t02_sensor(s))
+    elif k == "espresso_t03":       cg.add(parent.set_espresso_t03_sensor(s))
+    elif k == "espresso_t04":       cg.add(parent.set_espresso_t04_sensor(s))
+    elif k == "espresso_t05":       cg.add(parent.set_espresso_t05_sensor(s))
+    elif k == "espresso_pk":        cg.add(parent.set_espresso_pk_sensor(s))
+    elif k == "espresso_t06":       cg.add(parent.set_espresso_t06_sensor(s))
+    elif k == "espresso_t07":       cg.add(parent.set_espresso_t07_sensor(s))
+    elif k == "espresso_t08":       cg.add(parent.set_espresso_t08_sensor(s))
+    elif k == "espresso_t09":       cg.add(parent.set_espresso_t09_sensor(s))
+    elif k == "espresso_t10":       cg.add(parent.set_espresso_t10_sensor(s))
+    elif k == "espresso_t11":       cg.add(parent.set_espresso_t11_sensor(s))
+    elif k == "espresso_t12":       cg.add(parent.set_espresso_t12_sensor(s))

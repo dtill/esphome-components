@@ -12,6 +12,7 @@ namespace systa_reader {
 
 class AquaDecoder;
 class ModulaDecoder;
+class EspressoDecoder;
 class SystaReaderTextSink;  // forward
 
 class SystaReader : public uart::UARTDevice, public Component {
@@ -33,6 +34,7 @@ class SystaReader : public uart::UARTDevice, public Component {
 
   friend class ModulaDecoder;
   friend class AquaDecoder;
+  friend class EspressoDecoder;
 
   // setters (werden von Subplatforms aufgerufen)
 
@@ -48,23 +50,20 @@ class SystaReader : public uart::UARTDevice, public Component {
   // AQUA text
   void set_aqua_status_text_sensor(text_sensor::TextSensor *t) { aqua_status_text_ = t; }
   void set_aqua_timestamp_text_sensor(text_sensor::TextSensor *t) { aqua_timestamp_ = t; }
-
   // AQUA Display
   void set_aqua_display_text_sensor(text_sensor::TextSensor *t) { aqua_display_text_ = t; }
   inline void pub_aqua_display_text(const std::string &s) { if (aqua_display_text_) aqua_display_text_->publish_state(s); }
-
-
   // publish helpers
-  void pub_aqua_tsa(float v)           { if (aqua_tsa_) aqua_tsa_->publish_state(v); }
-  void pub_aqua_tse(float v)           { if (aqua_tse_) aqua_tse_->publish_state(v); }
-  void pub_aqua_twu(float v)           { if (aqua_twu_) aqua_twu_->publish_state(v); }
-  void pub_aqua_tw2(float v)           { if (aqua_tw2_) aqua_tw2_->publish_state(v); }
-  void pub_aqua_sol(float v)           { if (aqua_sol_) aqua_sol_->publish_state(v); }
-  void pub_aqua_tag(float v)           { if (aqua_tag_) aqua_tag_->publish_state(v); }
-  void pub_aqua_ges(float v)           { if (aqua_ges_) aqua_ges_->publish_state(v); }
-  void pub_aqua_status_code(float v)   { if (aqua_status_code_) aqua_status_code_->publish_state(v); }
-  void pub_aqua_status_text(const std::string &s) { if (aqua_status_text_) aqua_status_text_->publish_state(s); }
-  void pub_aqua_timestamp(const std::string &s)   { if (aqua_timestamp_)   aqua_timestamp_->publish_state(s); }
+  inline void pub_aqua_tsa(float v)           { if (aqua_tsa_) aqua_tsa_->publish_state(v); }
+  inline void pub_aqua_tse(float v)           { if (aqua_tse_) aqua_tse_->publish_state(v); }
+  inline void pub_aqua_twu(float v)           { if (aqua_twu_) aqua_twu_->publish_state(v); }
+  inline void pub_aqua_tw2(float v)           { if (aqua_tw2_) aqua_tw2_->publish_state(v); }
+  inline void pub_aqua_sol(float v)           { if (aqua_sol_) aqua_sol_->publish_state(v); }
+  inline void pub_aqua_tag(float v)           { if (aqua_tag_) aqua_tag_->publish_state(v); }
+  inline void pub_aqua_ges(float v)           { if (aqua_ges_) aqua_ges_->publish_state(v); }
+  inline void pub_aqua_status_code(float v)   { if (aqua_status_code_) aqua_status_code_->publish_state(v); }
+  inline void pub_aqua_status_text(const std::string &s) { if (aqua_status_text_) aqua_status_text_->publish_state(s); }
+  inline void pub_aqua_timestamp(const std::string &s)   { if (aqua_timestamp_)   aqua_timestamp_->publish_state(s); }
 
   // MODULA setters
   void set_modula_two_sensor(sensor::Sensor *s) { modula_two_ = s; }
@@ -78,7 +77,6 @@ class SystaReader : public uart::UARTDevice, public Component {
   void set_modula_tpu_sensor(sensor::Sensor *s) { modula_tpu_ = s; }
   void set_modula_tzr_sensor(sensor::Sensor *s) { modula_tzr_ = s; }
   void set_modula_timestamp_text_sensor(text_sensor::TextSensor *t) { modula_timestamp_ = t; }
-
   // MODULA publish helpers
   inline void pub_modula_two(float v) { if (modula_two_) modula_two_->publish_state(v); }
   inline void pub_modula_tbv(float v) { if (modula_tbv_) modula_tbv_->publish_state(v); }
@@ -91,6 +89,37 @@ class SystaReader : public uart::UARTDevice, public Component {
   inline void pub_modula_tpu(float v) { if (modula_tpu_) modula_tpu_->publish_state(v); }
   inline void pub_modula_tzr(float v) { if (modula_tzr_) modula_tzr_->publish_state(v); }
   inline void pub_modula_timestamp(const std::string &s) { if (modula_timestamp_) modula_timestamp_->publish_state(s); }
+
+  // ESPRESSO Setter
+  void set_espresso_t01_sensor(sensor::Sensor *s) { espresso_t01_ = s; }
+  void set_espresso_t02_sensor(sensor::Sensor *s) { espresso_t02_ = s; }
+  void set_espresso_t03_sensor(sensor::Sensor *s) { espresso_t03_ = s; }
+  void set_espresso_t04_sensor(sensor::Sensor *s) { espresso_t04_ = s; }
+  void set_espresso_t05_sensor(sensor::Sensor *s) { espresso_t05_ = s; }
+  void set_espresso_pk_sensor (sensor::Sensor *s) { espresso_pk_  = s; }
+  void set_espresso_t06_sensor(sensor::Sensor *s) { espresso_t06_ = s; }
+  void set_espresso_t07_sensor(sensor::Sensor *s) { espresso_t07_ = s; }
+  void set_espresso_t08_sensor(sensor::Sensor *s) { espresso_t08_ = s; }
+  void set_espresso_t09_sensor(sensor::Sensor *s) { espresso_t09_ = s; }
+  void set_espresso_t10_sensor(sensor::Sensor *s) { espresso_t10_ = s; }
+  void set_espresso_t11_sensor(sensor::Sensor *s) { espresso_t11_ = s; }
+  void set_espresso_t12_sensor(sensor::Sensor *s) { espresso_t12_ = s; }
+  void set_espresso_timestamp_text_sensor(text_sensor::TextSensor *t) { espresso_timestamp_ = t; }
+  // ESPRESSO: private Publisher
+  inline void pub_espresso_t01(float v){ if (espresso_t01_) espresso_t01_->publish_state(v); }
+  inline void pub_espresso_t02(float v){ if (espresso_t02_) espresso_t02_->publish_state(v); }
+  inline void pub_espresso_t03(float v){ if (espresso_t03_) espresso_t03_->publish_state(v); }
+  inline void pub_espresso_t04(float v){ if (espresso_t04_) espresso_t04_->publish_state(v); }
+  inline void pub_espresso_t05(float v){ if (espresso_t05_) espresso_t05_->publish_state(v); }
+  inline void pub_espresso_pk (float v){ if (espresso_pk_)  espresso_pk_->publish_state(v); }
+  inline void pub_espresso_t06(float v){ if (espresso_t06_) espresso_t06_->publish_state(v); }
+  inline void pub_espresso_t07(float v){ if (espresso_t07_) espresso_t07_->publish_state(v); }
+  inline void pub_espresso_t08(float v){ if (espresso_t08_) espresso_t08_->publish_state(v); }
+  inline void pub_espresso_t09(float v){ if (espresso_t09_) espresso_t09_->publish_state(v); }
+  inline void pub_espresso_t10(float v){ if (espresso_t10_) espresso_t10_->publish_state(v); }
+  inline void pub_espresso_t11(float v){ if (espresso_t11_) espresso_t11_->publish_state(v); }
+  inline void pub_espresso_t12(float v){ if (espresso_t12_) espresso_t12_->publish_state(v); }
+  inline void pub_espresso_timestamp(const std::string &s){ if (espresso_timestamp_) espresso_timestamp_->publish_state(s); }
 
 
   // General setters
@@ -127,7 +156,6 @@ class SystaReader : public uart::UARTDevice, public Component {
 
   // decoder instances
   AquaDecoder *aqua_{nullptr};
-
   // AQUA sensors
   sensor::Sensor *aqua_tsa_{nullptr};
   sensor::Sensor *aqua_tse_{nullptr};
@@ -143,7 +171,6 @@ class SystaReader : public uart::UARTDevice, public Component {
 
   // decoder instances
   ModulaDecoder *modula_{nullptr};
-
   // MODULA sensor pointers
   sensor::Sensor *modula_two_{nullptr};
   sensor::Sensor *modula_tbv_{nullptr};
@@ -156,6 +183,24 @@ class SystaReader : public uart::UARTDevice, public Component {
   sensor::Sensor *modula_tpu_{nullptr};
   sensor::Sensor *modula_tzr_{nullptr};
   text_sensor::TextSensor *modula_timestamp_{nullptr};
+
+  // decoder instances
+  EspressoDecoder *espresso_{nullptr};
+  // ESPRESSO sensor pointers
+  sensor::Sensor *espresso_t01_{nullptr};
+  sensor::Sensor *espresso_t02_{nullptr};
+  sensor::Sensor *espresso_t03_{nullptr};
+  sensor::Sensor *espresso_t04_{nullptr};
+  sensor::Sensor *espresso_t05_{nullptr};
+  sensor::Sensor *espresso_pk_{nullptr};
+  sensor::Sensor *espresso_t06_{nullptr};
+  sensor::Sensor *espresso_t07_{nullptr};
+  sensor::Sensor *espresso_t08_{nullptr};
+  sensor::Sensor *espresso_t09_{nullptr};
+  sensor::Sensor *espresso_t10_{nullptr};
+  sensor::Sensor *espresso_t11_{nullptr};
+  sensor::Sensor *espresso_t12_{nullptr};
+  text_sensor::TextSensor *espresso_timestamp_{nullptr};
 };
 
 // Sink-Interface (bestehend)

@@ -1,6 +1,7 @@
 #include "systa_reader.h"
 #include "aqua.h"
 #include "modula.h"
+#include "espresso.h"
 #include "esphome/core/log.h"
 
 namespace esphome {
@@ -106,25 +107,33 @@ bool SystaReader::try_parse_fc_frame_() {
 void SystaReader::route_fc_frame_to_device_(const std::vector<uint8_t>& frame,
                                             const std::vector<uint8_t>& payload,
                                             const std::string &hex) {
+  if (frame.size() < 4 || frame[0] != 0xFC) return;
+  const uint8_t f2 = frame[2];
+  const uint8_t f3 = frame[3];
   if (device_type_ == "aqua") {
-    if (aqua_ == nullptr) aqua_ = new AquaDecoder(*this);
-    // nur AQUA-Header FC .. 0B 01 weiterreichen
-    if (frame.size() >= 4 && frame[0]==0xFC && frame[2]==0x0B && frame[3]==0x01)
+    // AQUA: FC .. 0B 01
+    if (f2 == 0x0B && f3 == 0x01) {
+      if (aqua_ == nullptr) aqua_ = new AquaDecoder(*this);
       aqua_->on_fc_frame(frame, payload, hex);
+    }
+    return;
   }
-}
-void SystaReader::route_display_frame_to_device_(const std::vector<uint8_t>& frame,
-                                                 const std::vector<uint8_t>& payload,
-                                                 const std::string &hex) {
-  if (device_type_ == "aqua") {
-    if (aqua_ == nullptr) aqua_ = new AquaDecoder(*this);
-    aqua_->on_display_frame(frame, payload, hex);
-  } else if (device_type_ == "modula") {
-    if (modula_ == nullptr) modula_ = new ModulaDecoder(*this);
-    if (frame.size() >= 4 && frame[0]==0xFC && frame[2]==0x0C && frame[3]==0x01)
+  if (device_type_ == "modula") {
+    // MODULA: FC .. 0C 01
+    if (f2 == 0x0C && f3 == 0x01) {
+      if (modula_ == nullptr) modula_ = new ModulaDecoder(*this);
       modula_->on_fc_frame(frame, payload, hex);
+    }
+    return;
   }
-  // weitere Geräte später...
+  if (device_type_ == "espresso") {
+    // ESPRESSO: FC .. 0C 01
+    if (f2 == 0x0C && f3 == 0x01) {
+      if (espresso_ == nullptr) espresso_ = new EspressoDecoder(*this);
+      espresso_->on_fc_frame(frame, payload, hex);
+    }
+    return;
+  }
 }
 
 uint8_t SystaReader::checksum_twos_complement_(const std::vector<uint8_t> &v) {

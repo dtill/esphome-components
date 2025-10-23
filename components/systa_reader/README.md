@@ -33,6 +33,10 @@ systa_reader:
     uart_id: uart_bus
     log_invalid: true
     systa_device: modula
+  - id: sysbus_espresso
+    uart_id: uart_bus
+    log_invalid: true
+    systa_device: espresso
 
 sensor:
     # AQUA sensors:
@@ -111,6 +115,21 @@ sensor:
     kind: modula_tzr
     name: "MODULA TZR"
 
+  # ESPRESSO sensors
+  - platform: systa_reader
+    systa_reader_id: sysbus_espresso
+    kind: espresso_t01
+    name: "Espresso T01"
+  - platform: systa_reader
+    systa_reader_id: sysbus_espresso
+    kind: espresso_t02
+    name: "Espresso T02"
+  # … bis espresso_t12 analog …
+  - platform: systa_reader
+    systa_reader_id: sysbus_espresso
+    kind: espresso_pk
+    name: "Espresso PK"
+
 text_sensor:
   # General BUS Frames in RAW HEX format:
   - platform: systa_reader
@@ -147,4 +166,11 @@ text_sensor:
     mode: field
     kind: modula_timestamp
     name: "MODULA Zeitstempel"
+
+  # ESPRESSO text sensors:
+  - platform: systa_reader
+    systa_reader_id: sysbus_espresso
+    mode: field
+    kind: espresso_timestamp
+    name: "Espresso Zeitstempel"
 ```
