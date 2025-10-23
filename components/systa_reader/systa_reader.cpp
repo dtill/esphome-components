@@ -8,6 +8,17 @@ namespace esphome {
 namespace systa_reader {
 
 static const char *const TAG = "systa_reader";
+#ifndef SYSTA_MAX_FRAMES_PER_LOOP
+#define SYSTA_MAX_FRAMES_PER_LOOP 4   // <- ggf. auf 2/8 tweaken
+#endif
+
+#ifndef SYSTA_SYNC_FC
+#define SYSTA_SYNC_FC 0xFC
+#endif
+#ifndef SYSTA_SYNC_DISP
+#define SYSTA_SYNC_DISP 0x0F
+#endif
+
 
 void SystaReader::setup() {
   ensure_decoder_ready_();
