@@ -191,18 +191,6 @@ sensor:
     name: "Espresso PK"
 
 text_sensor:
-  # General BUS Frames in RAW HEX format:
-  - platform: systa_reader
-    systa_reader_id: systa_bus_01
-    mode: raw
-    filter: all
-    name: "Systa Raw HEX (ALL)"
-  - platform: systa_reader
-    systa_reader_id: systa_bus_01
-    mode: raw
-    filter: aqua
-    name: "Systa Raw HEX (AQUA)"
-
   # AQUA text sensors:
   - platform: systa_reader
     systa_reader_id: systa_bus_01
@@ -233,4 +221,19 @@ text_sensor:
     mode: field
     kind: espresso_timestamp
     name: "Espresso Zeitstempel"
+
+  # General Systa BUS Frames in RAW HEX format
+  # (use with care! only for debug purpose, because big text data chunks filling
+  # homeassistant history data space over longer periods):
+
+  #- platform: systa_reader
+  #  systa_reader_id: systa_bus_01
+  #  mode: raw
+  #  filter: all
+  #  name: "Systa Raw HEX (ALL)"
+  #- platform: systa_reader
+  #  systa_reader_id: systa_bus_01
+  #  mode: raw
+  #  filter: aqua
+  #  name: "Systa Raw HEX (AQUA)"
 ```
