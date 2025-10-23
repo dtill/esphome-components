@@ -7,4 +7,6 @@ ESPHome-External-Component for
 
 [gdoor](components/gdoor/README.md) GIRA TKS-Bus Adapters
 
+[systa_reader](components/systa_reader/README.md) Paradigma Systa BUS UART Reader
+
 More details on component README pages.
