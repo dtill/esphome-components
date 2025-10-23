@@ -23,20 +23,43 @@ void SystaReader::loop() {
 }
 
 void SystaReader::process_buffer_() {
-  // lazy create aqua decoder
-  if (device_type_ == "aqua" && aqua_ == nullptr) aqua_ = new AquaDecoder(*this);
+  // Verarbeite pro loop nur wenige Frames → schneller zurück zu UART
+  size_t frames = 0;
 
   while (true) {
+    // Mindestgröße für jeden Header
     if (buf_.size() < 4) return;
 
-    while (!buf_.empty() && buf_.front()!=0xFC && buf_.front()!=0x0F) buf_.pop_front();
+    // Auf Sync-Byte vorspulen (0xFC = FC-Frame, 0x0F = Display-Frame)
+    while (!buf_.empty() && buf_.front() != SYSTA_SYNC_FC && buf_.front() != SYSTA_SYNC_DISP) {
+      buf_.pop_front();
+    }
     if (buf_.size() < 4) return;
 
     bool progressed = false;
-    if (buf_.front()==0xFC) progressed = try_parse_fc_frame_();
-    else if (buf_.front()==0x0F)      progressed = try_parse_display_frame_();
+    const uint8_t lead = buf_.front();
 
-    if (!progressed) buf_.pop_front();
+    if (lead == SYSTA_SYNC_DISP) {
+      progressed = this->try_parse_display_frame_();
+    } else { // == SYSTA_SYNC_FC
+      progressed = this->try_parse_fc_frame_();
+    }
+
+    if (!progressed) {
+      // Desync → 1 Byte verwerfen, erneut versuchen
+      buf_.pop_front();
+      continue;
+    }
+
+    // Ein gültiger Frame wurde geparst
+    frames++;
+    if (frames >= SYSTA_MAX_FRAMES_PER_LOOP) {
+      // Zeit an RX/RTOS zurückgeben (bes. wichtig auf ESP8266/soft UART)
+      #if defined(ARDUINO_ARCH_ESP8266)
+        yield(); // = delay(0)
+      #endif
+      return;
+    }
   }
 }
 
@@ -48,7 +71,9 @@ bool SystaReader::try_parse_fc_frame_() {
   if (buf_[0] != 0xFC) return false;
   const uint8_t len   = buf_[1];
   if (len < 2) {                 // plausibel machen (Payload mind. Funktionsbytes)
+    #if ESPHOME_LOG_LEVEL >= ESPHOME_LOG_LEVEL_VERBOSE
     if (log_invalid_) ESP_LOGV(TAG, "Reject FC len=%u", len);
+    #endif
     buf_.pop_front();            // 0xFC verwerfen -> neu syncen
     return true;
   }
@@ -94,9 +119,9 @@ bool SystaReader::try_parse_fc_frame_() {
     hex = to_hex_(frame);
     for (auto *s : sinks_) s->publish_frame_hex(hex);
   }
-  // (Logging optional; nicht in den RX-Taktpfad wenn's eng ist)
+  #if ESPHOME_LOG_LEVEL >= ESPHOME_LOG_LEVEL_VERBOSE
   ESP_LOGV(TAG, "FC HEX f2=%02X f3=%02X len=%u", f2, f3, len);
-
+  #endif
   // 7) Routen (nur mit gültiger CRC)
   //    Achtung: Wir haben schon konsumiert – Decoder arbeitet auf unseren
   //    kleinen, lokalen Kopien `frame`/`payload` → UART ist wieder frei.
