@@ -9,9 +9,8 @@ namespace systa_reader {
 
 static const char *const TAG = "systa_reader";
 #ifndef SYSTA_MAX_FRAMES_PER_LOOP
-#define SYSTA_MAX_FRAMES_PER_LOOP 4   // <- ggf. auf 2/8 tweaken
+#define SYSTA_MAX_FRAMES_PER_LOOP 4
 #endif
-
 #ifndef SYSTA_SYNC_FC
 #define SYSTA_SYNC_FC 0xFC
 #endif
@@ -25,12 +24,91 @@ void SystaReader::setup() {
 }
 
 void SystaReader::loop() {
-  uint8_t b;
-  while (this->available()) {
-    if (!this->read_byte(&b)) break;
-    buf_.push_back(b);
+  uint8_t frames_done = 0;
+
+  // read/parse while data available AND we haven't exceeded our per-loop budget
+  while ((this->available() || (need_total_ && cur_.size() >= need_total_)) &&
+         frames_done < kMaxFramesPerLoop) {
+
+    // 1) ensure we’re synced to a start byte
+    if (rx_state_ == RxState::SEEK) {
+      uint8_t b;
+      bool synced = false;
+      while (this->available()) {
+        if (!this->read_byte(&b)) break;
+        if (b == 0xFC || b == 0x0F) {
+          cur_.clear();
+          cur_.push_back(b);
+          need_total_ = 0;
+          rx_state_ = RxState::COLLECT;
+          synced = true;
+          break;
+        }
+      }
+      if (!synced) break;               // no sync yet → wait for more UART data
+    }
+
+    // 2) COLLECT: pull just enough to decide/complete the frame
+    if (rx_state_ == RxState::COLLECT) {
+      // if we don't know total yet, read a few header bytes to decide
+      while (this->available() && (need_total_ == 0 || cur_.size() < need_total_)) {
+        uint8_t b;
+        if (!this->read_byte(&b)) break;
+        cur_.push_back(b);
+
+        if (need_total_ == 0) {
+          const size_t expect = expect_total_if_known_(cur_);
+          if (expect == SIZE_MAX) {
+            // hard desync: drop first byte and go back to seeking
+            cur_.clear();
+            rx_state_ = RxState::SEEK;
+            need_total_ = 0;
+            break;
+          } else if (expect != 0) {
+            need_total_ = expect;  // we now know the total size
+          }
+        }
+      }
+
+      // if we still don't have a full frame, give UART time to refill
+      if (need_total_ == 0 || cur_.size() < need_total_)
+        break;
+
+      // 3) we have a whole frame in cur_ → verify & route
+      const uint8_t calc = checksum_twos_complement_(
+          std::vector<uint8_t>(cur_.begin(), cur_.end() - 1));
+      const uint8_t got = cur_.back();
+
+      if (calc != got && this->log_invalid_) {
+        ESP_LOGW(TAG, "Checksum invalid (got %02X, expected %02X)", got, calc);
+      }
+
+      const std::string hex = to_hex_(cur_);
+
+      if (cur_[0] == 0xFC) {
+        // payload for device decoders
+        std::vector<uint8_t> payload(cur_.begin() + 4, cur_.end() - 1);
+        // broadcast raw HEX (if you have sinks_)
+        for (auto *s : sinks_) s->publish_frame_hex(hex);
+        // route valid/invalid alike (your decoders can ignore if header not matching)
+        route_fc_frame_to_device_(cur_, payload, hex);
+        ESP_LOGV(TAG, "FC HEX: %s", hex.c_str());
+      } else { // 0x0F display
+        // broadcast raw ALL
+        publish_hex_all(hex);
+        // payload is 32 bytes between 0F 22 04 00 and checksum
+        std::vector<uint8_t> payload(cur_.begin() + 4, cur_.end() - 1);
+        route_display_frame_to_device_(cur_, payload, hex);
+        ESP_LOGD(TAG, "Display HEX: %s", hex.c_str());
+      }
+
+      // 4) reset for next frame (there may already be more bytes pending)
+      cur_.clear();
+      need_total_ = 0;
+      rx_state_ = RxState::SEEK;
+      frames_done++;
+    }
   }
-  if (!buf_.empty()) process_buffer_();
 }
 
 void SystaReader::process_buffer_() {
@@ -229,6 +307,36 @@ void SystaReader::ensure_decoder_ready_() {
   } else if (device_type_ == "espresso") {
     if (espresso_ == nullptr) espresso_ = new EspressoDecoder(*this);
   }
+}
+
+size_t SystaReader::expect_total_if_known_(const std::vector<uint8_t>& v) const {
+  if (v.empty()) return 0;
+
+  if (v[0] == 0xFC) {
+    // need at least 2 bytes to know length
+    if (v.size() < 2) return 0;
+    const uint8_t len = v[1];
+
+    // sanity cap to avoid nonsense blocking
+    static constexpr size_t kMaxLen = 64; // tune for your bus
+    if (len < 2 || len > kMaxLen) {
+      return SIZE_MAX;  // force resync
+    }
+    return size_t(2) + len + 1;  // FC, len, payload[len], checksum
+  }
+
+  if (v[0] == 0x0F) {
+    // need 4 bytes to decide if it's the known display frame
+    if (v.size() < 4) return 0;
+    if (v[1] == 0x22 && v[2] == 0x04 && v[3] == 0x00) {
+      return 37; // fixed size for this display signature
+    }
+    // unknown 0x0F... header → desync
+    return SIZE_MAX;
+  }
+
+  // not a sync byte
+  return SIZE_MAX;
 }
 
 } // namespace systa_reader
