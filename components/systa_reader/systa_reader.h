@@ -23,7 +23,7 @@ class SystaReader : public uart::UARTDevice, public Component {
   void set_device_type(const std::string &t) { device_type_ = t; ensure_decoder_ready_();}
 
   // lifecycle
-  void setup() override {}
+  void setup() override;
   void loop() override;
   float get_setup_priority() const override { return setup_priority::DATA; }
 
