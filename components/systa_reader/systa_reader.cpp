@@ -20,7 +20,11 @@ static const char *const TAG = "systa_reader";
 
 
 void SystaReader::setup() {
-  ensure_decoder_ready_();
+  if ((enabled_mask_ & DEV_AQUA)     && !aqua_)     aqua_     = new AquaDecoder(*this);
+  if ((enabled_mask_ & DEV_MODULA)   && !modula_)   modula_   = new ModulaDecoder(*this);
+  if ((enabled_mask_ & DEV_ESPRESSO) && !espresso_) espresso_ = new EspressoDecoder(*this);
+  // future:
+  // if ((enabled_mask_ & DEV_SOLAR) && !solar_) solar_ = new SolarDecoder(*this);
 }
 
 void SystaReader::loop() {
@@ -250,33 +254,36 @@ void SystaReader::route_fc_frame_to_device_(const std::vector<uint8_t>& frame,
                                             const std::vector<uint8_t>& payload,
                                             const std::string &hex) {
   if (frame.size() < 4 || frame[0] != 0xFC) return;
-  const uint8_t f2 = frame[2], f3 = frame[3];
-
-  if (device_type_ == "aqua") {
-    if (f2 == 0x0B && f3 == 0x01) aqua_->on_fc_frame(frame, payload, hex);
-    return;
+  const uint8_t f2 = frame[2];
+  const uint8_t f3 = frame[3];
+  // AQUA: FC .. 0B 01
+  if ((enabled_mask_ & DEV_AQUA) && f2 == 0x0B && f3 == 0x01 && aqua_) {
+    aqua_->on_fc_frame(frame, payload, hex);
   }
-  if (device_type_ == "modula") {
-    if (f2 == 0x0C && f3 == 0x01) modula_->on_fc_frame(frame, payload, hex);
-    return;
+  // MODULA: FC .. 0C 01
+  if ((enabled_mask_ & DEV_MODULA) && f2 == 0x0C && f3 == 0x01 && modula_) {
+    modula_->on_fc_frame(frame, payload, hex);
   }
-  if (device_type_ == "espresso") {
-    if (f2 == 0x0C && f3 == 0x01) espresso_->on_fc_frame(frame, payload, hex);
-    return;
+  // ESPRESSO: FC .. 0C 01  (shares signature with MODULA, both can receive)
+  if ((enabled_mask_ & DEV_ESPRESSO) && f2 == 0x0C && f3 == 0x01 && espresso_) {
+    espresso_->on_fc_frame(frame, payload, hex);
   }
+  // (future devices: add more blocks like above)
 }
 
+// Display frames (0x0F 22 04 00 … CHK)
 void SystaReader::route_display_frame_to_device_(const std::vector<uint8_t>& frame,
                                                  const std::vector<uint8_t>& payload,
                                                  const std::string &hex) {
-  // Nur an das gewählte Device durchreichen
-  if (device_type_ == "aqua") {
-    if (aqua_ == nullptr) aqua_ = new AquaDecoder(*this);
-    // AQUA: Display-Frames 0F 22 04 00
-    if (frame.size() >= 37 && frame[0] == 0x0F && frame[1] == 0x22 && frame[2] == 0x04 && frame[3] == 0x00) {
-      aqua_->on_display_frame(frame, payload, hex);
-    }
+  if (frame.size() < 4 || frame[0] != 0x0F || frame[1] != 0x22 || frame[2] != 0x04 || frame[3] != 0x00)
+    return;
+  // If only AQUA should consume display frames, keep only AQUA here.
+  if ((enabled_mask_ & DEV_AQUA) && aqua_) {
+    aqua_->on_display_frame(frame, payload, hex);
   }
+  // If MODULA/ESPRESSO should also see display frames, uncomment:
+  // if ((enabled_mask_ & DEV_MODULA) && modula_)   modula_->on_display_frame(frame, payload, hex);
+  // if ((enabled_mask_ & DEV_ESPRESSO) && espresso_) espresso_->on_display_frame(frame, payload, hex);
 }
 
 uint8_t SystaReader::checksum_twos_complement_(const std::vector<uint8_t> &v) {
@@ -292,16 +299,6 @@ std::string SystaReader::to_hex_(const std::vector<uint8_t> &buf) {
     out.push_back(digits[b & 0x0F]);
   }
   return out;
-}
-
-void SystaReader::ensure_decoder_ready_() {
-  if (device_type_ == "aqua") {
-    if (aqua_ == nullptr)   aqua_ = new AquaDecoder(*this);
-  } else if (device_type_ == "modula") {
-    if (modula_ == nullptr) modula_ = new ModulaDecoder(*this);
-  } else if (device_type_ == "espresso") {
-    if (espresso_ == nullptr) espresso_ = new EspressoDecoder(*this);
-  }
 }
 
 size_t SystaReader::expect_total_if_known_(const std::vector<uint8_t>& v) const {

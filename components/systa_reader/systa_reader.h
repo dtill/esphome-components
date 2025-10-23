@@ -17,6 +17,16 @@ class SystaReaderTextSink;  // forward
 
 class SystaReader : public uart::UARTDevice, public Component {
  public:
+  // 32-bit space for future devices (up to 32 flags)
+  static constexpr uint32_t DEV_AQUA      = (1u << 0);
+  static constexpr uint32_t DEV_MODULA    = (1u << 1);
+  static constexpr uint32_t DEV_ESPRESSO  = (1u << 2);
+  static constexpr uint32_t DEV_SOLAR     = (1u << 3);
+  // reserve more bits for future devices:
+  // static constexpr uint32_t DEV_FOO   = (1u << 4);
+  // static constexpr uint32_t DEV_BAR   = (1u << 5);
+  // ...
+
 
   // config
   void set_log_invalid(bool v) { log_invalid_ = v; }
@@ -26,6 +36,7 @@ class SystaReader : public uart::UARTDevice, public Component {
   void setup() override;
   void loop() override;
   float get_setup_priority() const override { return setup_priority::DATA; }
+  void set_enabled_mask(uint8_t m) { enabled_mask_ = m; }
 
   // raw sinks
   class HexSink { public: virtual void publish_frame_hex(const std::string &hex) = 0; virtual ~HexSink() = default; };
@@ -128,6 +139,7 @@ class SystaReader : public uart::UARTDevice, public Component {
   void publish_hex_aqua(const std::string &hex) { for (auto *s : sinks_aqua_) s->publish_frame_hex(hex); }
 
  private:
+  uint32_t enabled_mask_{0};
   enum class RxState { SEEK, COLLECT };
   RxState rx_state_{RxState::SEEK};
 
@@ -144,7 +156,6 @@ class SystaReader : public uart::UARTDevice, public Component {
   void process_buffer_();
   bool try_parse_display_frame_();
   bool try_parse_fc_frame_();
-  void ensure_decoder_ready_();
 
   // kleiner Router für FC-Frames (ruft nur das gewählte Gerät auf)
   void route_fc_frame_to_device_(const std::vector<uint8_t>& frame,
