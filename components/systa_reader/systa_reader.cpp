@@ -41,41 +41,70 @@ void SystaReader::process_buffer_() {
 }
 
 bool SystaReader::try_parse_fc_frame_() {
+  // 0) Schnell raus, wenn Header noch nicht komplett
   if (buf_.size() < 3) return false;
 
-  const uint8_t len = buf_[1];
-  const size_t total = size_t(2) + len + 1;
-  if (len < 2) { if (log_invalid_) ESP_LOGV(TAG, "Reject FC len=%u", len); return false; }
-  if (buf_.size() < total) return false;
+  // 1) Fixe Längenprüfung (Header=0xFC, len, ... , checksum)
+  if (buf_[0] != 0xFC) return false;
+  const uint8_t len   = buf_[1];
+  if (len < 2) {                 // plausibel machen (Payload mind. Funktionsbytes)
+    if (log_invalid_) ESP_LOGV(TAG, "Reject FC len=%u", len);
+    buf_.pop_front();            // 0xFC verwerfen -> neu syncen
+    return true;
+  }
 
-  std::vector<uint8_t> frame(total);
-  for (size_t i = 0; i < total; i++) frame[i] = buf_[i];
+  const size_t total = size_t(2) + len + 1;  // 2 Header + payload + checksum
+  if (buf_.size() < total) return false;     // noch nicht komplett → später nochmal
 
-  const uint8_t calc = checksum_twos_complement_(std::vector<uint8_t>(frame.begin(), frame.end() - 1));
-  const uint8_t got  = frame.back();
+  // 2) Checksumme ohne Kopien berechnen (two's complement über alles außer letztem Byte)
+  uint32_t sum = 0;
+  for (size_t i = 0; i < total - 1; i++) sum += buf_[i];
+  const uint8_t calc = static_cast<uint8_t>(0 - static_cast<int>(sum & 0xFF));
+  const uint8_t got  = buf_[total - 1];
   const bool checksum_ok = (calc == got);
+
+  // 3) Payload-View (ohne Kopie) – Indizes merken
+  const size_t payload_begin = 4;            // nach FC,len,f2,f3
+  const size_t payload_end   = total - 1;    // vor checksum
+  const size_t payload_size  = (payload_end > payload_begin) ? (payload_end - payload_begin) : 0;
+
+  // 4) HEX/Text erzeugen nur wenn nötig (nach dem Konsum), aber Filter-Routing braucht f2/f3 jetzt:
+  const uint8_t f2 = buf_[2];
+  const uint8_t f3 = buf_[3];
+
+  // 5) Bytes JETZT konsumieren, damit der UART-Puffer schnell frei wird
+  //    (Decoder bekommt gleich Views/Kopien in kleinen Vektoren)
+  std::vector<uint8_t> frame;     frame.reserve(total);
+  std::vector<uint8_t> payload;   payload.reserve(payload_size);
+
+  // Minimal-Kopie: genau EINMAL aus der deque "am Stück" rausziehen:
+  for (size_t i = 0; i < total; i++) {
+    uint8_t b = buf_.front();
+    buf_.pop_front();             // früh leeren!
+    frame.push_back(b);
+    if (i >= payload_begin && i < payload_end) payload.push_back(b);
+  }
 
   if (!checksum_ok) {
     if (log_invalid_) ESP_LOGW(TAG, "FC checksum invalid (got %02X, expected %02X)", got, calc);
-    // Frame verwerfen, aber aus dem Buffer entfernen, damit wir vorankommen
-    for (size_t i = 0; i < total; i++) buf_.pop_front();
-    return true;  // wir haben Bytes konsumiert
+    return true; // wir haben konsumiert, weiter
   }
+  std::string hex;
+  if (!sinks_.empty()) {
+    hex = to_hex_(frame);
+    for (auto *s : sinks_) s->publish_frame_hex(hex);
+  }
+  // (Logging optional; nicht in den RX-Taktpfad wenn's eng ist)
+  ESP_LOGV(TAG, "FC HEX f2=%02X f3=%02X len=%u", f2, f3, len);
 
-  const std::string hex = to_hex_(frame);
-  for (auto *s : sinks_) s->publish_frame_hex(hex);
-  ESP_LOGV(TAG, "FC HEX: %s", hex.c_str());
-
-  // Payload (falls Decoder es braucht)
-  std::vector<uint8_t> payload(frame.begin() + 4, frame.end() - 1);
-
-  // AB HIER nur noch gültige Frames routen
+  // 7) Routen (nur mit gültiger CRC)
+  //    Achtung: Wir haben schon konsumiert – Decoder arbeitet auf unseren
+  //    kleinen, lokalen Kopien `frame`/`payload` → UART ist wieder frei.
   this->route_fc_frame_to_device_(frame, payload, hex);
 
-  // konsumieren
-  for (size_t i = 0; i < total; i++) buf_.pop_front();
   return true;
 }
+
 
 bool SystaReader::try_parse_display_frame_() {
   if (buf_.size() < 4) return false;
