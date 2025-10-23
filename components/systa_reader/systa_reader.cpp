@@ -136,6 +136,29 @@ void SystaReader::route_fc_frame_to_device_(const std::vector<uint8_t>& frame,
   }
 }
 
+void SystaReader::route_display_frame_to_device_(const std::vector<uint8_t>& frame,
+                                                 const std::vector<uint8_t>& payload,
+                                                 const std::string &hex) {
+  // Nur an das gewählte Device durchreichen
+  if (device_type_ == "aqua") {
+    if (aqua_ == nullptr) aqua_ = new AquaDecoder(*this);
+    // AQUA: Display-Frames 0F 22 04 00
+    if (frame.size() >= 37 && frame[0] == 0x0F && frame[1] == 0x22 && frame[2] == 0x04 && frame[3] == 0x00) {
+      aqua_->on_display_frame(frame, payload, hex);
+    }
+  } else if (device_type_ == "modula") {
+    if (modula_ == nullptr) modula_ = new ModulaDecoder(*this);
+    if (frame.size() >= 37 && frame[0] == 0x0F && frame[1] == 0x22 && frame[2] == 0x04 && frame[3] == 0x00) {
+      modula_->on_display_frame(frame, payload, hex);
+    }
+  } else if (device_type_ == "espresso") {
+    if (espresso_ == nullptr) espresso_ = new EspressoDecoder(*this);
+    if (frame.size() >= 37 && frame[0] == 0x0F && frame[1] == 0x22 && frame[2] == 0x04 && frame[3] == 0x00) {
+      espresso_->on_display_frame(frame, payload, hex);
+    }
+  }
+}
+
 uint8_t SystaReader::checksum_twos_complement_(const std::vector<uint8_t> &v) {
   uint32_t sum=0; for (auto b: v) sum+=b;
   return static_cast<uint8_t>(0 - static_cast<int>(sum & 0xFF));
