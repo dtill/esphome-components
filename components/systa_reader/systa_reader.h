@@ -30,7 +30,7 @@ class SystaReader : public uart::UARTDevice, public Component {
 
   // config
   void set_log_invalid(bool v) { log_invalid_ = v; }
-  void set_device_type(const std::string &t) { device_type_ = t; ensure_decoder_ready_();}
+  void set_device_type(const std::string &t) { device_type_ = t;}
 
   // lifecycle
   void setup() override;
