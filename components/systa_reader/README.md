@@ -1,10 +1,10 @@
 # Systa-Reader ESPHome Component
-An esphome component for the SystaReaDER-V2-Bus-Adapter.
+An esphome component for the SystaReader-v2 Bus-Adapter.
 
 
 Supported Features: read Paradigma SystaBus messages
 
-Tested hardware: SystaSolar/Aqua/Modulo II/Espresso.
+Tested Paradigma Systa-hardware: SystaSolar/Aqua/Modulo II/Espresso.
 
 [Example YAML](../../example_systa_reader.yaml) configuration:
 ```yaml
