@@ -10,7 +10,7 @@ namespace systa_reader {
 static const char *const TAG = "systa_reader";
 
 void SystaReader::setup() {
-  ensure_decoder_ready_();  /
+  ensure_decoder_ready_();
 }
 
 void SystaReader::loop() {
