@@ -34,76 +34,144 @@ sensor:
     systa_reader_id: sysbus_aqua
     kind: aqua_tsa
     name: "AQUA TSA (Kollektor)"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
   - platform: systa_reader
     systa_reader_id: sysbus_aqua
     kind: aqua_tse
     name: "AQUA TSE (Eintritt)"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
   - platform: systa_reader
     systa_reader_id: sysbus_aqua
     kind: aqua_twu
     name: "AQUA TWU (unten)"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
   - platform: systa_reader
     systa_reader_id: sysbus_aqua
     kind: aqua_tw2
     name: "AQUA TW2 (oben)"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
   - platform: systa_reader
     systa_reader_id: sysbus_aqua
     kind: aqua_sol
     name: "AQUA Solare Leistung"
+    unit_of_measurement: "kW"
+    accuracy_decimals: 0
+    device_class: energy
+    state_class: measurement
   - platform: systa_reader
     systa_reader_id: sysbus_aqua
     kind: aqua_tag
     name: "AQUA Tagesgewinn"
+    unit_of_measurement: "kWh"
+    accuracy_decimals: 0
+    device_class: energy
+    state_class: total_increasing
   - platform: systa_reader
     systa_reader_id: sysbus_aqua
     kind: aqua_gesamt
     name: "AQUA Solargewinn gesamt"
+    unit_of_measurement: "kWh"
+    accuracy_decimals: 0
+    device_class: energy
+    state_class: total
   - platform: systa_reader
     systa_reader_id: sysbus_aqua
     kind: aqua_status_code
     name: "AQUA Status Code"
+    accuracy_decimals: 0
 
     # MODULA sensors:
   - platform: systa_reader
     systa_reader_id: sysbus_modula
     kind: modula_two
     name: "MODULA TWO"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
   - platform: systa_reader
     systa_reader_id: sysbus_modula
     kind: modula_tbv
     name: "MODULA TBV"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
   - platform: systa_reader
     systa_reader_id: sysbus_modula
     kind: modula_tbr
     name: "MODULA TBR"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
   - platform: systa_reader
     systa_reader_id: sysbus_modula
     kind: modula_tv
     name: "MODULA TV"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
   - platform: systa_reader
     systa_reader_id: sysbus_modula
     kind: modula_tv2
     name: "MODULA TV2"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
   - platform: systa_reader
     systa_reader_id: sysbus_modula
     kind: modula_tr
     name: "MODULA TR"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
   - platform: systa_reader
     systa_reader_id: sysbus_modula
     kind: modula_tr2
     name: "MODULA TR2"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
   - platform: systa_reader
     systa_reader_id: sysbus_modula
     kind: modula_tpo
     name: "MODULA TPO"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
   - platform: systa_reader
     systa_reader_id: sysbus_modula
     kind: modula_tpu
     name: "MODULA TPU"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
   - platform: systa_reader
     systa_reader_id: sysbus_modula
     kind: modula_tzr
     name: "MODULA TZR"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
 
   # ESPRESSO sensors
   - platform: systa_reader
