@@ -146,16 +146,6 @@ void SystaReader::route_display_frame_to_device_(const std::vector<uint8_t>& fra
     if (frame.size() >= 37 && frame[0] == 0x0F && frame[1] == 0x22 && frame[2] == 0x04 && frame[3] == 0x00) {
       aqua_->on_display_frame(frame, payload, hex);
     }
-  } else if (device_type_ == "modula") {
-    if (modula_ == nullptr) modula_ = new ModulaDecoder(*this);
-    if (frame.size() >= 37 && frame[0] == 0x0F && frame[1] == 0x22 && frame[2] == 0x04 && frame[3] == 0x00) {
-      modula_->on_display_frame(frame, payload, hex);
-    }
-  } else if (device_type_ == "espresso") {
-    if (espresso_ == nullptr) espresso_ = new EspressoDecoder(*this);
-    if (frame.size() >= 37 && frame[0] == 0x0F && frame[1] == 0x22 && frame[2] == 0x04 && frame[3] == 0x00) {
-      espresso_->on_display_frame(frame, payload, hex);
-    }
   }
 }
 
