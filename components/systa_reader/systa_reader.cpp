@@ -65,6 +65,7 @@ void SystaReader::loop() {
             need_total_ = expect;  // we now know the total size
           }
         }
+      }
       // if we still don't have a full frame, give UART time to refill
       if (need_total_ == 0 || cur_.size() < need_total_)
         break;
@@ -72,11 +73,9 @@ void SystaReader::loop() {
       const uint8_t calc = checksum_twos_complement_(
           std::vector<uint8_t>(cur_.begin(), cur_.end() - 1));
       const uint8_t got = cur_.back();
-      if (calc != got && this->log_invalid_) {
-        #if ESPHOME_LOG_LEVEL >= ESPHOME_LOG_LEVEL_VERBOSE
-        ESP_LOGV(TAG, "Checksum invalid (got %02X, expected %02X)", got, calc);
-        #endif
-      }
+      #if ESPHOME_LOG_LEVEL >= ESPHOME_LOG_LEVEL_VERBOSE
+        if (calc != got && this->log_invalid_) { ESP_LOGV(TAG, "Checksum invalid (got %02X, expected %02X)", got, calc); }
+      #if ESPHOME_LOG_LEVEL >= ESPHOME_LOG_LEVEL_VERBOSE
       const std::string hex = to_hex_(cur_);
       if (cur_[0] == 0xFC) {
         // payload for device decoders
@@ -86,7 +85,7 @@ void SystaReader::loop() {
         // route valid/invalid alike (your decoders can ignore if header not matching)
         route_fc_frame_to_device_(cur_, payload, hex);
         #if ESPHOME_LOG_LEVEL >= ESPHOME_LOG_LEVEL_VERBOSE
-        ESP_LOGV(TAG, "FC HEX: %s", hex.c_str());
+            ESP_LOGV(TAG, "FC HEX: %s", hex.c_str());
         #endif
       } else { // 0x0F display
         // broadcast raw ALL
@@ -95,7 +94,7 @@ void SystaReader::loop() {
         std::vector<uint8_t> payload(cur_.begin() + 4, cur_.end() - 1);
         route_display_frame_to_device_(cur_, payload, hex);
         #if ESPHOME_LOG_LEVEL >= ESPHOME_LOG_LEVEL_VERBOSE
-        ESP_LOGV(TAG, "Display HEX: %s", hex.c_str());
+            ESP_LOGV(TAG, "Display HEX: %s", hex.c_str());
         #endif
       }
       // 4) reset for next frame (there may already be more bytes pending)
