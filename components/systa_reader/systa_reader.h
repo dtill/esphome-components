@@ -20,7 +20,7 @@ class SystaReader : public uart::UARTDevice, public Component {
 
   // config
   void set_log_invalid(bool v) { log_invalid_ = v; }
-  void set_device_type(const std::string &t) { device_type_ = t; }
+  void set_device_type(const std::string &t) { device_type_ = t; ensure_decoder_ready_();}
 
   // lifecycle
   void setup() override {}
@@ -132,6 +132,7 @@ class SystaReader : public uart::UARTDevice, public Component {
   void process_buffer_();
   bool try_parse_display_frame_();
   bool try_parse_fc_frame_();
+  void ensure_decoder_ready_();
 
   // kleiner Router für FC-Frames (ruft nur das gewählte Gerät auf)
   void route_fc_frame_to_device_(const std::vector<uint8_t>& frame,

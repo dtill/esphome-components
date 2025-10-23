@@ -9,6 +9,10 @@ namespace systa_reader {
 
 static const char *const TAG = "systa_reader";
 
+void SystaReader::setup() {
+  ensure_decoder_ready_();  /
+}
+
 void SystaReader::loop() {
   uint8_t b;
   while (this->available()) {
@@ -29,42 +33,11 @@ void SystaReader::process_buffer_() {
     if (buf_.size() < 4) return;
 
     bool progressed = false;
-    if (buf_.front()==0x0F)      progressed = try_parse_display_frame_();
-    else if (buf_.front()==0xFC) progressed = try_parse_fc_frame_();
+    if (buf_.front()==0xFC) progressed = try_parse_fc_frame_();
+    else if (buf_.front()==0x0F)      progressed = try_parse_display_frame_();
 
     if (!progressed) buf_.pop_front();
   }
-}
-
-bool SystaReader::try_parse_display_frame_() {
-  if (buf_.size() < 4) return false;
-  if (!(buf_[0]==0x0F && buf_[1]==0x22 && buf_[2]==0x04 && buf_[3]==0x00)) return false;
-
-  const size_t total = 37;  // 0F 22 04 00 + 32 + 1
-  if (buf_.size() < total) return false;
-
-  std::vector<uint8_t> frame(total);
-  for (size_t i=0;i<total;i++) frame[i]=buf_[i];
-
-  const uint8_t calc = checksum_twos_complement_(std::vector<uint8_t>(frame.begin(), frame.end()-1));
-  const uint8_t got  = frame.back();
-  if (calc != got) {
-    if (log_invalid_) ESP_LOGW(TAG, "Display checksum invalid (got %02X, expected %02X)", got, calc);
-    // trotzdem Bytes verwerfen, um nicht zu hängen
-    for (size_t i=0;i<total;i++) buf_.pop_front();
-    return true;
-  }
-
-  const std::string hex = to_hex_(frame);
-  // ALL-Sink (HEX) beibehalten, falls gewünscht
-  publish_hex_all(hex);
-
-  // Payload 0..31 (ASCII) an Gerätemodul geben
-  std::vector<uint8_t> payload(frame.begin()+4, frame.begin()+36);
-  this->route_display_frame_to_device_(frame, payload, hex);
-
-  for (size_t i=0;i<total;i++) buf_.pop_front();
-  return true;
 }
 
 bool SystaReader::try_parse_fc_frame_() {
@@ -104,34 +77,53 @@ bool SystaReader::try_parse_fc_frame_() {
   return true;
 }
 
+bool SystaReader::try_parse_display_frame_() {
+  if (buf_.size() < 4) return false;
+  if (!(buf_[0]==0x0F && buf_[1]==0x22 && buf_[2]==0x04 && buf_[3]==0x00)) return false;
+
+  const size_t total = 37;  // 0F 22 04 00 + 32 + 1
+  if (buf_.size() < total) return false;
+
+  std::vector<uint8_t> frame(total);
+  for (size_t i=0;i<total;i++) frame[i]=buf_[i];
+
+  const uint8_t calc = checksum_twos_complement_(std::vector<uint8_t>(frame.begin(), frame.end()-1));
+  const uint8_t got  = frame.back();
+  if (calc != got) {
+    if (log_invalid_) ESP_LOGW(TAG, "Display checksum invalid (got %02X, expected %02X)", got, calc);
+    // trotzdem Bytes verwerfen, um nicht zu hängen
+    for (size_t i=0;i<total;i++) buf_.pop_front();
+    return true;
+  }
+
+  const std::string hex = to_hex_(frame);
+  // ALL-Sink (HEX) beibehalten, falls gewünscht
+  publish_hex_all(hex);
+
+  // Payload 0..31 (ASCII) an Gerätemodul geben
+  std::vector<uint8_t> payload(frame.begin()+4, frame.begin()+36);
+  this->route_display_frame_to_device_(frame, payload, hex);
+
+  for (size_t i=0;i<total;i++) buf_.pop_front();
+  return true;
+}
+
 void SystaReader::route_fc_frame_to_device_(const std::vector<uint8_t>& frame,
                                             const std::vector<uint8_t>& payload,
                                             const std::string &hex) {
   if (frame.size() < 4 || frame[0] != 0xFC) return;
-  const uint8_t f2 = frame[2];
-  const uint8_t f3 = frame[3];
+  const uint8_t f2 = frame[2], f3 = frame[3];
+
   if (device_type_ == "aqua") {
-    // AQUA: FC .. 0B 01
-    if (f2 == 0x0B && f3 == 0x01) {
-      if (aqua_ == nullptr) aqua_ = new AquaDecoder(*this);
-      aqua_->on_fc_frame(frame, payload, hex);
-    }
+    if (f2 == 0x0B && f3 == 0x01) aqua_->on_fc_frame(frame, payload, hex);
     return;
   }
   if (device_type_ == "modula") {
-    // MODULA: FC .. 0C 01
-    if (f2 == 0x0C && f3 == 0x01) {
-      if (modula_ == nullptr) modula_ = new ModulaDecoder(*this);
-      modula_->on_fc_frame(frame, payload, hex);
-    }
+    if (f2 == 0x0C && f3 == 0x01) modula_->on_fc_frame(frame, payload, hex);
     return;
   }
   if (device_type_ == "espresso") {
-    // ESPRESSO: FC .. 0C 01
-    if (f2 == 0x0C && f3 == 0x01) {
-      if (espresso_ == nullptr) espresso_ = new EspressoDecoder(*this);
-      espresso_->on_fc_frame(frame, payload, hex);
-    }
+    if (f2 == 0x0C && f3 == 0x01) espresso_->on_fc_frame(frame, payload, hex);
     return;
   }
 }
@@ -162,6 +154,16 @@ std::string SystaReader::to_hex_(const std::vector<uint8_t> &buf) {
     out.push_back(digits[b & 0x0F]);
   }
   return out;
+}
+
+void SystaReader::ensure_decoder_ready_() {
+  if (device_type_ == "aqua") {
+    if (aqua_ == nullptr)   aqua_ = new AquaDecoder(*this);
+  } else if (device_type_ == "modula") {
+    if (modula_ == nullptr) modula_ = new ModulaDecoder(*this);
+  } else if (device_type_ == "espresso") {
+    if (espresso_ == nullptr) espresso_ = new EspressoDecoder(*this);
+  }
 }
 
 } // namespace systa_reader
