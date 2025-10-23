@@ -75,7 +75,7 @@ void SystaReader::loop() {
       const uint8_t got = cur_.back();
       #if ESPHOME_LOG_LEVEL >= ESPHOME_LOG_LEVEL_VERBOSE
         if (calc != got && this->log_invalid_) { ESP_LOGV(TAG, "Checksum invalid (got %02X, expected %02X)", got, calc); }
-      #if ESPHOME_LOG_LEVEL >= ESPHOME_LOG_LEVEL_VERBOSE
+      #endif
       const std::string hex = to_hex_(cur_);
       if (cur_[0] == 0xFC) {
         // payload for device decoders
