@@ -44,8 +44,8 @@ void EspressoDecoder::on_fc_frame(const std::vector<uint8_t>& frame,
   r_.pub_espresso_two(two);
   r_.pub_espresso_fa_tv(fa_tv);
   r_.pub_espresso_fa_tr(fa_tr);
-  r_.pub_espresso_ti(hk1_ti);
-  r_.pub_espresso_ti2(hk2_ti2);
+  r_.pub_espresso_hk1_ti(hk1_ti);
+  r_.pub_espresso_hk2_ti2(hk2_ti2);
   r_.pub_espresso_hk1_tv (hk1_tv);
   r_.pub_espresso_hk2_tv2(hk2_tv2);
   r_.pub_espresso_hk1_tr(hk1_tr);
