@@ -59,7 +59,7 @@ void ModulaDecoder::on_fc_frame(const std::vector<uint8_t>& frame,
   r_.pub_modula_tpu(tpu);
   r_.pub_modula_tzr(tzr);
 
-  ESP_LOGI(TAG_MODULA, "TA=%.1f TWO=%.1f TV=%.1f TV2=%.1f TR=%.1f TR2=%.1f TPO=%.1f TPU=%.1f TZR=%.1f TBV=%.1f TBR=%.1f",
+  ESP_LOGI(TAG_MODULA, "MODULA: TA=%.1f TWO=%.1f TV=%.1f TV2=%.1f TR=%.1f TR2=%.1f TPO=%.1f TPU=%.1f TZR=%.1f TBV=%.1f TBR=%.1f",
            ta, two, tv, tv2, tr, tr2, tpo, tpu, tzr, tbv, tbr);
 }
 
