@@ -175,20 +175,119 @@ sensor:
     device_class: temperature
     state_class: measurement
 
-  # ESPRESSO sensors
+    # ESPRESSO sensors
   - platform: systa_reader
     systa_reader_id: systa_bus_01
-    kind: espresso_t01
-    name: "Espresso T01"
+    kind: espresso_ta
+    name: "ESPRESSO TA"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
   - platform: systa_reader
     systa_reader_id: systa_bus_01
-    kind: espresso_t02
-    name: "Espresso T02"
-  # … bis espresso_t12 analog …
+    kind: espresso_two
+    name: "ESPRESSO TWO"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
   - platform: systa_reader
     systa_reader_id: systa_bus_01
-    kind: espresso_pk
-    name: "Espresso PK"
+    kind: espresso_fa_tv
+    name: "ESPRESSO FA TV"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: espresso_fa_tr
+    name: "ESPRESSO FA TR"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: espresso_hk1_ti
+    name: "ESPRESSO HK1 TI"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: espresso_hk2_ti2
+    name: "ESPRESSO HK2 TI2"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: espresso_hk1_tv
+    name: "ESPRESSO HK1 TV"
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    device_class: power_factor
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: espresso_hk2_tv2
+    name: "ESPRESSO HK2 TV2"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: espresso_hk1_tr
+    name: "ESPRESSO HK1 TR"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: espresso_hk2_tr2
+    name: "ESPRESSO HK2 TR2"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: espresso_tpo
+    name: "ESPRESSO TPO"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: espresso_tpu
+    name: "ESPRESSO TPU"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: espresso_tzr
+    name: "ESPRESSO TZR"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: espresso_t12
+    name: "ESPRESSO T12"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
 
 text_sensor:
   # AQUA text sensors:
