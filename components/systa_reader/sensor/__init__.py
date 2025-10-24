@@ -10,12 +10,12 @@ KIND = cv.one_of(
     # AQUA
     "aqua_tsa","aqua_tse","aqua_twu","aqua_tw2","aqua_sol","aqua_tag","aqua_gesamt","aqua_status_code",
     # MODULA
-    "modula_two","modula_tbv","modula_tbr","modula_tv","modula_tv2",
+    "modula_ta","modula_two","modula_tbv","modula_tbr","modula_tv","modula_tv2",
     "modula_tr","modula_tr2","modula_tpo","modula_tpu","modula_tzr",
     # ESPRESSO
-    "espresso_t01","espresso_t02","espresso_t03","espresso_t04","espresso_t05",
-    "espresso_pk","espresso_t06","espresso_t07","espresso_t08","espresso_t09",
-    "espresso_t10","espresso_t11","espresso_t12",
+    "espresso_ta","espresso_two","espresso_fa_tv","espresso_fa_tr","espresso_ti","espresso_ti2",
+    "espresso_hk1_tv","espresso_hk2_tv2","espresso_hk1_tr","espresso_hk2_tr2","espresso_tpo",
+    "espresso_tpu","espresso_tzr","espresso_t12",
     lower=True
 )
 
@@ -36,6 +36,7 @@ async def to_code(config):
     elif k == "aqua_tag":           cg.add(parent.set_aqua_tag_sensor(s))
     elif k == "aqua_gesamt":        cg.add(parent.set_aqua_ges_sensor(s))
     elif k == "aqua_status_code":   cg.add(parent.set_aqua_status_code_sensor(s))
+    elif k == "modula_ta":          cg.add(parent.set_modula_ta_sensor(s))
     elif k == "modula_two":         cg.add(parent.set_modula_two_sensor(s))
     elif k == "modula_tbv":         cg.add(parent.set_modula_tbv_sensor(s))
     elif k == "modula_tbr":         cg.add(parent.set_modula_tbr_sensor(s))
@@ -46,16 +47,17 @@ async def to_code(config):
     elif k == "modula_tpo":         cg.add(parent.set_modula_tpo_sensor(s))
     elif k == "modula_tpu":         cg.add(parent.set_modula_tpu_sensor(s))
     elif k == "modula_tzr":         cg.add(parent.set_modula_tzr_sensor(s))
-    elif k == "espresso_t01":       cg.add(parent.set_espresso_t01_sensor(s))
-    elif k == "espresso_t02":       cg.add(parent.set_espresso_t02_sensor(s))
-    elif k == "espresso_t03":       cg.add(parent.set_espresso_t03_sensor(s))
-    elif k == "espresso_t04":       cg.add(parent.set_espresso_t04_sensor(s))
-    elif k == "espresso_t05":       cg.add(parent.set_espresso_t05_sensor(s))
-    elif k == "espresso_pk":        cg.add(parent.set_espresso_pk_sensor(s))
-    elif k == "espresso_t06":       cg.add(parent.set_espresso_t06_sensor(s))
-    elif k == "espresso_t07":       cg.add(parent.set_espresso_t07_sensor(s))
-    elif k == "espresso_t08":       cg.add(parent.set_espresso_t08_sensor(s))
-    elif k == "espresso_t09":       cg.add(parent.set_espresso_t09_sensor(s))
-    elif k == "espresso_t10":       cg.add(parent.set_espresso_t10_sensor(s))
-    elif k == "espresso_t11":       cg.add(parent.set_espresso_t11_sensor(s))
+    elif k == "espresso_ta":        cg.add(parent.set_espresso_ta_sensor(s))
+    elif k == "espresso_two":       cg.add(parent.set_espresso_two_sensor(s))
+    elif k == "espresso_fa_tv":     cg.add(parent.set_espresso_fa_tv_sensor(s))
+    elif k == "espresso_fa_tr":     cg.add(parent.set_espresso_fa_tr_sensor(s))
+    elif k == "espresso_ti":        cg.add(parent.set_pub_espresso_ti_sensor(s))
+    elif k == "espresso_ti2":       cg.add(parent.set_pub_espresso_ti2_sensor(s))
+    elif k == "espresso_hk1_tv":    cg.add(parent.set_espresso_hk1_tv_sensor(s))
+    elif k == "espresso_hk2_tv2":   cg.add(parent.set_espresso_hk2_tv2_sensor(s))
+    elif k == "espresso_hk1_tr":    cg.add(parent.set_espresso_hk1_tr_sensor(s))
+    elif k == "espresso_hk2_tr2":   cg.add(parent.set_espresso_hk2_tr2_sensor(s))
+    elif k == "espresso_tpo":       cg.add(parent.set_espresso_tpo_sensor(s))
+    elif k == "espresso_tpu":       cg.add(parent.set_espresso_tpu_sensor(s))
+    elif k == "espresso_tzr":       cg.add(parent.set_espresso_tzr_sensor(s))
     elif k == "espresso_t12":       cg.add(parent.set_espresso_t12_sensor(s))

@@ -35,6 +35,7 @@ void ModulaDecoder::on_fc_frame(const std::vector<uint8_t>& frame,
   // Werte (wie in deiner Vorlage) – Indizes sind **am Gesamtframe** (Big-Endian)
   auto u16 = [&](int i){ return read_u16_be(frame, i); };
 
+  float ta = u16(8) / 10.0f;
   float two = u16(10) / 10.0f;
   float tbv = u16(12) / 10.0f;
   float tbr = u16(14) / 10.0f;
@@ -46,6 +47,7 @@ void ModulaDecoder::on_fc_frame(const std::vector<uint8_t>& frame,
   float tpu = u16(30) / 10.0f;
   float tzr = u16(32) / 10.0f;
 
+  r_.pub_modula_ta(ta);
   r_.pub_modula_two(two);
   r_.pub_modula_tbv(tbv);
   r_.pub_modula_tbr(tbr);
@@ -57,8 +59,8 @@ void ModulaDecoder::on_fc_frame(const std::vector<uint8_t>& frame,
   r_.pub_modula_tpu(tpu);
   r_.pub_modula_tzr(tzr);
 
-  ESP_LOGI(TAG_MODULA, "TWO=%.1f TV=%.1f TV2=%.1f TR=%.1f TR2=%.1f TPO=%.1f TPU=%.1f TZR=%.1f TBV=%.1f TBR=%.1f",
-           two, tv, tv2, tr, tr2, tpo, tpu, tzr, tbv, tbr);
+  ESP_LOGI(TAG_MODULA, "TA=%.1f TWO=%.1f TV=%.1f TV2=%.1f TR=%.1f TR2=%.1f TPO=%.1f TPU=%.1f TZR=%.1f TBV=%.1f TBR=%.1f",
+           ta, two, tv, tv2, tr, tr2, tpo, tpu, tzr, tbv, tbr);
 }
 
 } // namespace systa_reader

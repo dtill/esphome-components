@@ -76,6 +76,7 @@ class SystaReader : public uart::UARTDevice, public Component {
   inline void pub_aqua_timestamp(const std::string &s)   { if (aqua_timestamp_)   aqua_timestamp_->publish_state(s); }
 
   // MODULA setters
+  void set_modula_ta_sensor(sensor::Sensor *s) { modula_ta_ = s; }
   void set_modula_two_sensor(sensor::Sensor *s) { modula_two_ = s; }
   void set_modula_tbv_sensor(sensor::Sensor *s) { modula_tbv_ = s; }
   void set_modula_tbr_sensor(sensor::Sensor *s) { modula_tbr_ = s; }
@@ -88,6 +89,7 @@ class SystaReader : public uart::UARTDevice, public Component {
   void set_modula_tzr_sensor(sensor::Sensor *s) { modula_tzr_ = s; }
   void set_modula_timestamp_text_sensor(text_sensor::TextSensor *t) { modula_timestamp_ = t; }
   // MODULA publish helpers
+  inline void pub_modula_ta(float v) { if (modula_ta_) modula_ta_->publish_state(v); }
   inline void pub_modula_two(float v) { if (modula_two_) modula_two_->publish_state(v); }
   inline void pub_modula_tbv(float v) { if (modula_tbv_) modula_tbv_->publish_state(v); }
   inline void pub_modula_tbr(float v) { if (modula_tbr_) modula_tbr_->publish_state(v); }
@@ -101,33 +103,35 @@ class SystaReader : public uart::UARTDevice, public Component {
   inline void pub_modula_timestamp(const std::string &s) { if (modula_timestamp_) modula_timestamp_->publish_state(s); }
 
   // ESPRESSO Setter
-  void set_espresso_t01_sensor(sensor::Sensor *s) { espresso_t01_ = s; }
-  void set_espresso_t02_sensor(sensor::Sensor *s) { espresso_t02_ = s; }
-  void set_espresso_t03_sensor(sensor::Sensor *s) { espresso_t03_ = s; }
-  void set_espresso_t04_sensor(sensor::Sensor *s) { espresso_t04_ = s; }
-  void set_espresso_t05_sensor(sensor::Sensor *s) { espresso_t05_ = s; }
-  void set_espresso_pk_sensor (sensor::Sensor *s) { espresso_pk_  = s; }
-  void set_espresso_t06_sensor(sensor::Sensor *s) { espresso_t06_ = s; }
-  void set_espresso_t07_sensor(sensor::Sensor *s) { espresso_t07_ = s; }
-  void set_espresso_t08_sensor(sensor::Sensor *s) { espresso_t08_ = s; }
-  void set_espresso_t09_sensor(sensor::Sensor *s) { espresso_t09_ = s; }
-  void set_espresso_t10_sensor(sensor::Sensor *s) { espresso_t10_ = s; }
-  void set_espresso_t11_sensor(sensor::Sensor *s) { espresso_t11_ = s; }
+  void set_espresso_ta_sensor(sensor::Sensor *s) { espresso_ta_ = s; }
+  void set_espresso_two_sensor(sensor::Sensor *s) { espresso_two_ = s; }
+  void set_espresso_fa_tv_sensor(sensor::Sensor *s) { espresso_fa_tv_ = s; }
+  void set_espresso_fa_tr_sensor(sensor::Sensor *s) { espresso_fa_tr_ = s; }
+  void set_espresso_ti_sensor(sensor::Sensor *s) { espresso_ti_ = s; }
+  void set_espresso_ti2_sensor(sensor::Sensor *s) { espresso_ti2_ = s; }
+  void set_espresso_hk1_tv_sensor (sensor::Sensor *s) { espresso_hk1_tv_  = s; }
+  void set_espresso_hk2_tv2_sensor(sensor::Sensor *s) { espresso_hk2_tv2_ = s; }
+  void set_espresso_hk1_tr_sensor(sensor::Sensor *s) { espresso_hk1_tr_ = s; }
+  void set_espresso_hk2_tr2_sensor(sensor::Sensor *s) { espresso_hk2_tr2_ = s; }
+  void set_espresso_tpo_sensor(sensor::Sensor *s) { espresso_tpo_ = s; }
+  void set_espresso_tpu_sensor(sensor::Sensor *s) { espresso_tpu_ = s; }
+  void set_espresso_tzr_sensor(sensor::Sensor *s) { espresso_tzr_ = s; }
   void set_espresso_t12_sensor(sensor::Sensor *s) { espresso_t12_ = s; }
   void set_espresso_timestamp_text_sensor(text_sensor::TextSensor *t) { espresso_timestamp_ = t; }
   // ESPRESSO: private Publisher
-  inline void pub_espresso_t01(float v){ if (espresso_t01_) espresso_t01_->publish_state(v); }
-  inline void pub_espresso_t02(float v){ if (espresso_t02_) espresso_t02_->publish_state(v); }
-  inline void pub_espresso_t03(float v){ if (espresso_t03_) espresso_t03_->publish_state(v); }
-  inline void pub_espresso_t04(float v){ if (espresso_t04_) espresso_t04_->publish_state(v); }
-  inline void pub_espresso_t05(float v){ if (espresso_t05_) espresso_t05_->publish_state(v); }
-  inline void pub_espresso_pk (float v){ if (espresso_pk_)  espresso_pk_->publish_state(v); }
-  inline void pub_espresso_t06(float v){ if (espresso_t06_) espresso_t06_->publish_state(v); }
-  inline void pub_espresso_t07(float v){ if (espresso_t07_) espresso_t07_->publish_state(v); }
-  inline void pub_espresso_t08(float v){ if (espresso_t08_) espresso_t08_->publish_state(v); }
-  inline void pub_espresso_t09(float v){ if (espresso_t09_) espresso_t09_->publish_state(v); }
-  inline void pub_espresso_t10(float v){ if (espresso_t10_) espresso_t10_->publish_state(v); }
-  inline void pub_espresso_t11(float v){ if (espresso_t11_) espresso_t11_->publish_state(v); }
+  inline void pub_espresso_ta(float v){ if (espresso_ta_) espresso_ta_->publish_state(v); }
+  inline void pub_espresso_two(float v){ if (espresso_two_) espresso_two_->publish_state(v); }
+  inline void pub_espresso_fa_tv(float v){ if (espresso_fa_tv_) espresso_fa_tv_->publish_state(v); }
+  inline void pub_espresso_fa_tr(float v){ if (espresso_fa_tr_) espresso_fa_tr_->publish_state(v); }
+  inline void pub_espresso_ti(float v){ if (espresso_ti_) espresso_ti_->publish_state(v); }
+  inline void pub_espresso_ti2(float v){ if (espresso_ti2_) espresso_ti2_->publish_state(v); }
+  inline void pub_espresso_hk1_tv (float v){ if (espresso_hk1_tv_)  espresso_hk1_tv_->publish_state(v); }
+  inline void pub_espresso_hk2_tv2(float v){ if (espresso_hk2_tv2_) espresso_hk2_tv2_->publish_state(v); }
+  inline void pub_espresso_hk1_tr(float v){ if (espresso_hk1_tr_) espresso_hk1_tr_->publish_state(v); }
+  inline void pub_espresso_hk2_tr2(float v){ if (espresso_hk2_tr2_) espresso_hk2_tr2_->publish_state(v); }
+  inline void pub_espresso_tpo(float v){ if (espresso_tpo_) espresso_tpo_->publish_state(v); }
+  inline void pub_espresso_tpu(float v){ if (espresso_tpu_) espresso_tpu_->publish_state(v); }
+  inline void pub_espresso_tzr(float v){ if (espresso_tzr_) espresso_tzr_->publish_state(v); }
   inline void pub_espresso_t12(float v){ if (espresso_t12_) espresso_t12_->publish_state(v); }
   inline void pub_espresso_timestamp(const std::string &s){ if (espresso_timestamp_) espresso_timestamp_->publish_state(s); }
 
@@ -194,6 +198,7 @@ class SystaReader : public uart::UARTDevice, public Component {
   // decoder instances
   ModulaDecoder *modula_{nullptr};
   // MODULA sensor pointers
+  sensor::Sensor *modula_ta_{nullptr};
   sensor::Sensor *modula_two_{nullptr};
   sensor::Sensor *modula_tbv_{nullptr};
   sensor::Sensor *modula_tbr_{nullptr};
@@ -209,18 +214,19 @@ class SystaReader : public uart::UARTDevice, public Component {
   // decoder instances
   EspressoDecoder *espresso_{nullptr};
   // ESPRESSO sensor pointers
-  sensor::Sensor *espresso_t01_{nullptr};
-  sensor::Sensor *espresso_t02_{nullptr};
-  sensor::Sensor *espresso_t03_{nullptr};
-  sensor::Sensor *espresso_t04_{nullptr};
-  sensor::Sensor *espresso_t05_{nullptr};
-  sensor::Sensor *espresso_pk_{nullptr};
-  sensor::Sensor *espresso_t06_{nullptr};
-  sensor::Sensor *espresso_t07_{nullptr};
-  sensor::Sensor *espresso_t08_{nullptr};
-  sensor::Sensor *espresso_t09_{nullptr};
-  sensor::Sensor *espresso_t10_{nullptr};
-  sensor::Sensor *espresso_t11_{nullptr};
+  sensor::Sensor *espresso_ta_{nullptr};
+  sensor::Sensor *espresso_two_{nullptr};
+  sensor::Sensor *espresso_fa_tv_{nullptr};
+  sensor::Sensor *espresso_fa_tr_{nullptr};
+  sensor::Sensor *espresso_ti_{nullptr};
+  sensor::Sensor *espresso_ti2_{nullptr};
+  sensor::Sensor *espresso_hk1_tv_{nullptr};
+  sensor::Sensor *espresso_hk2_tv2_{nullptr};
+  sensor::Sensor *espresso_hk1_tr_{nullptr};
+  sensor::Sensor *espresso_hk2_tr2_{nullptr};
+  sensor::Sensor *espresso_tpo_{nullptr};
+  sensor::Sensor *espresso_tpu_{nullptr};
+  sensor::Sensor *espresso_tzr_{nullptr};
   sensor::Sensor *espresso_t12_{nullptr};
   text_sensor::TextSensor *espresso_timestamp_{nullptr};
 };
