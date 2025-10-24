@@ -60,8 +60,8 @@ void EspressoDecoder::on_fc_frame(const std::vector<uint8_t>& frame,
   r_.pub_espresso_hk1_phk(hk1_phk);
   r_.pub_espresso_hk2_phk2(hk2_phk2);
 
-  ESP_LOGI(TAG_ESP, "ESPRESSO: %s | TA=%.1f TWO=%.1f FA TV=%.1f FA TR=%.1f HK1 TI=%.1f HK2 TI2=%.1f HK1 TV=%.1f HK2 TV2=%.1f HK1 TR=%.1f HK2 TR2=%.1f TPO=%.1f TPU=%.1f TZR=%.1f PK=%.0f HK1 PHK=%.0f HK2 PHK2=%.0f",
-           ta, two,fa_tv,fa_tr,hk1_ti,hk2_ti2,hk1_tv,hk2_tv2,hk1_tr,hk2_tr2,tpo,tpu,tzr,pk,hk1_phk,hk2_phk2);
+  ESP_LOGI(TAG_ESP, "ESPRESSO: TA=%.1f TWO=%.1f FA TV=%.1f FA TR=%.1f HK1 TI=%.1f HK2 TI2=%.1f HK1 TV=%.1f HK2 TV2=%.1f HK1 TR=%.1f HK2 TR2=%.1f TPO=%.1f TPU=%.1f TZR=%.1f PK=%.0f HK1 PHK=%.0f HK2 PHK2=%.0f",
+           ta,two,fa_tv,fa_tr,hk1_ti,hk2_ti2,hk1_tv,hk2_tv2,hk1_tr,hk2_tr2,tpo,tpu,tzr,pk,hk1_phk,hk2_phk2);
 }
 
 }  // namespace systa_reader
