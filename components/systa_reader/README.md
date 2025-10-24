@@ -96,6 +96,14 @@ sensor:
     # MODULA sensors:
   - platform: systa_reader
     systa_reader_id: systa_bus_01
+    kind: modula_ta
+    name: "MODULA TA"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
     kind: modula_two
     name: "MODULA TWO"
     unit_of_measurement: "°C"
