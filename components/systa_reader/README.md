@@ -1,10 +1,11 @@
 # Systa-Reader ESPHome Component
-An esphome component for the SystaReader-v2 Bus-Adapter.
 
+An esphome component for the DIY "Systa-BUS-Reader" Bus-Adapter, 
+based and inspired by this [ringwelt.de](https://ringwelt.de/homeautomation/heizungsanlage/einfuehrung.html)-blog
 
-Supported Features: read Paradigma SystaBus messages
+Supported Features: read and interpret Paradigma SystaBus messages
 
-Tested Paradigma Systa-hardware: SystaSolar/Aqua/Modulo II/Espresso.
+Tested Paradigma Systa-hardware: SystaSolar/Aqua/Modulo II/Expresso/SystaComfort I.
 
 [Example YAML](../../example_systa_reader.yaml) configuration:
 ```yaml

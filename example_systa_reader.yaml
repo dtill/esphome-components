@@ -1,3 +1,6 @@
+# for updates and code examples + more systa devices supported please check
+# https://github.com/dtill/esphome-components/tree/main/components/systa_reader
+
 external_components:
   - source:
       type: git
