@@ -117,7 +117,7 @@ class SystaReader : public uart::UARTDevice, public Component {
   void set_espresso_tpu_sensor(sensor::Sensor *s) { espresso_tpu_ = s; }
   void set_espresso_tzr_sensor(sensor::Sensor *s) { espresso_tzr_ = s; }
   void set_espresso_pk_sensor(sensor::Sensor *s) { espresso_pk_ = s; }
-  void set_espresso_hk1_phk_sensor(sensor::Sensor *s) { espresso_hk2_phk_ = s; }
+  void set_espresso_hk1_phk_sensor(sensor::Sensor *s) { espresso_hk1_phk_ = s; }
   void set_espresso_hk2_phk2_sensor(sensor::Sensor *s) { espresso_hk2_phk2_ = s; }
   void set_espresso_timestamp_text_sensor(text_sensor::TextSensor *t) { espresso_timestamp_ = t; }
   // ESPRESSO: private Publisher
