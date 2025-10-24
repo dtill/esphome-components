@@ -29,8 +29,8 @@ void EspressoDecoder::on_fc_frame(const std::vector<uint8_t>& frame,
   float two = u16(10) / 10.0f;
   float fa_tv = u16(12) / 10.0f;
   float fa_tr = u16(14) / 10.0f;
-  float ti = u16(16) / 10.0f;
-  float ti2 = u16(18) / 10.0f;
+  float hk1_ti = u16(16) / 10.0f;
+  float hk2_ti2 = u16(18) / 10.0f;
   float hk1_tv  = u16(20) / 10.0f;
   float hk2_tv2 = u16(22) / 10.0f;
   float hk1_tr = u16(24) / 10.0f;
@@ -44,8 +44,8 @@ void EspressoDecoder::on_fc_frame(const std::vector<uint8_t>& frame,
   r_.pub_espresso_two(two);
   r_.pub_espresso_fa_tv(fa_tv);
   r_.pub_espresso_fa_tr(fa_tr);
-  r_.pub_espresso_ti(ti);
-  r_.pub_espresso_ti2(ti2);
+  r_.pub_espresso_ti(hk1_ti);
+  r_.pub_espresso_ti2(hk2_ti2);
   r_.pub_espresso_hk1_tv (hk1_tv);
   r_.pub_espresso_hk2_tv2(hk2_tv2);
   r_.pub_espresso_hk1_tr(hk1_tr);
@@ -56,7 +56,7 @@ void EspressoDecoder::on_fc_frame(const std::vector<uint8_t>& frame,
   r_.pub_espresso_t12(t12);
 
   ESP_LOGI(TAG_ESP, "ESPRESSO: %s | TA=%.1f TWO=%.1f FA TV=%.1f FA TR=%.1f HK1 TI=%.1f HK2 TI2=%.1f HK1 TV=%.1f HK2 TV2=%.1f HK1 TR=%.1f HK2 TR2=%.1f TPO=%.1f TPU=%.1f TZR=%.1f T12=%.1f",
-           ta, two,fa_tv,fa_tr,ti,ti2,hk1_tv,hk2_tv2,hk1_tr,hk2_tr2,tpo,tpu,tzr,t12);
+           ta, two,fa_tv,fa_tr,hk1_ti,hk2_ti2,hk1_tv,hk2_tv2,hk1_tr,hk2_tr2,tpo,tpu,tzr,t12);
 }
 
 }  // namespace systa_reader

@@ -107,8 +107,8 @@ class SystaReader : public uart::UARTDevice, public Component {
   void set_espresso_two_sensor(sensor::Sensor *s) { espresso_two_ = s; }
   void set_espresso_fa_tv_sensor(sensor::Sensor *s) { espresso_fa_tv_ = s; }
   void set_espresso_fa_tr_sensor(sensor::Sensor *s) { espresso_fa_tr_ = s; }
-  void set_espresso_ti_sensor(sensor::Sensor *s) { espresso_ti_ = s; }
-  void set_espresso_ti2_sensor(sensor::Sensor *s) { espresso_ti2_ = s; }
+  void set_espresso_hk1_ti_sensor(sensor::Sensor *s) { espresso_hk1_ti_ = s; }
+  void set_espresso_hk2_ti2_sensor(sensor::Sensor *s) { espresso_hk2_ti2_ = s; }
   void set_espresso_hk1_tv_sensor (sensor::Sensor *s) { espresso_hk1_tv_  = s; }
   void set_espresso_hk2_tv2_sensor(sensor::Sensor *s) { espresso_hk2_tv2_ = s; }
   void set_espresso_hk1_tr_sensor(sensor::Sensor *s) { espresso_hk1_tr_ = s; }
@@ -123,8 +123,8 @@ class SystaReader : public uart::UARTDevice, public Component {
   inline void pub_espresso_two(float v){ if (espresso_two_) espresso_two_->publish_state(v); }
   inline void pub_espresso_fa_tv(float v){ if (espresso_fa_tv_) espresso_fa_tv_->publish_state(v); }
   inline void pub_espresso_fa_tr(float v){ if (espresso_fa_tr_) espresso_fa_tr_->publish_state(v); }
-  inline void pub_espresso_ti(float v){ if (espresso_ti_) espresso_ti_->publish_state(v); }
-  inline void pub_espresso_ti2(float v){ if (espresso_ti2_) espresso_ti2_->publish_state(v); }
+  inline void pub_espresso_hk1_ti(float v){ if (espresso_hk1_ti_) espresso_hk1_ti_->publish_state(v); }
+  inline void pub_espresso_hk2_ti2(float v){ if (espresso_hk2_ti2_) espresso_hk2_ti2_->publish_state(v); }
   inline void pub_espresso_hk1_tv (float v){ if (espresso_hk1_tv_)  espresso_hk1_tv_->publish_state(v); }
   inline void pub_espresso_hk2_tv2(float v){ if (espresso_hk2_tv2_) espresso_hk2_tv2_->publish_state(v); }
   inline void pub_espresso_hk1_tr(float v){ if (espresso_hk1_tr_) espresso_hk1_tr_->publish_state(v); }
@@ -218,8 +218,8 @@ class SystaReader : public uart::UARTDevice, public Component {
   sensor::Sensor *espresso_two_{nullptr};
   sensor::Sensor *espresso_fa_tv_{nullptr};
   sensor::Sensor *espresso_fa_tr_{nullptr};
-  sensor::Sensor *espresso_ti_{nullptr};
-  sensor::Sensor *espresso_ti2_{nullptr};
+  sensor::Sensor *espresso_hk1_ti_{nullptr};
+  sensor::Sensor *espresso_hk2_ti2_{nullptr};
   sensor::Sensor *espresso_hk1_tv_{nullptr};
   sensor::Sensor *espresso_hk2_tv2_{nullptr};
   sensor::Sensor *espresso_hk1_tr_{nullptr};
