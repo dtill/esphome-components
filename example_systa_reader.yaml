@@ -226,9 +226,9 @@ sensor:
     systa_reader_id: systa_bus_01
     kind: espresso_hk1_tv
     name: "ESPRESSO HK1 TV"
-    unit_of_measurement: "%"
-    accuracy_decimals: 0
-    device_class: power_factor
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
     state_class: measurement
   - platform: systa_reader
     systa_reader_id: systa_bus_01
@@ -280,11 +280,27 @@ sensor:
     state_class: measurement
   - platform: systa_reader
     systa_reader_id: systa_bus_01
-    kind: espresso_t12
-    name: "ESPRESSO T12"
-    unit_of_measurement: "°C"
-    accuracy_decimals: 1
-    device_class: temperature
+    kind: espresso_pk
+    name: "ESPRESSO PK"
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    device_class: power_factor
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: espresso_hk1_phk
+    name: "ESPRESSO HK1 PHK"
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    device_class: power_factor
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: espresso_hk2_phk2
+    name: "ESPRESSO HK2 PHK"
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    device_class: power_factor
     state_class: measurement
 
 text_sensor:

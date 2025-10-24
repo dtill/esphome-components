@@ -116,7 +116,9 @@ class SystaReader : public uart::UARTDevice, public Component {
   void set_espresso_tpo_sensor(sensor::Sensor *s) { espresso_tpo_ = s; }
   void set_espresso_tpu_sensor(sensor::Sensor *s) { espresso_tpu_ = s; }
   void set_espresso_tzr_sensor(sensor::Sensor *s) { espresso_tzr_ = s; }
-  void set_espresso_t12_sensor(sensor::Sensor *s) { espresso_t12_ = s; }
+  void set_espresso_pk_sensor(sensor::Sensor *s) { espresso_pk_ = s; }
+  void set_espresso_hk1_phk_sensor(sensor::Sensor *s) { espresso_hk2_phk_ = s; }
+  void set_espresso_hk2_phk2_sensor(sensor::Sensor *s) { espresso_hk2_phk2_ = s; }
   void set_espresso_timestamp_text_sensor(text_sensor::TextSensor *t) { espresso_timestamp_ = t; }
   // ESPRESSO: private Publisher
   inline void pub_espresso_ta(float v){ if (espresso_ta_) espresso_ta_->publish_state(v); }
@@ -132,7 +134,9 @@ class SystaReader : public uart::UARTDevice, public Component {
   inline void pub_espresso_tpo(float v){ if (espresso_tpo_) espresso_tpo_->publish_state(v); }
   inline void pub_espresso_tpu(float v){ if (espresso_tpu_) espresso_tpu_->publish_state(v); }
   inline void pub_espresso_tzr(float v){ if (espresso_tzr_) espresso_tzr_->publish_state(v); }
-  inline void pub_espresso_t12(float v){ if (espresso_t12_) espresso_t12_->publish_state(v); }
+  inline void pub_espresso_pk(float v){ if (espresso_pk_) espresso_pk_->publish_state(v); }
+  inline void pub_espresso_hk1_phk(float v){ if (espresso_hk1_phk_) espresso_hk1_phk_->publish_state(v); }
+  inline void pub_espresso_hk2_phk2(float v){ if (espresso_hk2_phk2_) espresso_hk2_phk2_->publish_state(v); }
   inline void pub_espresso_timestamp(const std::string &s){ if (espresso_timestamp_) espresso_timestamp_->publish_state(s); }
 
 
@@ -227,7 +231,9 @@ class SystaReader : public uart::UARTDevice, public Component {
   sensor::Sensor *espresso_tpo_{nullptr};
   sensor::Sensor *espresso_tpu_{nullptr};
   sensor::Sensor *espresso_tzr_{nullptr};
-  sensor::Sensor *espresso_t12_{nullptr};
+  sensor::Sensor *espresso_pk_{nullptr};
+  sensor::Sensor *espresso_hk1_phk_{nullptr};
+  sensor::Sensor *espresso_hk2_phk2_{nullptr};
   text_sensor::TextSensor *espresso_timestamp_{nullptr};
 };
 

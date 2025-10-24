@@ -14,6 +14,7 @@ void EspressoDecoder::on_fc_frame(const std::vector<uint8_t>& frame,
     return;
 
   auto u16 = [&](int i){ return read_u16_be(frame, i); };
+  auto u8  = [&](int i){ return read_u8(frame, i); };
 
   // Zeitstempel
   uint8_t day    = bcd2dec(payload[0]);
@@ -38,7 +39,9 @@ void EspressoDecoder::on_fc_frame(const std::vector<uint8_t>& frame,
   float tpo = u16(28) / 10.0f;
   float tpu = u16(30) / 10.0f;
   float tzr = u16(32) / 10.0f;
-  float t12 = u16(34) / 10.0f;
+  float pk = u8(33) / 1.0f;
+  float hk1_phk = u8(33) / 1.0f;
+  float hk2_phk2 = u8(33) / 1.0f;
 
   r_.pub_espresso_ta(ta);
   r_.pub_espresso_two(two);
@@ -53,10 +56,12 @@ void EspressoDecoder::on_fc_frame(const std::vector<uint8_t>& frame,
   r_.pub_espresso_tpo(tpo);
   r_.pub_espresso_tpu(tpu);
   r_.pub_espresso_tzr(tzr);
-  r_.pub_espresso_t12(t12);
+  r_.pub_espresso_pk(pk);
+  r_.pub_espresso_hk1_phk(hk1_phk);
+  r_.pub_espresso_hk2_phk2(hk2_phk2);
 
-  ESP_LOGI(TAG_ESP, "ESPRESSO: %s | TA=%.1f TWO=%.1f FA TV=%.1f FA TR=%.1f HK1 TI=%.1f HK2 TI2=%.1f HK1 TV=%.1f HK2 TV2=%.1f HK1 TR=%.1f HK2 TR2=%.1f TPO=%.1f TPU=%.1f TZR=%.1f T12=%.1f",
-           ta, two,fa_tv,fa_tr,hk1_ti,hk2_ti2,hk1_tv,hk2_tv2,hk1_tr,hk2_tr2,tpo,tpu,tzr,t12);
+  ESP_LOGI(TAG_ESP, "ESPRESSO: %s | TA=%.1f TWO=%.1f FA TV=%.1f FA TR=%.1f HK1 TI=%.1f HK2 TI2=%.1f HK1 TV=%.1f HK2 TV2=%.1f HK1 TR=%.1f HK2 TR2=%.1f TPO=%.1f TPU=%.1f TZR=%.1f PK=%.0f HK1 PHK=%.0f HK2 PHK2=%.0f",
+           ta, two,fa_tv,fa_tr,hk1_ti,hk2_ti2,hk1_tv,hk2_tv2,hk1_tr,hk2_tr2,tpo,tpu,tzr,pk,hk1_phk,hk2_phk2);
 }
 
 }  // namespace systa_reader
