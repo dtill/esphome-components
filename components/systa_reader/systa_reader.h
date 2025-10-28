@@ -103,7 +103,7 @@ class SystaReader : public uart::UARTDevice, public Component {
   inline void pub_aqua_ii_dfl(float v)           { if (aqua_ii_dfl_) aqua_ii_dfl_->publish_state(v); }
   inline void pub_aqua_ii_pwm(float v)           { if (aqua_ii_pwm_) aqua_ii_pwm_->publish_state(v); }
   inline void pub_aqua_ii_tag(float v)           { if (aqua_ii_tag_) aqua_ii_tag_->publish_state(v); }
-  inline void pub_aqua_ii_gesamt(float v)           { if (aqua_ii_gesamt_) aqua_ii_gesamt_->publish_state(v); }
+  inline void pub_aqua_ii_ges(float v)           { if (aqua_ii_ges_) aqua_ii_ges_->publish_state(v); }
   inline void pub_aqua_ii_status_code(float v)   { if (aqua_ii_status_code_) aqua_ii_status_code_->publish_state(v); }
   inline void pub_aqua_ii_status_text(const std::string &s) { if (aqua_ii_status_text_) aqua_ii_status_text_->publish_state(s); }
   inline void pub_aqua_ii_timestamp(const std::string &s)   { if (aqua_ii_timestamp_)   aqua_ii_timestamp_->publish_state(s); }
