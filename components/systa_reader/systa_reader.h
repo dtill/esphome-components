@@ -11,6 +11,7 @@ namespace esphome {
 namespace systa_reader {
 
 class AquaDecoder;
+class Aqua2Decoder;
 class ModulaDecoder;
 class EspressoDecoder;
 class SystaReaderTextSink;  // forward
@@ -19,9 +20,11 @@ class SystaReader : public uart::UARTDevice, public Component {
  public:
   // 32-bit space for future devices (up to 32 flags)
   static constexpr uint32_t DEV_AQUA      = (1u << 0);
-  static constexpr uint32_t DEV_MODULA    = (1u << 1);
-  static constexpr uint32_t DEV_ESPRESSO  = (1u << 2);
-  static constexpr uint32_t DEV_SOLAR     = (1u << 3);
+  static constexpr uint32_t DEV_AQUA_II   = (1u << 1);
+  static constexpr uint32_t DEV_MODULA    = (1u << 2);
+  static constexpr uint32_t DEV_ESPRESSO  = (1u << 3);
+  static constexpr uint32_t DEV_SOLAR     = (1u << 4);
+
   // reserve more bits for future devices:
   // static constexpr uint32_t DEV_FOO   = (1u << 4);
   // static constexpr uint32_t DEV_BAR   = (1u << 5);
@@ -41,9 +44,11 @@ class SystaReader : public uart::UARTDevice, public Component {
   class HexSink { public: virtual void publish_frame_hex(const std::string &hex) = 0; virtual ~HexSink() = default; };
   void add_sink_all(HexSink *s)  { sinks_all_.push_back(s); }
   void add_sink_aqua(HexSink *s) { sinks_aqua_.push_back(s); }
+  void add_sink_aqua_ii(HexSink *s) { sinks_aqua_ii_.push_back(s); }
 
   friend class ModulaDecoder;
   friend class AquaDecoder;
+  friend class Aqua2Decoder;
   friend class EspressoDecoder;
 
   // setters (werden von Subplatforms aufgerufen)
@@ -74,6 +79,34 @@ class SystaReader : public uart::UARTDevice, public Component {
   inline void pub_aqua_status_code(float v)   { if (aqua_status_code_) aqua_status_code_->publish_state(v); }
   inline void pub_aqua_status_text(const std::string &s) { if (aqua_status_text_) aqua_status_text_->publish_state(s); }
   inline void pub_aqua_timestamp(const std::string &s)   { if (aqua_timestamp_)   aqua_timestamp_->publish_state(s); }
+
+// AQUA_II numeric
+  void set_aqua_ii_tsa_sensor(sensor::Sensor *s)         { aqua_ii_tsa_ = s; }
+  void set_aqua_ii_twu_sensor(sensor::Sensor *s)         { aqua_ii_twu_ = s; }
+  void set_aqua_ii_tsv_sensor(sensor::Sensor *s)         { aqua_ii_tsv_ = s; }
+  void set_aqua_ii_tam_sensor(sensor::Sensor *s)         { aqua_ii_tam_ = s; }
+  void set_aqua_ii_tse_sensor(sensor::Sensor *s)         { aqua_ii_tse_ = s; }
+  void set_aqua_ii_dfl_sensor(sensor::Sensor *s)         { aqua_ii_dfl_ = s; }
+  void set_aqua_ii_pwm_sensor(sensor::Sensor *s)         { aqua_ii_pwm_ = s; }
+  void set_aqua_ii_tag_sensor(sensor::Sensor *s)         { aqua_ii_tag_ = s; }
+  void set_aqua_ii_gesamt_sensor(sensor::Sensor *s)         { aqua_ii_gesamt_ = s; }
+  void set_aqua_ii_status_code_sensor(sensor::Sensor *s) { aqua_ii_status_code_ = s; }
+  // AQUA text
+  void set_aqua_ii_status_text_sensor(text_sensor::TextSensor *t) { aqua_ii_status_text_ = t; }
+  void set_aqua_ii_timestamp_text_sensor(text_sensor::TextSensor *t) { aqua_ii_timestamp_ = t; }
+  // publish helpers
+  inline void pub_aqua_ii_tsa(float v)           { if (aqua_ii_tsa_) aqua_ii_tsa_->publish_state(v); }
+  inline void pub_aqua_ii_twu(float v)           { if (aqua_ii_twu_) aqua_ii_twu_->publish_state(v); }
+  inline void pub_aqua_ii_tsv(float v)           { if (aqua_ii_tsv_) aqua_ii_tsv_->publish_state(v); }
+  inline void pub_aqua_ii_tam(float v)           { if (aqua_ii_tam_) aqua_ii_tam_->publish_state(v); }
+  inline void pub_aqua_ii_tse(float v)           { if (aqua_ii_tse_) aqua_ii_tse_->publish_state(v); }
+  inline void pub_aqua_ii_dfl(float v)           { if (aqua_ii_dfl_) aqua_ii_dfl_->publish_state(v); }
+  inline void pub_aqua_ii_pwm(float v)           { if (aqua_ii_pwm_) aqua_ii_pwm_->publish_state(v); }
+  inline void pub_aqua_ii_tag(float v)           { if (aqua_ii_tag_) aqua_ii_tag_->publish_state(v); }
+  inline void pub_aqua_ii_gesamt(float v)           { if (aqua_ii_gesamt_) aqua_ii_gesamt_->publish_state(v); }
+  inline void pub_aqua_ii_status_code(float v)   { if (aqua_ii_status_code_) aqua_ii_status_code_->publish_state(v); }
+  inline void pub_aqua_ii_status_text(const std::string &s) { if (aqua_ii_status_text_) aqua_ii_status_text_->publish_state(s); }
+  inline void pub_aqua_ii_timestamp(const std::string &s)   { if (aqua_ii_timestamp_)   aqua_ii_timestamp_->publish_state(s); }
 
   // MODULA setters
   void set_modula_ta_sensor(sensor::Sensor *s) { modula_ta_ = s; }
@@ -144,6 +177,7 @@ class SystaReader : public uart::UARTDevice, public Component {
   bool log_invalid() const { return log_invalid_; }
   void publish_hex_all(const std::string &hex)  { for (auto *s : sinks_all_)  s->publish_frame_hex(hex); }
   void publish_hex_aqua(const std::string &hex) { for (auto *s : sinks_aqua_) s->publish_frame_hex(hex); }
+  void publish_hex_aqua_ii(const std::string &hex) { for (auto *s : sinks_aqua_ii_) s->publish_frame_hex(hex); }
 
  private:
   uint32_t enabled_mask_{0};
@@ -181,6 +215,7 @@ class SystaReader : public uart::UARTDevice, public Component {
   std::deque<uint8_t> buf_;
   std::vector<HexSink*> sinks_all_;
   std::vector<HexSink*> sinks_aqua_;
+  std::vector<HexSink*> sinks_aqua_ii_;
   std::vector<SystaReaderTextSink *> sinks_{};
   bool log_invalid_{true};
 
@@ -198,6 +233,22 @@ class SystaReader : public uart::UARTDevice, public Component {
   text_sensor::TextSensor *aqua_status_text_{nullptr};
   text_sensor::TextSensor *aqua_timestamp_{nullptr};
   text_sensor::TextSensor *aqua_display_text_{nullptr};
+
+  // decoder instances
+  Aqua2Decoder *aqua_ii_{nullptr};
+  // AQUA sensors
+  sensor::Sensor *aqua_ii_tsa_{nullptr};
+  sensor::Sensor *aqua_ii_twu_{nullptr};
+  sensor::Sensor *aqua_ii_tsv_{nullptr};
+  sensor::Sensor *aqua_ii_tam_{nullptr};
+  sensor::Sensor *aqua_ii_tse_{nullptr};
+  sensor::Sensor *aqua_ii_dfl_{nullptr};
+  sensor::Sensor *aqua_ii_pwm_{nullptr};
+  sensor::Sensor *aqua_ii_tag_{nullptr};
+  sensor::Sensor *aqua_ii_ges_{nullptr};
+  sensor::Sensor *aqua_ii_status_code_{nullptr};
+  text_sensor::TextSensor *aqua_ii_status_text_{nullptr};
+  text_sensor::TextSensor *aqua_ii_timestamp_{nullptr};
 
   // decoder instances
   ModulaDecoder *modula_{nullptr};

@@ -9,6 +9,9 @@ Tested Paradigma Systa-hardware: SystaSolar/Aqua/Modulo II/Expresso/SystaComfort
 
 [Example YAML](../../example_systa_reader.yaml) configuration:
 ```yaml
+# for updates and code examples + more systa devices supported please check
+# https://github.com/dtill/esphome-components/tree/main/components/systa_reader
+
 external_components:
   - source:
       type: git
@@ -28,7 +31,7 @@ uart:
 systa_reader:                             # can be multiple systa_reader but only one per uart.
   - id: systa_bus_01
     uart_id: uart_bus
-    systa_device: [aqua, modula, espresso]  # call one or more devices [aqua,modula,espresso]
+    systa_device: [aqua, modula, espresso]  # call one or more devices [aqua, aqua_ii, modula, espresso]
     log_invalid: true                     # logs invalid frames for debugging purpose
 
 sensor:
@@ -92,6 +95,84 @@ sensor:
     systa_reader_id: systa_bus_01
     kind: aqua_status_code
     name: "AQUA Status Code"
+    accuracy_decimals: 0
+
+    # AQUA-II sensors:
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: aqua_ii_tsa
+    name: "AQUA-II TSA1 (Kollektor)"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: aqua_ii_twu
+    name: "AQUA-II TWU (Speicher Unten)"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: aqua_ii_tsv
+    name: "AQUA-II TSV (Solarvorlauf)"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: aqua_ii_tam
+    name: "AQUA-II TAM (Außen)"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: aqua_ii_tse
+    name: "AQUA-II TSE (Solarrücklauf)"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: aqua_ii_dfl
+    name: "AQUA-II Durchfluss"
+    unit_of_measurement: "l/min"
+    accuracy_decimals: 1
+    device_class: volume_flow_rate
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: aqua_ii_pwm
+    name: "AQUA-II PWM (Pumpe)"
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    device_class: power_factor
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: aqua_ii_tag
+    name: "AQUA-II Tagesgewinn"
+    unit_of_measurement: "kWh"
+    accuracy_decimals: 0
+    device_class: energy
+    state_class: total_increasing
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: aqua_ii_gesamt
+    name: "AQUA-II Solargewinn gesamt"
+    unit_of_measurement: "kWh"
+    accuracy_decimals: 0
+    device_class: energy
+    state_class: total
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: aqua_ii_status_code
+    name: "AQUA-II Status Code"
     accuracy_decimals: 0
 
     # MODULA sensors:
@@ -184,7 +265,7 @@ sensor:
     device_class: temperature
     state_class: measurement
 
-    # ESPRESSO sensors
+  # ESPRESSO sensors
   - platform: systa_reader
     systa_reader_id: systa_bus_01
     kind: espresso_ta
@@ -289,7 +370,7 @@ sensor:
     accuracy_decimals: 1
     device_class: temperature
     state_class: measurement
-   - platform: systa_reader
+  - platform: systa_reader
     systa_reader_id: systa_bus_01
     kind: espresso_pk
     name: "ESPRESSO PK"
@@ -331,6 +412,18 @@ text_sensor:
     mode: field
     kind: aqua_display_text
     name: "AQUA Displaytext"
+
+  # AQUA-II text sensors:
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    mode: field
+    kind: aqua_ii_status_text
+    name: "AQUA-II Status Text"
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    mode: field
+    kind: aqua_ii_timestamp
+    name: "AQUA-II Zeitstempel"
 
   # MODULA text sensors:
   - platform: systa_reader

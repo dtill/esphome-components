@@ -1,5 +1,6 @@
 #include "systa_reader.h"
 #include "aqua.h"
+#include "aqua_ii.h"
 #include "modula.h"
 #include "espresso.h"
 #include "esphome/core/log.h"
@@ -21,6 +22,7 @@ static const char *const TAG = "systa_reader";
 
 void SystaReader::setup() {
   if ((enabled_mask_ & DEV_AQUA)     && !aqua_)     aqua_     = new AquaDecoder(*this);
+  if ((enabled_mask_ & DEV_AQUA_II)  && !aqua_ii_)  aqua_ii_  = new Aqua2Decoder(*this);
   if ((enabled_mask_ & DEV_MODULA)   && !modula_)   modula_   = new ModulaDecoder(*this);
   if ((enabled_mask_ & DEV_ESPRESSO) && !espresso_) espresso_ = new EspressoDecoder(*this);
   // future:
@@ -259,6 +261,10 @@ void SystaReader::route_fc_frame_to_device_(const std::vector<uint8_t>& frame,
   // AQUA: FC .. 0B 01
   if ((enabled_mask_ & DEV_AQUA) && f2 == 0x0B && f3 == 0x01 && aqua_) {
     aqua_->on_fc_frame(frame, payload, hex);
+  }
+  // AQUA_II: FC .. 24 01
+  if ((enabled_mask_ & DEV_AQUA_II) && f2 == 0x24 && f3 == 0x01 && aqua_) {
+    aqua_ii_->on_fc_frame(frame, payload, hex);
   }
   // MODULA: FC .. 0C 01
   if ((enabled_mask_ & DEV_MODULA) && f2 == 0x0C && f3 == 0x01 && modula_) {
