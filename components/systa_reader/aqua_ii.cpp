@@ -85,16 +85,16 @@ void Aqua2Decoder::on_fc_frame(const std::vector<uint8_t> &frame,
   uint32_t gesamt  = read_u32_le(payload, 35);
 
   // Publizieren
-  r_.pub_sensor("aqua_ii_tsa", tsa);
-  r_.pub_sensor("aqua_ii_twu", tw);
-  r_.pub_sensor("aqua_ii_tsv", tsv);
-  r_.pub_sensor("aqua_ii_tam", tam);
-  r_.pub_sensor("aqua_ii_tse", tse);
-  r_.pub_sensor("aqua_ii_dfl", dfl);
-  r_.pub_sensor("aqua_ii_pwm", pwm);
-  r_.pub_sensor("aqua_ii_tag", tag_erg);
-  r_.pub_sensor("aqua_ii_gesamt", gesamt);
-  r_.pub_sensor("aqua_ii_status_code", status);
+  r_.pub_aqua_ii_tsa(tsa);
+  r_.pub_aqua_ii_twu(tw);
+  r_.pub_aqua_ii_tsv(tsv);
+  r_.pub_aqua_ii_tam(tam);
+  r_.pub_aqua_ii_tse(tse);
+  r_.pub_aqua_ii_dfl(dfl);
+  r_.pub_aqua_ii_pwm(pwm);
+  r_.pub_aqua_ii_tag(tag_erg);
+  r_.pub_aqua_ii_ges(gesamt);
+  r_.pub_aqua_ii_status_coder("aqua_ii_status_code", status);
 
   if (const char *t = status_text(status)) {
     r_.pub_aqua_status_text(t);
