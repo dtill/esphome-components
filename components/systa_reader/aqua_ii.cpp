@@ -94,7 +94,7 @@ void Aqua2Decoder::on_fc_frame(const std::vector<uint8_t> &frame,
   r_.pub_aqua_ii_pwm(pwm);
   r_.pub_aqua_ii_tag(tag_erg);
   r_.pub_aqua_ii_ges(gesamt);
-  r_.pub_aqua_ii_status_code("aqua_ii_status_code", status);
+  r_.pub_aqua_ii_status_code(status);
 
   if (const char *t = status_text(status)) {
     r_.pub_aqua_status_text(t);
