@@ -39,9 +39,9 @@ void EspressoDecoder::on_fc_frame(const std::vector<uint8_t>& frame,
   float tpo = u16(28) / 10.0f;
   float tpu = u16(30) / 10.0f;
   float tzr = u16(32) / 10.0f;
-  float pk = u8(33) / 1.0f;
-  float hk1_phk = u8(33) / 1.0f;
-  float hk2_phk2 = u8(33) / 1.0f;
+  float pk = u8(34) / 1.0f;
+  float hk1_phk = u8(35) / 1.0f;
+  float hk2_phk2 = u8(36) / 1.0f;
 
   r_.pub_espresso_ta(ta);
   r_.pub_espresso_two(two);
