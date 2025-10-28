@@ -12,15 +12,16 @@ systa_ns = cg.esphome_ns.namespace("systa_reader")
 SystaReader = systa_ns.class_("SystaReader", uart.UARTDevice, cg.Component)
 
 # ----- devices (list)
-SYSTA_DEVICE = cv.one_of("aqua", "modula", "espresso", "solar", lower=True)
+SYSTA_DEVICE = cv.one_of("aqua", "aqua_ii", "modula", "espresso", "solar", lower=True)
 SYSTA_DEVICES_LIST = cv.All(cv.ensure_list(SYSTA_DEVICE), cv.Length(min=1))
 
 # bit flags (room to grow—switch to 64-bit in C++ if you like)
 DEV_FLAGS = {
     "aqua":     1 << 0,
-    "modula":   1 << 1,
-    "espresso": 1 << 2,
-    "solar":    1 << 3,
+    "aqua_ii":  1 << 1,
+    "modula":   1 << 2,
+    "espresso": 1 << 3,
+    "solar":    1 << 4,
 }
 
 CONF_UART_ID = "uart_id"
