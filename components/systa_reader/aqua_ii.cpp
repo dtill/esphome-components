@@ -24,7 +24,7 @@ static inline uint32_t read_u32_le(const std::vector<uint8_t> &data, int pos) {
          ((uint32_t)data[pos + 3] << 24);
 }
 
-const char *AquaDecoder::status_text(uint8_t raw) {
+const char *Aqua2Decoder::status_text(uint8_t raw) {
   switch (raw) {
     case 0:  return "Kein Fehler";
     case 1:  return "Durchfluss im Solarkreis blockiert oder Pumpe defekt";
