@@ -86,7 +86,7 @@ void Aqua2Decoder::on_fc_frame(const std::vector<uint8_t> &frame,
   uint16_t tag_erg = read_u16_le(payload, 31);
   uint32_t gesamt  = read_u32_le(payload, 35);
 
-  ESP_LOGD(TAG_AQUA-II, "P[2]=%04X P[4]=%04X P[6]=%04X P[8]=%04X P[12]=%04X P[14]=%04X",
+  ESP_LOGD(TAG_AQUA_II, "P[2]=%04X P[4]=%04X P[6]=%04X P[8]=%04X P[12]=%04X P[14]=%04X",
          read_u16_le(payload,2), read_u16_le(payload,4), read_u16_le(payload,6),
          read_u16_le(payload,8), read_u16_le(payload,12), read_u16_le(payload,14));
 
@@ -114,7 +114,7 @@ void Aqua2Decoder::on_fc_frame(const std::vector<uint8_t> &frame,
   snprintf(ts, sizeof(ts), "%02u.%02u.%02u %02u:%02u", d, mo, y, h, m);
   r_.pub_aqua_timestamp(ts);
 
-  ESP_LOGI(TAG_AQUA-II,
+  ESP_LOGI(TAG_AQUA_II,
            "AQUA-II: TSA=%.1f TW=%.1f TSV=%.1f TAM=%.1f TSE=%.1f DFL=%.1f PWM=%u TAG=%u GES=%u Status=%02X",
            tsa, tw, tsv, tam, tse, dfl, pwm, tag_erg, gesamt, status);
 }
