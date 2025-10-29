@@ -32,23 +32,6 @@ CONF_TEST_DATA = "test_data"
 
 HEX_RE = re.compile(r"^[0-9A-Fa-f]+$")
 
-CONFIG_SCHEMA = cv.Schema({
-    cv.GenerateID(): cv.declare_id(SystaReader),
-    cv.Required(CONF_UART_ID): cv.use_id(uart.UARTComponent),
-    cv.Optional(CONF_LOG_INVALID, default=True): cv.boolean,
-    cv.Required(CONF_DEVICES): SYSTA_DEVICES_LIST,
-    cv.Optional(CONF_TEST_DATA): cv.ensure_list(cv.All(cv.string, _validate_test_data)),
-}).extend(cv.COMPONENT_SCHEMA)
-
-# keep a module-level set of claimed UART ids to forbid duplicates
-_uart_claims = set()
-
-def _devices_to_mask(names) -> int:
-    mask = 0
-    for n in names:
-        mask |= DEV_FLAGS[n]
-    return mask
-
 def _hex_to_bytes(s: str) -> bytes:
     if not HEX_RE.match(s):
         raise cv.Invalid("test_data must be a hex string (e.g. 'FC1F...').")
@@ -96,6 +79,24 @@ def _validate_test_data(value: str) -> str:
         return value.upper()
 
     raise cv.Invalid("test_data: unsupported frame header (expected FC... or 0F220400...).")
+
+
+CONFIG_SCHEMA = cv.Schema({
+    cv.GenerateID(): cv.declare_id(SystaReader),
+    cv.Required(CONF_UART_ID): cv.use_id(uart.UARTComponent),
+    cv.Optional(CONF_LOG_INVALID, default=True): cv.boolean,
+    cv.Required(CONF_DEVICES): SYSTA_DEVICES_LIST,
+    cv.Optional(CONF_TEST_DATA): cv.ensure_list(cv.All(cv.string, _validate_test_data)),
+}).extend(cv.COMPONENT_SCHEMA)
+
+# keep a module-level set of claimed UART ids to forbid duplicates
+_uart_claims = set()
+
+def _devices_to_mask(names) -> int:
+    mask = 0
+    for n in names:
+        mask |= DEV_FLAGS[n]
+    return mask
 
 async def to_code(config):
     # enforce one systa_reader per UART
