@@ -56,12 +56,22 @@ void Aqua2Decoder::on_fc_frame(const std::vector<uint8_t> &frame,
   uint8_t pwm    = payload.size() > 16 ? payload[16] : 0;
   uint8_t status = payload.size() > 21 ? payload[21] : 0;
 
-  // Zeit/Datum (BCD)
-  uint8_t h  = payload.size() > 24 ? Aqua2Decoder::bcd2dec(payload[24]) : 0;
-  uint8_t m  = payload.size() > 25 ? Aqua2Decoder::bcd2dec(payload[25]) : 0;
-  uint8_t d  = payload.size() > 26 ? Aqua2Decoder::bcd2dec(payload[26]) : 0;
-  uint8_t mo = payload.size() > 27 ? Aqua2Decoder::bcd2dec(payload[27]) : 0;
-  uint8_t y  = payload.size() > 28 ? Aqua2Decoder::bcd2dec(payload[28]) : 0;
+  // Zeit/Datum (BCD-kodiert! Reihenfolge: Tag, Monat, Minute, Stunde, Jahr)
+  uint8_t d_raw  = payload.size() > 24 ? payload[24] : 0;
+  uint8_t mo_raw = payload.size() > 25 ? payload[25] : 0;
+  uint8_t m_raw  = payload.size() > 26 ? payload[26] : 0;
+  uint8_t h_raw  = payload.size() > 27 ? payload[27] : 0;
+  uint8_t y_raw  = payload.size() > 28 ? payload[28] : 0;
+
+  ESP_LOGV(TAG_AQUA_II, "Time BCD raw: D=%02X MO=%02X M=%02X H=%02X Y=%02X",
+         d_raw, mo_raw, m_raw, h_raw, y_raw);
+
+  // BCD → Dezimal
+  uint8_t d  = bcd2dec(d_raw);
+  uint8_t mo = bcd2dec(mo_raw);
+  uint8_t m  = bcd2dec(m_raw);
+  uint8_t h  = bcd2dec(h_raw);
+  uint8_t y  = bcd2dec(y_raw);
 
   uint16_t tag_erg = Aqua2Decoder::read_u16_le(payload, 31);
   uint32_t gesamt  = Aqua2Decoder::read_u32_le(payload, 35);
@@ -84,7 +94,7 @@ void Aqua2Decoder::on_fc_frame(const std::vector<uint8_t> &frame,
   r_.pub_aqua_ii_ges(gesamt);
   r_.pub_aqua_ii_status_code(status);
 
-  // Publish Textsensoren (AQUA-**Slots** weiterverwenden)
+  // Publish Textsensoren (AQUA-II-**Slots** weiterverwenden)
   if (const char *t = status_text(status)) {
     r_.pub_aqua_ii_status_text(t);
   } else {
@@ -93,6 +103,7 @@ void Aqua2Decoder::on_fc_frame(const std::vector<uint8_t> &frame,
     r_.pub_aqua_ii_status_text(buf);
   }
 
+  // Format "DD.MM.YY HH:MM"
   char ts[20];
   snprintf(ts, sizeof(ts), "%02u.%02u.%02u %02u:%02u", d, mo, y, h, m);
   r_.pub_aqua_ii_timestamp(ts);

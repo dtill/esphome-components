@@ -93,7 +93,7 @@ class SystaReader : public uart::UARTDevice, public Component {
   void set_aqua_ii_tag_sensor(sensor::Sensor *s)         { aqua_ii_tag_ = s; }
   void set_aqua_ii_ges_sensor(sensor::Sensor *s)         { aqua_ii_ges_ = s; }
   void set_aqua_ii_status_code_sensor(sensor::Sensor *s) { aqua_ii_status_code_ = s; }
-  // AQUA text
+  // AQUA_II text
   void set_aqua_ii_status_text_sensor(text_sensor::TextSensor *t) { aqua_ii_status_text_ = t; }
   void set_aqua_ii_timestamp_text_sensor(text_sensor::TextSensor *t) { aqua_ii_timestamp_ = t; }
   // publish helpers
