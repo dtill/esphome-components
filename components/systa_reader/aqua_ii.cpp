@@ -47,24 +47,24 @@ void Aqua2Decoder::on_fc_frame(const std::vector<uint8_t> &frame,
            frame[1], (unsigned)frame.size(), (unsigned)payload.size());
 
   // ---- Werte gemäß decode-systa-csv.sh
-  float tsa  = read_i16_le(payload,  4) / 10.0f; // TSA1 (Kollektor)
-  float tw   = read_i16_le(payload,  6) / 10.0f; // TW Speicher
-  float tsv  = read_i16_le(payload,  8) / 10.0f; // TSV Vorlauf
-  float tam  = read_i16_le(payload,  10) / 10.0f; // TAM Außen
-  float tse  = read_i16_le(payload, 14) / 10.0f; // TSE Rücklauf
-  float dfl  = read_i16_le(payload, 16) / 10.0f; // Durchfluss (0.1 l/min)
-  uint8_t pwm    = payload.size() > 18 ? payload[18] : 0; // PWM Pumpe (%)
-  uint8_t status = payload.size() > 23 ? payload[23] : 0; // Status (Byte)
+  float tsa  = read_i16_le(payload,  0) / 10.0f; // TSA1 (Kollektor)
+  float tw   = read_i16_le(payload,  2) / 10.0f; // TW Speicher
+  float tsv  = read_i16_le(payload,  4) / 10.0f; // TSV Vorlauf
+  float tam  = read_i16_le(payload,  6) / 10.0f; // TAM Außen
+  float tse  = read_i16_le(payload, 8) / 10.0f; // TSE Rücklauf
+  float dfl  = read_i16_le(payload, 10) / 10.0f; // Durchfluss (0.1 l/min)
+  uint8_t pwm    = payload.size() > 14 ? payload[14] : 0; // PWM Pumpe (%)
+  uint8_t status = payload.size() > 19 ? payload[19] : 0; // Status (Byte)
 
   // Zeit/Datum: KEIN BCD (gemäß deinem Skript)
-  uint8_t h  = payload.size() > 26 ? payload[26] : 0; // Stunde
-  uint8_t m  = payload.size() > 27 ? payload[27] : 0; // Minute
-  uint8_t d  = payload.size() > 28 ? payload[28] : 0; // Tag
-  uint8_t mo = payload.size() > 29 ? payload[29] : 0; // Monat
-  uint8_t y  = payload.size() > 30 ? payload[30] : 0; // Jahr (00..99)
+  uint8_t h  = payload.size() > 22 ? payload[22] : 0; // Stunde
+  uint8_t m  = payload.size() > 23 ? payload[23] : 0; // Minute
+  uint8_t d  = payload.size() > 24 ? payload[24] : 0; // Tag
+  uint8_t mo = payload.size() > 25 ? payload[25] : 0; // Monat
+  uint8_t y  = payload.size() > 26 ? payload[26] : 0; // Jahr (00..99)
 
-  uint16_t tag_erg = read_u16_le(payload, 33);       // Tagesleistung
-  uint32_t gesamt  = read_u32_le(payload, 37);       // Gesamtleistung
+  uint16_t tag_erg = read_u16_le(payload, 29);       // Tagesleistung
+  uint32_t gesamt  = read_u32_le(payload, 33);       // Gesamtleistung
 
   // ---- Publish
   r_.pub_aqua_ii_tsa(tsa);
