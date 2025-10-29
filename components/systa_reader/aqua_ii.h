@@ -16,10 +16,7 @@ class Aqua2Decoder {
                    const std::string &hex);
 
  private:
-  // ---- Helpers (zentral, nur hier definiert) ----
-  static inline uint8_t bcd2dec(uint8_t v) {
-    return uint8_t(((v >> 4) * 10) + (v & 0x0F));
-  }
+  // Little-Endian helpers (LSB,MSB)
   static inline uint16_t read_u16_le(const std::vector<uint8_t> &b, int i) {
     if (i + 1 >= (int)b.size()) return 0;
     return uint16_t(b[i]) | (uint16_t(b[i + 1]) << 8);
@@ -30,10 +27,10 @@ class Aqua2Decoder {
   }
   static inline uint32_t read_u32_le(const std::vector<uint8_t> &b, int i) {
     if (i + 3 >= (int)b.size()) return 0;
-    return (uint32_t)b[i]
-         | ((uint32_t)b[i + 1] << 8)
-         | ((uint32_t)b[i + 2] << 16)
-         | ((uint32_t)b[i + 3] << 24);
+    return (uint32_t)b[i] |
+           ((uint32_t)b[i + 1] << 8) |
+           ((uint32_t)b[i + 2] << 16) |
+           ((uint32_t)b[i + 3] << 24);
   }
 
   static const char *status_text(uint8_t raw);

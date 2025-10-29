@@ -37,7 +37,7 @@ const char *Aqua2Decoder::status_text(uint8_t raw) {
 void Aqua2Decoder::on_fc_frame(const std::vector<uint8_t> &frame,
                                const std::vector<uint8_t> &payload,
                                const std::string &hex) {
-  // FC 3E 24 01
+  // Nur FC 3E 24 01
   if (frame.size() < 6 || frame[0] != 0xFC || frame[2] != 0x24 || frame[3] != 0x01)
     return;
 
@@ -46,43 +46,27 @@ void Aqua2Decoder::on_fc_frame(const std::vector<uint8_t> &frame,
   ESP_LOGV(TAG_AQUA_II, "AQUA-II len=%u, frame.size()=%u, payload.size()=%u",
            frame[1], (unsigned)frame.size(), (unsigned)payload.size());
 
-  // Werte (LE)
-  float tsa = Aqua2Decoder::read_i16_le(payload, 2)  / 10.0f;
-  float tw  = Aqua2Decoder::read_i16_le(payload, 4)  / 10.0f;
-  float tsv = Aqua2Decoder::read_i16_le(payload, 6)  / 10.0f;
-  float tam = Aqua2Decoder::read_i16_le(payload, 8)  / 10.0f;
-  float tse = Aqua2Decoder::read_i16_le(payload,12)  / 10.0f;
-  float dfl = Aqua2Decoder::read_i16_le(payload,14)  / 10.0f;
-  uint8_t pwm    = payload.size() > 16 ? payload[16] : 0;
-  uint8_t status = payload.size() > 21 ? payload[21] : 0;
+  // ---- Werte gemäß decode-systa-csv.sh
+  float tsa  = read_i16_le(payload,  2) / 10.0f; // TSA1 (Kollektor)
+  float tw   = read_i16_le(payload,  4) / 10.0f; // TW Speicher
+  float tsv  = read_i16_le(payload,  6) / 10.0f; // TSV Vorlauf
+  float tam  = read_i16_le(payload,  8) / 10.0f; // TAM Außen
+  float tse  = read_i16_le(payload, 12) / 10.0f; // TSE Rücklauf
+  float dfl  = read_i16_le(payload, 14) / 10.0f; // Durchfluss (0.1 l/min)
+  uint8_t pwm    = payload.size() > 16 ? payload[16] : 0; // PWM Pumpe (%)
+  uint8_t status = payload.size() > 21 ? payload[21] : 0; // Status (Byte)
 
-  // Zeit/Datum (BCD-kodiert! Reihenfolge: Tag, Monat, Minute, Stunde, Jahr)
-  uint8_t d_raw  = payload.size() > 24 ? payload[24] : 0;
-  uint8_t mo_raw = payload.size() > 25 ? payload[25] : 0;
-  uint8_t m_raw  = payload.size() > 26 ? payload[26] : 0;
-  uint8_t h_raw  = payload.size() > 27 ? payload[27] : 0;
-  uint8_t y_raw  = payload.size() > 28 ? payload[28] : 0;
+  // Zeit/Datum: KEIN BCD (gemäß deinem Skript)
+  uint8_t h  = payload.size() > 24 ? payload[24] : 0; // Stunde
+  uint8_t m  = payload.size() > 25 ? payload[25] : 0; // Minute
+  uint8_t d  = payload.size() > 26 ? payload[26] : 0; // Tag
+  uint8_t mo = payload.size() > 27 ? payload[27] : 0; // Monat
+  uint8_t y  = payload.size() > 28 ? payload[28] : 0; // Jahr (00..99)
 
-  ESP_LOGV(TAG_AQUA_II, "Time BCD raw: D=%02X MO=%02X M=%02X H=%02X Y=%02X",
-         d_raw, mo_raw, m_raw, h_raw, y_raw);
+  uint16_t tag_erg = read_u16_le(payload, 31);       // Tagesleistung
+  uint32_t gesamt  = read_u32_le(payload, 35);       // Gesamtleistung
 
-  // BCD → Dezimal
-  uint8_t d  = bcd2dec(d_raw);
-  uint8_t mo = bcd2dec(mo_raw);
-  uint8_t m  = bcd2dec(m_raw);
-  uint8_t h  = bcd2dec(h_raw);
-  uint8_t y  = bcd2dec(y_raw);
-
-  uint16_t tag_erg = Aqua2Decoder::read_u16_le(payload, 31);
-  uint32_t gesamt  = Aqua2Decoder::read_u32_le(payload, 35);
-
-  // Debug (optional)
-  ESP_LOGD(TAG_AQUA_II, "P[2]=%04X P[4]=%04X P[6]=%04X P[8]=%04X P[12]=%04X P[14]=%04X",
-           Aqua2Decoder::read_u16_le(payload,2), Aqua2Decoder::read_u16_le(payload,4),
-           Aqua2Decoder::read_u16_le(payload,6), Aqua2Decoder::read_u16_le(payload,8),
-           Aqua2Decoder::read_u16_le(payload,12), Aqua2Decoder::read_u16_le(payload,14));
-
-  // Publish numerisch
+  // ---- Publish
   r_.pub_aqua_ii_tsa(tsa);
   r_.pub_aqua_ii_twu(tw);
   r_.pub_aqua_ii_tsv(tsv);
@@ -94,23 +78,21 @@ void Aqua2Decoder::on_fc_frame(const std::vector<uint8_t> &frame,
   r_.pub_aqua_ii_ges(gesamt);
   r_.pub_aqua_ii_status_code(status);
 
-  // Publish Textsensoren (AQUA-II-**Slots** weiterverwenden)
   if (const char *t = status_text(status)) {
-    r_.pub_aqua_ii_status_text(t);
+    r_.pub_aqua_status_text(t);
   } else {
     char buf[40];
     snprintf(buf, sizeof(buf), "Unbekannter Status (%02X)", status);
     r_.pub_aqua_ii_status_text(buf);
   }
 
-  // Format "DD.MM.YY HH:MM"
   char ts[20];
   snprintf(ts, sizeof(ts), "%02u.%02u.%02u %02u:%02u", d, mo, y, h, m);
-  r_.pub_aqua_ii_timestamp(ts);
+  r_.pub_aqua_ii_timestamp(ts);  // <<< richtiger Publisher-Name
 
   ESP_LOGI(TAG_AQUA_II,
-           "AQUA-II: TSA=%.1f TW=%.1f TSV=%.1f TAM=%.1f TSE=%.1f DFL=%.1f PWM=%u TAG=%u GES=%u Status=%02X",
-           tsa, tw, tsv, tam, tse, dfl, pwm, tag_erg, gesamt, status);
+           "AQUA-II: TSA=%.1f TW=%.1f TSV=%.1f TAM=%.1f TSE=%.1f DFL=%.1f PWM=%u TAG=%u GES=%u Status=%02X @ %02u.%02u.%02u %02u:%02u",
+           tsa, tw, tsv, tam, tse, dfl, pwm, tag_erg, gesamt, status, d, mo, y, h, m);
 }
 
 }  // namespace systa_reader
