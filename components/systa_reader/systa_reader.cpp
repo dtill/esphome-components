@@ -331,6 +331,7 @@ std::vector<uint8_t> SystaReader::hex_to_bytes_(const std::string &hex) {
 
 // --- Test-Injector: routet JEDE hinterlegte Frame korrekt weiter ---
 void SystaReader::inject_test_frames_() {
+  ESP_LOGW(TAG, "Test frame checksum invalid (got %02X, expected %02X)");
   for (const auto &hex_str : test_data_hex_) {
     // 1) Hex -> Bytes
     std::vector<uint8_t> frame;
