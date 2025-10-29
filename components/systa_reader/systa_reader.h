@@ -24,11 +24,13 @@ class SystaReader : public uart::UARTDevice, public Component {
   static constexpr uint32_t DEV_MODULA    = (1u << 2);
   static constexpr uint32_t DEV_ESPRESSO  = (1u << 3);
   static constexpr uint32_t DEV_SOLAR     = (1u << 4);
-
   // reserve more bits for future devices:
   // static constexpr uint32_t DEV_FOO   = (1u << 4);
   // static constexpr uint32_t DEV_BAR   = (1u << 5);
   // ...
+
+  // TEST-Daten aus YAML
+  void set_test_data_frames(const std::vector<std::string> &v) { test_data_hex_ = v; }
 
 
   // config
@@ -197,6 +199,12 @@ class SystaReader : public uart::UARTDevice, public Component {
   void process_buffer_();
   bool try_parse_display_frame_();
   bool try_parse_fc_frame_();
+
+  // Test-Injector
+  std::vector<std::string> test_data_hex_{};
+  uint32_t last_inject_ms_{0};
+  static std::vector<uint8_t> hex_to_bytes_(const std::string &hex);
+  void inject_test_frames_();
 
   // kleiner Router für FC-Frames (ruft nur das gewählte Gerät auf)
   void route_fc_frame_to_device_(const std::vector<uint8_t>& frame,

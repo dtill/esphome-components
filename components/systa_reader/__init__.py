@@ -1,3 +1,4 @@
+import re
 import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.components import uart
@@ -27,12 +28,16 @@ DEV_FLAGS = {
 CONF_UART_ID = "uart_id"
 CONF_LOG_INVALID = "log_invalid"
 CONF_DEVICES = "systa_device"  # list, e.g. systa_device: [aqua, espresso]
+CONF_TEST_DATA = "test_data"
+
+HEX_RE = re.compile(r"^[0-9A-Fa-f]+$")
 
 CONFIG_SCHEMA = cv.Schema({
     cv.GenerateID(): cv.declare_id(SystaReader),
     cv.Required(CONF_UART_ID): cv.use_id(uart.UARTComponent),
     cv.Optional(CONF_LOG_INVALID, default=True): cv.boolean,
     cv.Required(CONF_DEVICES): SYSTA_DEVICES_LIST,
+    cv.Optional(CONF_TEST_DATA): cv.ensure_list(cv.All(cv.string, _validate_test_data)),
 }).extend(cv.COMPONENT_SCHEMA)
 
 # keep a module-level set of claimed UART ids to forbid duplicates
@@ -43,6 +48,54 @@ def _devices_to_mask(names) -> int:
     for n in names:
         mask |= DEV_FLAGS[n]
     return mask
+
+def _hex_to_bytes(s: str) -> bytes:
+    if not HEX_RE.match(s):
+        raise cv.Invalid("test_data must be a hex string (e.g. 'FC1F...').")
+    if len(s) % 2 != 0:
+        raise cv.Invalid("test_data must have an even number of hex digits.")
+    return bytes.fromhex(s)
+
+def _twos_complement_checksum(b: bytes) -> int:
+    # sum(all bytes except last) -> two's complement on 8-bit
+    total = sum(b[:-1]) & 0xFF
+    return (-total) & 0xFF
+
+def _validate_test_data(value: str) -> str:
+    raw = _hex_to_bytes(value)
+    if len(raw) < 3:
+        raise cv.Invalid("test_data: too short to be a valid frame.")
+    # FC frame?
+    if raw[0] == 0xFC:
+        if len(raw) < 3:
+            raise cv.Invalid("test_data (FC): too short.")
+        declared_len = raw[1]
+        total = 2 + declared_len + 1
+        if len(raw) != total:
+            raise cv.Invalid(
+                f"test_data (FC): length mismatch, got {len(raw)} bytes, "
+                f"expected {total} (len={declared_len})."
+            )
+        exp = _twos_complement_checksum(raw)
+        got = raw[-1]
+        if got != exp:
+            raise cv.Invalid(
+                f"test_data (FC): checksum mismatch, provided {got:02X}, expected {exp:02X}."
+            )
+        return value.upper()
+    # Display frame 0F 22 04 00 (fixed 37 bytes)
+    if len(raw) >= 4 and raw[0] == 0x0F and raw[1] == 0x22 and raw[2] == 0x04 and raw[3] == 0x00:
+        if len(raw) != 37:
+            raise cv.Invalid(f"test_data (Display): expected 37 bytes, got {len(raw)}.")
+        exp = _twos_complement_checksum(raw)
+        got = raw[-1]
+        if got != exp:
+            raise cv.Invalid(
+                f"test_data (Display): checksum mismatch, provided {got:02X}, expected {exp:02X}."
+            )
+        return value.upper()
+
+    raise cv.Invalid("test_data: unsupported frame header (expected FC... or 0F220400...).")
 
 async def to_code(config):
     # enforce one systa_reader per UART
@@ -63,3 +116,6 @@ async def to_code(config):
 
     mask = _devices_to_mask(config[CONF_DEVICES])
     cg.add(var.set_enabled_mask(mask))
+
+    if CONF_TEST_DATA in config:
+        cg.add(var.set_test_data_frames(config[CONF_TEST_DATA]))

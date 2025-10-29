@@ -30,6 +30,15 @@ void SystaReader::setup() {
 }
 
 void SystaReader::loop() {
+  // 1) Testframes alle 10s injizieren (ohne den UART-Empfang zu blockieren)
+  if (!test_data_hex_.empty()) {
+    const uint32_t now = millis();
+    if ((now - last_inject_ms_ >= 10000U) || (now < last_inject_ms_)) {
+      inject_test_frames_();
+      last_inject_ms_ = now;
+    }
+  }
+
   uint8_t frames_done = 0;
   // read/parse while data available AND we haven't exceeded our per-loop budget
   while ((this->available() || (need_total_ && cur_.size() >= need_total_)) &&
@@ -188,21 +197,19 @@ bool SystaReader::try_parse_fc_frame_() {
   const uint8_t f3 = buf_[3];
 
   // 5) Bytes JETZT konsumieren, damit der UART-Puffer schnell frei wird
-  //    (Decoder bekommt gleich Views/Kopien in kleinen Vektoren)
   std::vector<uint8_t> frame;     frame.reserve(total);
   std::vector<uint8_t> payload;   payload.reserve(payload_size);
 
-  // Minimal-Kopie: genau EINMAL aus der deque "am Stück" rausziehen:
   for (size_t i = 0; i < total; i++) {
     uint8_t b = buf_.front();
-    buf_.pop_front();             // früh leeren!
+    buf_.pop_front();
     frame.push_back(b);
     if (i >= payload_begin && i < payload_end) payload.push_back(b);
   }
 
   if (!checksum_ok) {
     if (log_invalid_) ESP_LOGW(TAG, "FC checksum invalid (got %02X, expected %02X)", got, calc);
-    return true; // wir haben konsumiert, weiter
+    return true;
   }
   std::string hex;
   if (!sinks_.empty()) {
@@ -212,9 +219,6 @@ bool SystaReader::try_parse_fc_frame_() {
   #if ESPHOME_LOG_LEVEL >= ESPHOME_LOG_LEVEL_VERBOSE
   ESP_LOGV(TAG, "FC HEX f2=%02X f3=%02X len=%u", f2, f3, len);
   #endif
-  // 7) Routen (nur mit gültiger CRC)
-  //    Achtung: Wir haben schon konsumiert – Decoder arbeitet auf unseren
-  //    kleinen, lokalen Kopien `frame`/`payload` → UART ist wieder frei.
   this->route_fc_frame_to_device_(frame, payload, hex);
 
   return true;
@@ -305,6 +309,53 @@ std::string SystaReader::to_hex_(const std::vector<uint8_t> &buf) {
     out.push_back(digits[b & 0x0F]);
   }
   return out;
+}
+
+std::vector<uint8_t> SystaReader::hex_to_bytes_(const std::string &hex) {
+  std::vector<uint8_t> out;
+  out.reserve(hex.size() / 2);
+  auto hexval = [](char c)->int {
+    if (c >= '0' && c <= '9') return c - '0';
+    if (c >= 'a' && c <= 'f') return 10 + (c - 'a');
+    if (c >= 'A' && c <= 'F') return 10 + (c - 'A');
+    return -1;
+  };
+  for (size_t i = 0; i + 1 < hex.size(); i += 2) {
+    int hi = hexval(hex[i]);
+    int lo = hexval(hex[i+1]);
+    if (hi < 0 || lo < 0) { out.clear(); return out; }
+    out.push_back(static_cast<uint8_t>((hi << 4) | lo));
+  }
+  return out;
+}
+
+// --- Test-Injector: routet JEDE hinterlegte Frame korrekt weiter ---
+void SystaReader::inject_test_frames_() {
+  for (const auto &hex : test_data_hex_) {
+    auto bytes = hex_to_bytes_(hex);
+    if (bytes.size() < 3) continue;  // zu kurz
+
+    // Optional: direkt auch an die Hex-Sinks spiegeln
+    publish_hex_all(hex);
+
+    if (bytes[0] == 0xFC) {
+      // FC-Frame: payload = ab Index 4 bis vor letzter Byte (Checksumme)
+      if (bytes.size() < 5) continue;
+      std::vector<uint8_t> frame(bytes.begin(), bytes.end());
+      std::vector<uint8_t> payload(frame.begin() + 4, frame.end() - 1);
+      route_fc_frame_to_device_(frame, payload, hex);
+    } else if (bytes[0] == 0x0F) {
+      // Display-Frame 0F 22 04 00 (nur diese durchlassen)
+      if (bytes.size() < 37) continue;
+      if (!(bytes[1]==0x22 && bytes[2]==0x04 && bytes[3]==0x00)) continue;
+      std::vector<uint8_t> frame(bytes.begin(), bytes.end());
+      std::vector<uint8_t> payload(frame.begin() + 4, frame.end() - 1);
+      route_display_frame_to_device_(frame, payload, hex);
+    } else {
+      // andere Testtypen ignorieren
+      continue;
+    }
+  }
 }
 
 size_t SystaReader::expect_total_if_known_(const std::vector<uint8_t>& v) const {
