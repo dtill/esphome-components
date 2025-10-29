@@ -331,33 +331,45 @@ std::vector<uint8_t> SystaReader::hex_to_bytes_(const std::string &hex) {
 
 // --- Test-Injector: routet JEDE hinterlegte Frame korrekt weiter ---
 void SystaReader::inject_test_frames_() {
-  ESP_LOGW(TAG, "Test-Data Option set. Test Frame Injected. To stop this, remove 'test-data' from yaml-config.");
-  for (const auto &hex : test_data_hex_) {
-    auto bytes = hex_to_bytes_(hex);
-    if (bytes.size() < 3) continue;  // zu kurz
+  for (const auto &hex_str : test_data_hex_) {
+    // 1) Hex -> Bytes
+    std::vector<uint8_t> frame;
+    frame.reserve(hex_str.size() / 2);
+    for (size_t i = 0; i + 1 < hex_str.size(); i += 2) {
+      uint8_t byte = (uint8_t) strtoul(hex_str.substr(i, 2).c_str(), nullptr, 16);
+      frame.push_back(byte);
+    }
+    if (frame.size() < 3) continue;
 
-    // Optional: direkt auch an die Hex-Sinks spiegeln
+    // 2) (Optional) Checksumme prüfen (gleich wie bei echten Frames)
+    const uint8_t calc = checksum_twos_complement_(std::vector<uint8_t>(frame.begin(), frame.end() - 1));
+    const uint8_t got  = frame.back();
+    if (calc != got) {
+      if (log_invalid_) ESP_LOGW(TAG, "Test frame checksum invalid (got %02X, expected %02X)", got, calc);
+      continue;
+    }
+
+    // 3) HEX-String in Standardform (zwecks Logging & Sinks)
+    const std::string hex = to_hex_(frame);
+
+    // 🔹 HIER: Testdaten auch an alle Text-Sinks pushen
+    for (auto *s : sinks_) s->publish_frame_hex(hex);
+    // und an die "ALL"-Sinks (falls du die nutzt)
     publish_hex_all(hex);
 
-    if (bytes[0] == 0xFC) {
-      // FC-Frame: payload = ab Index 4 bis vor letzter Byte (Checksumme)
-      if (bytes.size() < 5) continue;
-      std::vector<uint8_t> frame(bytes.begin(), bytes.end());
-      std::vector<uint8_t> payload(frame.begin() + 4, frame.end() - 1);
+    // 4) Payload bilden
+    std::vector<uint8_t> payload;
+    if (frame[0] == 0xFC) {
+      if (frame.size() >= 4) payload.assign(frame.begin() + 4, frame.end() - 1);
+      // 5) Gerätespezifisch routen (wie echte Frames)
       route_fc_frame_to_device_(frame, payload, hex);
-    } else if (bytes[0] == 0x0F) {
-      // Display-Frame 0F 22 04 00 (nur diese durchlassen)
-      if (bytes.size() < 37) continue;
-      if (!(bytes[1]==0x22 && bytes[2]==0x04 && bytes[3]==0x00)) continue;
-      std::vector<uint8_t> frame(bytes.begin(), bytes.end());
-      std::vector<uint8_t> payload(frame.begin() + 4, frame.end() - 1);
+    } else if (frame.size() == 37 && frame[0] == 0x0F && frame[1] == 0x22 && frame[2] == 0x04 && frame[3] == 0x00) {
+      payload.assign(frame.begin() + 4, frame.end() - 1);
       route_display_frame_to_device_(frame, payload, hex);
-    } else {
-      // andere Testtypen ignorieren
-      continue;
     }
   }
 }
+
 
 size_t SystaReader::expect_total_if_known_(const std::vector<uint8_t>& v) const {
   if (v.empty()) return 0;
