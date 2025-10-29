@@ -56,7 +56,7 @@ async def to_code(config):
         if   k == "aqua_status_text":       cg.add(parent.set_aqua_status_text_sensor(var))
         elif k == "aqua_timestamp":         cg.add(parent.set_aqua_timestamp_text_sensor(var))
         elif k == "aqua_display_text":      cg.add(parent.set_aqua_display_text_sensor(var))
-        elif   k == "aqua_ii_status_text":  cg.add(parent.set_aqua_ii_status_text_sensor(var))
+        elif k == "aqua_ii_status_text":    cg.add(parent.set_aqua_ii_status_text_sensor(var))
         elif k == "aqua_ii_timestamp":      cg.add(parent.set_aqua_ii_timestamp_text_sensor(var))
         elif k == "modula_timestamp":       cg.add(parent.set_modula_timestamp_text_sensor(var))
         elif k == "espresso_timestamp":     cg.add(parent.set_espresso_timestamp_text_sensor(var))

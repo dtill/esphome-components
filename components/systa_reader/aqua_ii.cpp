@@ -51,8 +51,8 @@ void Aqua2Decoder::on_fc_frame(const std::vector<uint8_t> &frame,
   float tw   = read_i16_le(payload,  2) / 10.0f; // TW Speicher
   float tsv  = read_i16_le(payload,  4) / 10.0f; // TSV Vorlauf
   float tam  = read_i16_le(payload,  6) / 10.0f; // TAM Außen
-  float tse  = read_i16_le(payload, 8) / 10.0f; // TSE Rücklauf
-  float dfl  = read_i16_le(payload, 10) / 10.0f; // Durchfluss (0.1 l/min)
+  float tse  = read_i16_le(payload, 10) / 10.0f; // TSE Rücklauf
+  float dfl  = read_i16_le(payload, 12) / 10.0f; // Durchfluss (0.1 l/min)
   uint8_t pwm    = payload.size() > 14 ? payload[14] : 0; // PWM Pumpe (%)
   uint8_t status = payload.size() > 19 ? payload[19] : 0; // Status (Byte)
 
@@ -88,7 +88,7 @@ void Aqua2Decoder::on_fc_frame(const std::vector<uint8_t> &frame,
 
   char ts[20];
   snprintf(ts, sizeof(ts), "%02u.%02u.%02u %02u:%02u", d, mo, y, h, m);
-  r_.pub_aqua_ii_timestamp(ts);  // <<< richtiger Publisher-Name
+  r_.pub_aqua_ii_timestamp(ts);
 
   ESP_LOGI(TAG_AQUA_II,
            "AQUA-II: TSA=%.1f TW=%.1f TSV=%.1f TAM=%.1f TSE=%.1f DFL=%.1f PWM=%u TAG=%u GES=%u Status=%02X @ %02u.%02u.%02u %02u:%02u",
