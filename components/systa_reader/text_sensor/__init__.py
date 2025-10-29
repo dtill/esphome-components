@@ -51,16 +51,13 @@ async def to_code(config):
     await text_sensor.register_text_sensor(var, config)
 
     if config[CONF_MODE] == "raw":
-        flt = config[CONF_FILTER]
-        targets = flt if isinstance(flt, list) else [flt]
-        if "all" in targets:
+        f = config[CONF_FILTER]
+        if f == "aqua":
+            cg.add(parent.add_sink_aqua(var))
+        elif f == "aqua_ii":
+            cg.add(parent.add_sink_aqua_ii(var))
+        else:  # "all"
             cg.add(parent.add_sink_all(var))
-        else:
-            for t in targets:
-                if   t == "aqua":      cg.add(parent.add_sink_aqua(var))
-                elif t == "aqua_ii":   cg.add(parent.add_sink_aqua_ii(var))
-                elif t == "modula":    cg.add(parent.add_sink_modula(var))
-                elif t == "espresso":  cg.add(parent.add_sink_espresso(var))
     else:
         k = config[CONF_KIND]
         if   k == "aqua_status_text":       cg.add(parent.set_aqua_status_text_sensor(var))
