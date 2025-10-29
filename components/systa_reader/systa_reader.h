@@ -244,7 +244,7 @@ class SystaReader : public uart::UARTDevice, public Component {
 
   // decoder instances
   Aqua2Decoder *aqua_ii_{nullptr};
-  // AQUA sensors
+  // AQUA-II sensors
   sensor::Sensor *aqua_ii_tsa_{nullptr};
   sensor::Sensor *aqua_ii_twu_{nullptr};
   sensor::Sensor *aqua_ii_tsv_{nullptr};

@@ -52,27 +52,21 @@ async def to_code(config):
 
     if config[CONF_MODE] == "raw":
         flt = config[CONF_FILTER]
-        # normalize to list
         targets = flt if isinstance(flt, list) else [flt]
         if "all" in targets:
             cg.add(parent.add_sink_all(var))
         else:
-            # subscribe to each selected device stream
             for t in targets:
-                if t == "aqua":
-                    cg.add(parent.add_sink_aqua(var))
-                elif t == "aqua_ii":
-                    cg.add(parent.add_sink_aqua_ii(var))
-                elif t == "modula":
-                    cg.add(parent.add_sink_modula(var))
-                elif t == "espresso":
-                    cg.add(parent.add_sink_espresso(var))
+                if   t == "aqua":      cg.add(parent.add_sink_aqua(var))
+                elif t == "aqua_ii":   cg.add(parent.add_sink_aqua_ii(var))
+                elif t == "modula":    cg.add(parent.add_sink_modula(var))
+                elif t == "espresso":  cg.add(parent.add_sink_espresso(var))
     else:
         k = config[CONF_KIND]
-        if   k == "aqua_status_text":    cg.add(parent.set_aqua_status_text_sensor(var))
-        elif k == "aqua_timestamp":      cg.add(parent.set_aqua_timestamp_text_sensor(var))
-        elif k == "aqua_display_text":   cg.add(parent.set_aqua_display_text_sensor(var))
-        elif k == "aqua_ii_status_text": cg.add(parent.set_aqua_ii_status_text_sensor(var))
-        elif k == "aqua_ii_timestamp":   cg.add(parent.set_aqua_ii_timestamp_text_sensor(var))
-        elif k == "modula_timestamp":    cg.add(parent.set_modula_timestamp_text_sensor(var))
-        elif k == "espresso_timestamp":  cg.add(parent.set_espresso_timestamp_text_sensor(var))
+        if   k == "aqua_status_text":       cg.add(parent.set_aqua_status_text_sensor(var))
+        elif k == "aqua_timestamp":         cg.add(parent.set_aqua_timestamp_text_sensor(var))
+        elif k == "aqua_display_text":      cg.add(parent.set_aqua_display_text_sensor(var))
+        elif k == "aqua_ii_status_text":    cg.add(parent.set_aqua_ii_status_text_sensor(var))
+        elif k == "aqua_ii_timestamp":      cg.add(parent.set_aqua_ii_timestamp_text_sensor(var))
+        elif k == "modula_timestamp":       cg.add(parent.set_modula_timestamp_text_sensor(var))
+        elif k == "espresso_timestamp":     cg.add(parent.set_espresso_timestamp_text_sensor(var))
