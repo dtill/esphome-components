@@ -331,6 +331,7 @@ std::vector<uint8_t> SystaReader::hex_to_bytes_(const std::string &hex) {
 
 // --- Test-Injector: routet JEDE hinterlegte Frame korrekt weiter ---
 void SystaReader::inject_test_frames_() {
+  ESP_LOGW(TAG, "Test-Data Option set. Test Frame Injected. To stop this, remove 'test-data' from yaml-config.");
   for (const auto &hex : test_data_hex_) {
     auto bytes = hex_to_bytes_(hex);
     if (bytes.size() < 3) continue;  // zu kurz
