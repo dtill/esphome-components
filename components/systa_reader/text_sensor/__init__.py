@@ -44,19 +44,20 @@ async def to_code(config):
     await text_sensor.register_text_sensor(var, config)
 
     if config[CONF_MODE] == "raw":
-        if config[CONF_FILTER] == "aqua":
+        flt = config[CONF_FILTER]
+        if flt == "aqua":
             cg.add(parent.add_sink_aqua(var))
-        elif config[CONF_FILTER] == "aqua_ii":
+        elif flt == "aqua_ii":
             cg.add(parent.add_sink_aqua_ii(var))
         else:
             cg.add(parent.add_sink_all(var))
     else:
-        # field mode → mappe auf konkrete Text-Slots
         k = config[CONF_KIND]
-        if   k == "aqua_status_text":       cg.add(parent.set_aqua_status_text_sensor(var))
-        elif k == "aqua_timestamp":         cg.add(parent.set_aqua_timestamp_text_sensor(var))
-        elif k == "aqua_display_text":      cg.add(parent.set_aqua_display_text_sensor(var))
-        elif k == "aqua_ii_status_text":    cg.add(parent.set_aqua_ii_status_text_sensor(var))
-        elif k == "aqua_ii_timestamp":      cg.add(parent.set_aqua_ii_timestamp_text_sensor(var))
-        elif k == "modula_timestamp":       cg.add(parent.set_modula_timestamp_text_sensor(var))
-        elif k == "espresso_timestamp":     cg.add(parent.set_espresso_timestamp_text_sensor(var))
+        if   k == "aqua_status_text":    cg.add(parent.set_aqua_status_text_sensor(var))
+        elif k == "aqua_timestamp":      cg.add(parent.set_aqua_timestamp_text_sensor(var))
+        elif k == "aqua_display_text":   cg.add(parent.set_aqua_display_text_sensor(var))
+        elif k == "aqua_ii_status_text": cg.add(parent.set_aqua_ii_status_text_sensor(var))
+        elif k == "aqua_ii_timestamp":   cg.add(parent.set_aqua_ii_timestamp_text_sensor(var))
+        elif k == "modula_timestamp":    cg.add(parent.set_modula_timestamp_text_sensor(var))
+        elif k == "espresso_timestamp":  cg.add(parent.set_espresso_timestamp_text_sensor(var))
+
