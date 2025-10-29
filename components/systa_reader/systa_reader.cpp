@@ -329,20 +329,51 @@ std::vector<uint8_t> SystaReader::hex_to_bytes_(const std::string &hex) {
   return out;
 }
 
-// --- Test-Injector: routet JEDE hinterlegte Frame korrekt weiter ---
 void SystaReader::inject_test_frames_() {
-  ESP_LOGW(TAG, "##############  Test-Data injected. #############)");
+  ESP_LOGW(TAG, "############## Test-Data injected. #############");
+
+  auto dispatch_hex_to_sinks = [&](const std::vector<uint8_t> &f, const std::string &h) {
+    // FC-Frames → per (f2,f3) verteilen
+    if (f.size() >= 4 && f[0] == 0xFC) {
+      const uint8_t f2 = f[2];
+      const uint8_t f3 = f[3];
+
+      if (f2 == 0x24 && f3 == 0x01) {               // AQUA-II
+        for (auto *s : sinks_aqua_ii_) s->publish_frame_hex(h);
+        for (auto *s : sinks_all_)    s->publish_frame_hex(h);
+      } else if (f2 == 0x0B && f3 == 0x01) {        // AQUA
+        for (auto *s : sinks_aqua_)   s->publish_frame_hex(h);
+        for (auto *s : sinks_all_)    s->publish_frame_hex(h);
+      } else {
+        // unbekannt → nur ALL (optional)
+        for (auto *s : sinks_all_)    s->publish_frame_hex(h);
+      }
+      return;
+    }
+
+    // Display 0F 22 04 00 (37 Bytes)
+    if (f.size() == 37 && f[0] == 0x0F && f[1] == 0x22 && f[2] == 0x04 && f[3] == 0x00) {
+      // Wenn du Display-HEX nur AQUA zeigen willst:
+      for (auto *s : sinks_aqua_)   s->publish_frame_hex(h);
+      for (auto *s : sinks_all_)    s->publish_frame_hex(h);
+      return;
+    }
+
+    // Fallback: nur ALL
+    for (auto *s : sinks_all_)      s->publish_frame_hex(h);
+  };
+
   for (const auto &hex_str : test_data_hex_) {
-    // 1) Hex -> Bytes
+    // 1) Hex → Bytes
     std::vector<uint8_t> frame;
     frame.reserve(hex_str.size() / 2);
     for (size_t i = 0; i + 1 < hex_str.size(); i += 2) {
-      uint8_t byte = (uint8_t) strtoul(hex_str.substr(i, 2).c_str(), nullptr, 16);
+      uint8_t byte = static_cast<uint8_t>(strtoul(hex_str.substr(i, 2).c_str(), nullptr, 16));
       frame.push_back(byte);
     }
     if (frame.size() < 3) continue;
 
-    // 2) (Optional) Checksumme prüfen (gleich wie bei echten Frames)
+    // 2) Checksumme prüfen (wie im echten Pfad)
     const uint8_t calc = checksum_twos_complement_(std::vector<uint8_t>(frame.begin(), frame.end() - 1));
     const uint8_t got  = frame.back();
     if (calc != got) {
@@ -350,26 +381,24 @@ void SystaReader::inject_test_frames_() {
       continue;
     }
 
-    // 3) HEX-String in Standardform (zwecks Logging & Sinks)
+    // 3) HEX für Logs/Sinks
     const std::string hex = to_hex_(frame);
 
-    // 🔹 HIER: Testdaten auch an alle Text-Sinks pushen
-    for (auto *s : sinks_) s->publish_frame_hex(hex);
-    // und an die "ALL"-Sinks (falls du die nutzt)
-    publish_hex_all(hex);
+    // 4) HEX **gezielt** an Sinks, nicht global
+    dispatch_hex_to_sinks(frame, hex);
 
-    // 4) Payload bilden
-    std::vector<uint8_t> payload;
+    // 5) Payload + Decoder wie üblich
     if (frame[0] == 0xFC) {
+      std::vector<uint8_t> payload;
       if (frame.size() >= 4) payload.assign(frame.begin() + 4, frame.end() - 1);
-      // 5) Gerätespezifisch routen (wie echte Frames)
       route_fc_frame_to_device_(frame, payload, hex);
     } else if (frame.size() == 37 && frame[0] == 0x0F && frame[1] == 0x22 && frame[2] == 0x04 && frame[3] == 0x00) {
-      payload.assign(frame.begin() + 4, frame.end() - 1);
+      std::vector<uint8_t> payload(frame.begin() + 4, frame.end() - 1);
       route_display_frame_to_device_(frame, payload, hex);
     }
   }
 }
+
 
 
 size_t SystaReader::expect_total_if_known_(const std::vector<uint8_t>& v) const {
