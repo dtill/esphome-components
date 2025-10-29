@@ -86,16 +86,16 @@ void Aqua2Decoder::on_fc_frame(const std::vector<uint8_t> &frame,
 
   // Publish Textsensoren (AQUA-**Slots** weiterverwenden)
   if (const char *t = status_text(status)) {
-    r_.pub_aqua_status_text(t);
+    r_.pub_aqua_ii_status_text(t);
   } else {
     char buf[40];
     snprintf(buf, sizeof(buf), "Unbekannter Status (%02X)", status);
-    r_.pub_aqua_status_text(buf);
+    r_.pub_aqua_ii_status_text(buf);
   }
 
   char ts[20];
   snprintf(ts, sizeof(ts), "%02u.%02u.%02u %02u:%02u", d, mo, y, h, m);
-  r_.pub_aqua_timestamp(ts);
+  r_.pub_aqua_ii_timestamp(ts);
 
   ESP_LOGI(TAG_AQUA_II,
            "AQUA-II: TSA=%.1f TW=%.1f TSV=%.1f TAM=%.1f TSE=%.1f DFL=%.1f PWM=%u TAG=%u GES=%u Status=%02X",
