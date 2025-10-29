@@ -46,7 +46,7 @@ async def to_code(config):
     if config[CONF_MODE] == "raw":
         if config[CONF_FILTER] == "aqua":
             cg.add(parent.add_sink_aqua(var))
-        if config[CONF_FILTER] == "aqua_ii":
+        elif config[CONF_FILTER] == "aqua_ii":
             cg.add(parent.add_sink_aqua_ii(var))
         else:
             cg.add(parent.add_sink_all(var))
