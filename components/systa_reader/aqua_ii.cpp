@@ -6,6 +6,8 @@ namespace systa_reader {
 
 static const char *const TAG_AQUA = "systa_reader.aqua_ii";
 
+static inline uint8_t bcd2dec(uint8_t v) { return uint8_t(((v >> 4) * 10) + (v & 0x0F)); }
+
 static inline uint16_t read_u16_le(const std::vector<uint8_t> &data, int pos) {
   if (pos + 1 >= (int)data.size()) return 0;
   return uint16_t(data[pos]) | (uint16_t(data[pos + 1]) << 8);
@@ -74,15 +76,19 @@ void Aqua2Decoder::on_fc_frame(const std::vector<uint8_t> &frame,
   uint8_t pwm = payload.size() > 16 ? payload[16] : 0; // PWM Pumpe
   uint8_t status = payload.size() > 21 ? payload[21] : 0;
 
-  // Zeit/Datum
-  uint8_t h  = payload.size() > 24 ? payload[24] : 0;
-  uint8_t m  = payload.size() > 25 ? payload[25] : 0;
-  uint8_t d  = payload.size() > 26 ? payload[26] : 0;
-  uint8_t mo = payload.size() > 27 ? payload[27] : 0;
-  uint8_t y  = payload.size() > 28 ? payload[28] : 0;
+  // Zeit/Datum (BCD-kodiert!)
+  uint8_t h  = payload.size() > 24 ? bcd2dec(payload[24]) : 0;
+  uint8_t m  = payload.size() > 25 ? bcd2dec(payload[25]) : 0;
+  uint8_t d  = payload.size() > 26 ? bcd2dec(payload[26]) : 0;
+  uint8_t mo = payload.size() > 27 ? bcd2dec(payload[27]) : 0;
+  uint8_t y  = payload.size() > 28 ? bcd2dec(payload[28]) : 0;
 
   uint16_t tag_erg = read_u16_le(payload, 31);
   uint32_t gesamt  = read_u32_le(payload, 35);
+
+  ESP_LOGD(TAG_AQUA, "P[2]=%04X P[4]=%04X P[6]=%04X P[8]=%04X P[12]=%04X P[14]=%04X",
+         read_u16_le(payload,2), read_u16_le(payload,4), read_u16_le(payload,6),
+         read_u16_le(payload,8), read_u16_le(payload,12), read_u16_le(payload,14));
 
   // Publizieren
   r_.pub_aqua_ii_tsa(tsa);
