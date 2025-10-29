@@ -6,26 +6,6 @@ namespace systa_reader {
 
 static const char *const TAG_AQUA_II = "systa_reader.aqua_ii";
 
-static inline uint8_t bcd2dec(uint8_t v) { return uint8_t(((v >> 4) * 10) + (v & 0x0F)); }
-
-static inline uint16_t read_u16_le(const std::vector<uint8_t> &data, int pos) {
-  if (pos + 1 >= (int)data.size()) return 0;
-  return uint16_t(data[pos]) | (uint16_t(data[pos + 1]) << 8);
-}
-
-static inline int16_t read_i16_le(const std::vector<uint8_t> &data, int pos) {
-  uint16_t v = read_u16_le(data, pos);
-  return (v >= 0x8000) ? int16_t(v - 0x10000) : int16_t(v);
-}
-
-static inline uint32_t read_u32_le(const std::vector<uint8_t> &data, int pos) {
-  if (pos + 3 >= (int)data.size()) return 0;
-  return (uint32_t)data[pos] |
-         ((uint32_t)data[pos + 1] << 8) |
-         ((uint32_t)data[pos + 2] << 16) |
-         ((uint32_t)data[pos + 3] << 24);
-}
-
 const char *Aqua2Decoder::status_text(uint8_t raw) {
   switch (raw) {
     case 0:  return "Kein Fehler";
@@ -57,7 +37,7 @@ const char *Aqua2Decoder::status_text(uint8_t raw) {
 void Aqua2Decoder::on_fc_frame(const std::vector<uint8_t> &frame,
                                const std::vector<uint8_t> &payload,
                                const std::string &hex) {
-  // FC3E 24 01 Frames
+  // FC 3E 24 01
   if (frame.size() < 6 || frame[0] != 0xFC || frame[2] != 0x24 || frame[3] != 0x01)
     return;
 
@@ -66,31 +46,33 @@ void Aqua2Decoder::on_fc_frame(const std::vector<uint8_t> &frame,
   ESP_LOGV(TAG_AQUA_II, "AQUA-II len=%u, frame.size()=%u, payload.size()=%u",
            frame[1], (unsigned)frame.size(), (unsigned)payload.size());
 
-  // Alle Werte gemäß Tabelle (LSB,MSB)
-  float tsa = read_i16_le(payload, 2) / 10.0f;   // Kollektor
-  float tw  = read_i16_le(payload, 4) / 10.0f;   // Speicher
-  float tsv = read_i16_le(payload, 6) / 10.0f;   // Vorlauf
-  float tam = read_i16_le(payload, 8) / 10.0f;   // Außen
-  float tse = read_i16_le(payload, 12) / 10.0f;  // Rücklauf
-  float dfl = read_i16_le(payload, 14) / 10.0f;  // Durchfluss (0.1 l/min)
-  uint8_t pwm = payload.size() > 16 ? payload[16] : 0; // PWM Pumpe
+  // Werte (LE)
+  float tsa = Aqua2Decoder::read_i16_le(payload, 2)  / 10.0f;
+  float tw  = Aqua2Decoder::read_i16_le(payload, 4)  / 10.0f;
+  float tsv = Aqua2Decoder::read_i16_le(payload, 6)  / 10.0f;
+  float tam = Aqua2Decoder::read_i16_le(payload, 8)  / 10.0f;
+  float tse = Aqua2Decoder::read_i16_le(payload,12)  / 10.0f;
+  float dfl = Aqua2Decoder::read_i16_le(payload,14)  / 10.0f;
+  uint8_t pwm    = payload.size() > 16 ? payload[16] : 0;
   uint8_t status = payload.size() > 21 ? payload[21] : 0;
 
-  // Zeit/Datum (BCD-kodiert!)
-  uint8_t h  = payload.size() > 24 ? bcd2dec(payload[24]) : 0;
-  uint8_t m  = payload.size() > 25 ? bcd2dec(payload[25]) : 0;
-  uint8_t d  = payload.size() > 26 ? bcd2dec(payload[26]) : 0;
-  uint8_t mo = payload.size() > 27 ? bcd2dec(payload[27]) : 0;
-  uint8_t y  = payload.size() > 28 ? bcd2dec(payload[28]) : 0;
+  // Zeit/Datum (BCD)
+  uint8_t h  = payload.size() > 24 ? Aqua2Decoder::bcd2dec(payload[24]) : 0;
+  uint8_t m  = payload.size() > 25 ? Aqua2Decoder::bcd2dec(payload[25]) : 0;
+  uint8_t d  = payload.size() > 26 ? Aqua2Decoder::bcd2dec(payload[26]) : 0;
+  uint8_t mo = payload.size() > 27 ? Aqua2Decoder::bcd2dec(payload[27]) : 0;
+  uint8_t y  = payload.size() > 28 ? Aqua2Decoder::bcd2dec(payload[28]) : 0;
 
-  uint16_t tag_erg = read_u16_le(payload, 31);
-  uint32_t gesamt  = read_u32_le(payload, 35);
+  uint16_t tag_erg = Aqua2Decoder::read_u16_le(payload, 31);
+  uint32_t gesamt  = Aqua2Decoder::read_u32_le(payload, 35);
 
+  // Debug (optional)
   ESP_LOGD(TAG_AQUA_II, "P[2]=%04X P[4]=%04X P[6]=%04X P[8]=%04X P[12]=%04X P[14]=%04X",
-         read_u16_le(payload,2), read_u16_le(payload,4), read_u16_le(payload,6),
-         read_u16_le(payload,8), read_u16_le(payload,12), read_u16_le(payload,14));
+           Aqua2Decoder::read_u16_le(payload,2), Aqua2Decoder::read_u16_le(payload,4),
+           Aqua2Decoder::read_u16_le(payload,6), Aqua2Decoder::read_u16_le(payload,8),
+           Aqua2Decoder::read_u16_le(payload,12), Aqua2Decoder::read_u16_le(payload,14));
 
-  // Publizieren
+  // Publish numerisch
   r_.pub_aqua_ii_tsa(tsa);
   r_.pub_aqua_ii_twu(tw);
   r_.pub_aqua_ii_tsv(tsv);
@@ -102,6 +84,7 @@ void Aqua2Decoder::on_fc_frame(const std::vector<uint8_t> &frame,
   r_.pub_aqua_ii_ges(gesamt);
   r_.pub_aqua_ii_status_code(status);
 
+  // Publish Textsensoren (AQUA-**Slots** weiterverwenden)
   if (const char *t = status_text(status)) {
     r_.pub_aqua_status_text(t);
   } else {
