@@ -25,7 +25,7 @@ void CompactDecoder::on_fc_frame(const std::vector<uint8_t>& frame,
   snprintf(ts, sizeof(ts), "%02d.%02d %02d:%02d", day, month, hour, minute);
   r_.pub_compact_timestamp(ts);
 
-  uint8_t status = payload.size() > 24 ? payload[24] : 0; // Status (Byte)
+  uint8_t status = payload.size() > 20 ? payload[20] : 0; // Status (Byte)
 
   // Werte gemäß Vorlage
   float ta = u16(8) / 10.0f;
