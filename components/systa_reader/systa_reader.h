@@ -193,7 +193,7 @@ class SystaReader : public uart::UARTDevice, public Component {
   inline void pub_compact_two(float v){ if (compact_two_) compact_two_->publish_state(v); }
   inline void pub_compact_fa_tv(float v){ if (compact_fa_tv_) compact_fa_tv_->publish_state(v); }
   inline void pub_compact_fa_tr(float v){ if (compact_fa_tr_) compact_fa_tr_->publish_state(v); }
-  inline void pub_compact_ti(float v){ if (compact__ti_) compact_ti_->publish_state(v); }
+  inline void pub_compact_ti(float v){ if (compact_ti_) compact_ti_->publish_state(v); }
   inline void pub_compact_ti_s(float v){ if (compact_ti_s_) compact_ti_s_->publish_state(v); }
   inline void pub_compact_tv_s (float v){ if (compact_tv_s_)  compact_tv_s_->publish_state(v); }
   inline void pub_compact_two_s(float v){ if (compact_two_s_) compact_two_s_->publish_state(v); }
