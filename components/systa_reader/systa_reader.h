@@ -14,6 +14,7 @@ class AquaDecoder;
 class Aqua2Decoder;
 class ModulaDecoder;
 class EspressoDecoder;
+class CompactDecoder;
 class SystaReaderTextSink;  // forward
 
 class SystaReader : public uart::UARTDevice, public Component {
@@ -24,6 +25,7 @@ class SystaReader : public uart::UARTDevice, public Component {
   static constexpr uint32_t DEV_MODULA    = (1u << 2);
   static constexpr uint32_t DEV_ESPRESSO  = (1u << 3);
   static constexpr uint32_t DEV_SOLAR     = (1u << 4);
+  static constexpr uint32_t DEV_COMPACT     = (1u << 5);
   // reserve more bits for future devices:
   // static constexpr uint32_t DEV_FOO   = (1u << 4);
   // static constexpr uint32_t DEV_BAR   = (1u << 5);
@@ -52,6 +54,7 @@ class SystaReader : public uart::UARTDevice, public Component {
   friend class AquaDecoder;
   friend class Aqua2Decoder;
   friend class EspressoDecoder;
+  friend class CompactDecoder;
 
   // setters (werden von Subplatforms aufgerufen)
 
@@ -174,6 +177,28 @@ class SystaReader : public uart::UARTDevice, public Component {
   inline void pub_espresso_hk2_phk2(float v){ if (espresso_hk2_phk2_) espresso_hk2_phk2_->publish_state(v); }
   inline void pub_espresso_timestamp(const std::string &s){ if (espresso_timestamp_) espresso_timestamp_->publish_state(s); }
 
+  // COMPACT Setter
+  void set_compact_ta_sensor(sensor::Sensor *s) { compact_ta_ = s; }
+  void set_compact_two_sensor(sensor::Sensor *s) { compact_two_ = s; }
+  void set_compact_fa_tv_sensor(sensor::Sensor *s) { compact_fa_tv_ = s; }
+  void set_compact_fa_tr_sensor(sensor::Sensor *s) { compact_fa_tr_ = s; }
+  void set_compact_ti_sensor(sensor::Sensor *s) { compact_ti_ = s; }
+  void set_compact_ti_s_sensor(sensor::Sensor *s) { compact_ti_s_ = s; }
+  void set_compact_tv_s_sensor (sensor::Sensor *s) { compact_tv_s_  = s; }
+  void set_compact_two_s_sensor(sensor::Sensor *s) { compact_two_s_ = s; }
+  void set_compact_tzr_sensor(sensor::Sensor *s) { compact_tzr_ = s; }
+  void set_compact_timestamp_text_sensor(text_sensor::TextSensor *t) { compact_timestamp_ = t; }
+  // COMPACT: private Publisher
+  inline void pub_compact_ta(float v){ if (compact_ta_) compact_ta_->publish_state(v); }
+  inline void pub_compact_two(float v){ if (compact_two_) compact_two_->publish_state(v); }
+  inline void pub_compact_fa_tv(float v){ if (compact_fa_tv_) compact_fa_tv_->publish_state(v); }
+  inline void pub_compact_fa_tr(float v){ if (compact_fa_tr_) compact_fa_tr_->publish_state(v); }
+  inline void pub_compact_ti(float v){ if (compact__ti_) compact_ti_->publish_state(v); }
+  inline void pub_compact_ti_s(float v){ if (compact_ti_s_) compact_ti_s_->publish_state(v); }
+  inline void pub_compact_tv_s (float v){ if (compact_tv_s_)  compact_tv_s_->publish_state(v); }
+  inline void pub_compact_two_s(float v){ if (compact_two_s_) compact_two_s_->publish_state(v); }
+  inline void pub_compact_tzr(float v){ if (compact_tzr_) compact_tzr_->publish_state(v); }
+  inline void pub_compact_timestamp(const std::string &s){ if (compact_timestamp_) compact_timestamp_->publish_state(s); }
 
   // General setters
   bool log_invalid() const { return log_invalid_; }
@@ -294,6 +319,20 @@ class SystaReader : public uart::UARTDevice, public Component {
   sensor::Sensor *espresso_hk1_phk_{nullptr};
   sensor::Sensor *espresso_hk2_phk2_{nullptr};
   text_sensor::TextSensor *espresso_timestamp_{nullptr};
+
+  // decoder instances
+  CompactDecoder *compact_{nullptr};
+  // COMPACT sensor pointers
+  sensor::Sensor *compact_ta_{nullptr};
+  sensor::Sensor *compact_two_{nullptr};
+  sensor::Sensor *compact_fa_tv_{nullptr};
+  sensor::Sensor *compact_fa_tr_{nullptr};
+  sensor::Sensor *compact_ti_{nullptr};
+  sensor::Sensor *compact_ti_s_{nullptr};
+  sensor::Sensor *compact_tv_s_{nullptr};
+  sensor::Sensor *compact_two_s_{nullptr};
+  sensor::Sensor *compact_tzr_{nullptr};
+  text_sensor::TextSensor *compact_timestamp_{nullptr};
 };
 
 // Sink-Interface (bestehend)

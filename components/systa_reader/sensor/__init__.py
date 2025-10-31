@@ -18,6 +18,9 @@ KIND = cv.one_of(
     "espresso_ta","espresso_two","espresso_fa_tv","espresso_fa_tr","espresso_hk1_ti","espresso_hk2_ti2",
     "espresso_hk1_tv","espresso_hk2_tv2","espresso_hk1_tr","espresso_hk2_tr2","espresso_tpo",
     "espresso_tpu","espresso_tzr","espresso_pk","espresso_hk1_phk","espresso_hk2_phk2",
+    # COMPACT
+    "compact_ta","compact_two","compact_fa_tv","compact_fa_tr","compact_ti","compact_ti_s",
+    "compact_tv_s","compact_two_s","compact_tzr",
     lower=True
 )
 
@@ -75,3 +78,12 @@ async def to_code(config):
     elif k == "espresso_pk":        cg.add(parent.set_espresso_pk_sensor(s))
     elif k == "espresso_hk1_phk":   cg.add(parent.set_espresso_hk1_phk_sensor(s))
     elif k == "espresso_hk2_phk2":  cg.add(parent.set_espresso_hk2_phk2_sensor(s))
+    elif k == "compact_ta":        cg.add(parent.set_compact_ta_sensor(s))
+    elif k == "compact_two":       cg.add(parent.set_compact_two_sensor(s))
+    elif k == "compact_fa_tv":     cg.add(parent.set_compact_fa_tv_sensor(s))
+    elif k == "compact_fa_tr":     cg.add(parent.set_compact_fa_tr_sensor(s))
+    elif k == "compact_ti":        cg.add(parent.set_compact_ti_sensor(s))
+    elif k == "compact_ti_s":      cg.add(parent.set_compact_ti_s_sensor(s))
+    elif k == "compact_tv_s":      cg.add(parent.set_compact_tv_s_sensor(s))
+    elif k == "compact_two_s":     cg.add(parent.set_compact_two_s_sensor(s))
+    elif k == "compact_tzr":       cg.add(parent.set_compact_tzr_sensor(s))

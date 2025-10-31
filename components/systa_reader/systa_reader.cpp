@@ -3,6 +3,7 @@
 #include "aqua_ii.h"
 #include "modula.h"
 #include "espresso.h"
+#include "compact.h"
 #include "esphome/core/log.h"
 
 namespace esphome {
@@ -25,6 +26,7 @@ void SystaReader::setup() {
   if ((enabled_mask_ & DEV_AQUA_II)  && !aqua_ii_)  aqua_ii_  = new Aqua2Decoder(*this);
   if ((enabled_mask_ & DEV_MODULA)   && !modula_)   modula_   = new ModulaDecoder(*this);
   if ((enabled_mask_ & DEV_ESPRESSO) && !espresso_) espresso_ = new EspressoDecoder(*this);
+  if ((enabled_mask_ & DEV_COMPACT) && !compact_) compact_ = new CompactDecoder(*this);
   // future:
   // if ((enabled_mask_ & DEV_SOLAR) && !solar_) solar_ = new SolarDecoder(*this);
 }
@@ -277,6 +279,10 @@ void SystaReader::route_fc_frame_to_device_(const std::vector<uint8_t>& frame,
   // ESPRESSO: FC .. 0C 01  (shares signature with MODULA, both can receive)
   if ((enabled_mask_ & DEV_ESPRESSO) && f2 == 0x0C && f3 == 0x01 && espresso_) {
     espresso_->on_fc_frame(frame, payload, hex);
+  }
+  // COMPACT: FC .. 0D 01
+  if ((enabled_mask_ & DEV_COMPACT) && f2 == 0x0D && f3 == 0x01 && compact_) {
+    compact_->on_fc_frame(frame, payload, hex);
   }
   // (future devices: add more blocks like above)
 }

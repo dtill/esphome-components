@@ -14,7 +14,7 @@ CONF_KIND  = "kind"     # field-only
 MODE = cv.one_of("raw", "field", lower=True)
 
 # allow single value or list of values
-_FILTER_ONE = cv.one_of("all", "aqua", "aqua_ii", "modula", "espresso", lower=True)
+_FILTER_ONE = cv.one_of("all", "aqua", "aqua_ii", "modula", "espresso", "compact"lower=True)
 FILTER = cv.Any(_FILTER_ONE, cv.All(cv.ensure_list(_FILTER_ONE), cv.Length(min=1)))
 
 FIELD_KIND = cv.one_of(
@@ -22,6 +22,7 @@ FIELD_KIND = cv.one_of(
     "aqua_ii_status_text", "aqua_ii_timestamp",
     "modula_timestamp",
     "espresso_timestamp",
+    "compact_timestamp",
     lower=True
 )
 
@@ -78,4 +79,6 @@ async def to_code(config):
             cg.add(parent.set_modula_timestamp_text_sensor(var))
         elif k == "espresso_timestamp":
             cg.add(parent.set_espresso_timestamp_text_sensor(var))
+        elif k == "compact_timestamp":
+            cg.add(parent.set_compact_timestamp_text_sensor(var))
 
