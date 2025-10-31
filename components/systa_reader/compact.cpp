@@ -25,6 +25,9 @@ void CompactDecoder::on_fc_frame(const std::vector<uint8_t>& frame,
   snprintf(ts, sizeof(ts), "%02d.%02d %02d:%02d", day, month, hour, minute);
   r_.pub_compact_timestamp(ts);
 
+  uint8_t status_raw  = payload[24];
+  uint8_t status_code = uint8_t((status_raw/10) * 16 + (status_raw%10));
+
   // Werte gemäß Vorlage
   float ta = u16(8) / 10.0f;
   float two = u16(10) / 10.0f;
@@ -34,7 +37,6 @@ void CompactDecoder::on_fc_frame(const std::vector<uint8_t>& frame,
   float ti_s = u16(18) / 10.0f;
   float tv_s  = u16(20) / 10.0f;
   float two_s = u16(22) / 10.0f;
-  float tzr = u16(24) / 10.0f;
 
   r_.pub_compact_ta(ta);
   r_.pub_compact_two(two);
@@ -44,10 +46,10 @@ void CompactDecoder::on_fc_frame(const std::vector<uint8_t>& frame,
   r_.pub_compact_ti_s(ti_s);
   r_.pub_compact_tv_s (tv_s);
   r_.pub_compact_two_s (two_s);
-  r_.pub_compact_tzr(tzr);
+   r_.pub_compact_status_code(status_code);
 
-  ESP_LOGI(TAG_ESP, "COMPACT: TA=%.1f TWO=%.1f FA TV=%.1f FA TR=%.1f TI=%.1f TI SOLL=%.1f TV SOLL=%.1f TWO SOLL=%.1f TZR=%.1f",
-           ta,two,fa_tv,fa_tr,ti,ti_s,tv_s,two_s,tzr);
+  ESP_LOGI(TAG_ESP, "COMPACT: TA=%.1f TWO=%.1f FA TV=%.1f FA TR=%.1f TI=%.1f TI SOLL=%.1f TV SOLL=%.1f TWO SOLL=%.1f STATUS=%02X",
+           ta,two,fa_tv,fa_tr,ti,ti_s,tv_s,two_s,status_code);
 }
 
 }  // namespace systa_reader

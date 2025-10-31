@@ -20,7 +20,7 @@ KIND = cv.one_of(
     "espresso_tpu","espresso_tzr","espresso_pk","espresso_hk1_phk","espresso_hk2_phk2",
     # COMPACT
     "compact_ta","compact_two","compact_fa_tv","compact_fa_tr","compact_ti","compact_ti_s",
-    "compact_tv_s","compact_two_s","compact_tzr",
+    "compact_tv_s","compact_two_s","compact_status_code",
     lower=True
 )
 
@@ -86,4 +86,4 @@ async def to_code(config):
     elif k == "compact_ti_s":      cg.add(parent.set_compact_ti_s_sensor(s))
     elif k == "compact_tv_s":      cg.add(parent.set_compact_tv_s_sensor(s))
     elif k == "compact_two_s":     cg.add(parent.set_compact_two_s_sensor(s))
-    elif k == "compact_tzr":       cg.add(parent.set_compact_tzr_sensor(s))
+    elif k == "compact_status_code":cg.add(parent.set_compact_status_code_sensor(s))

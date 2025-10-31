@@ -453,12 +453,9 @@ sensor:
     state_class: measurement
   - platform: systa_reader
     systa_reader_id: systa_bus_01
-    kind: compact_tzr
-    name: "COMPACT TZR"
-    unit_of_measurement: "°C"
-    accuracy_decimals: 1
-    device_class: temperature
-    state_class: measurement
+    kind: compact_status_code
+    name: "COMPACT Status Code"
+    accuracy_decimals: 0
 
 text_sensor:
   # AQUA text sensors:

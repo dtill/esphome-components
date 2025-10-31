@@ -186,7 +186,7 @@ class SystaReader : public uart::UARTDevice, public Component {
   void set_compact_ti_s_sensor(sensor::Sensor *s) { compact_ti_s_ = s; }
   void set_compact_tv_s_sensor (sensor::Sensor *s) { compact_tv_s_  = s; }
   void set_compact_two_s_sensor(sensor::Sensor *s) { compact_two_s_ = s; }
-  void set_compact_tzr_sensor(sensor::Sensor *s) { compact_tzr_ = s; }
+  void set_compact_status_code_sensor(sensor::Sensor *s) { compact_status_code_ = s; }
   void set_compact_timestamp_text_sensor(text_sensor::TextSensor *t) { compact_timestamp_ = t; }
   // COMPACT: private Publisher
   inline void pub_compact_ta(float v){ if (compact_ta_) compact_ta_->publish_state(v); }
@@ -197,7 +197,7 @@ class SystaReader : public uart::UARTDevice, public Component {
   inline void pub_compact_ti_s(float v){ if (compact_ti_s_) compact_ti_s_->publish_state(v); }
   inline void pub_compact_tv_s (float v){ if (compact_tv_s_)  compact_tv_s_->publish_state(v); }
   inline void pub_compact_two_s(float v){ if (compact_two_s_) compact_two_s_->publish_state(v); }
-  inline void pub_compact_tzr(float v){ if (compact_tzr_) compact_tzr_->publish_state(v); }
+   inline void pub_compact_status_code(float v)   { if (compact_status_code_) compact_status_code_->publish_state(v); }
   inline void pub_compact_timestamp(const std::string &s){ if (compact_timestamp_) compact_timestamp_->publish_state(s); }
 
   // General setters
@@ -331,7 +331,7 @@ class SystaReader : public uart::UARTDevice, public Component {
   sensor::Sensor *compact_ti_s_{nullptr};
   sensor::Sensor *compact_tv_s_{nullptr};
   sensor::Sensor *compact_two_s_{nullptr};
-  sensor::Sensor *compact_tzr_{nullptr};
+  sensor::Sensor *compact_status_code_{nullptr};
   text_sensor::TextSensor *compact_timestamp_{nullptr};
 };
 
