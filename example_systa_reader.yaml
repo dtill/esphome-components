@@ -20,7 +20,7 @@ uart:
 systa_reader:                             # can be multiple systa_reader but only one per uart.
   - id: systa_bus_01
     uart_id: uart_bus
-    systa_device: [aqua, modula, espresso]  # call one or more devices [aqua, aqua_ii, modula, espresso]
+    systa_device: [aqua, modula, espresso]  # call one or more devices [aqua, aqua_ii, modula, espresso, compact]
     log_invalid: true                     # logs invalid frames for debugging purpose
 
 sensor:

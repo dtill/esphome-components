@@ -26,15 +26,15 @@ void CompactDecoder::on_fc_frame(const std::vector<uint8_t>& frame,
   r_.pub_compact_timestamp(ts);
 
   // Werte gemäß Vorlage
-  float ta = u16(4) / 10.0f;
-  float two = u16(6) / 10.0f;
-  float fa_tv = u16(8) / 10.0f;
-  float fa_tr = u16(10) / 10.0f;
-  float ti = u16(12) / 10.0f;
-  float ti_s = u16(14) / 10.0f;
-  float tv_s  = u16(16) / 10.0f;
-  float two_s = u16(18) / 10.0f;
-  float tzr = u16(20) / 10.0f;
+  float ta = u16(8) / 10.0f;
+  float two = u16(10) / 10.0f;
+  float fa_tv = u16(12) / 10.0f;
+  float fa_tr = u16(14) / 10.0f;
+  float ti = u16(16) / 10.0f;
+  float ti_s = u16(18) / 10.0f;
+  float tv_s  = u16(20) / 10.0f;
+  float two_s = u16(24) / 10.0f;
+  float tzr = u16(26) / 10.0f;
 
   r_.pub_compact_ta(ta);
   r_.pub_compact_two(two);

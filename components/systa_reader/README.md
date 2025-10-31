@@ -31,7 +31,7 @@ uart:
 systa_reader:                             # can be multiple systa_reader but only one per uart.
   - id: systa_bus_01
     uart_id: uart_bus
-    systa_device: [aqua, modula, espresso]  # call one or more devices [aqua, aqua_ii, modula, espresso]
+    systa_device: [aqua, modula, espresso]  # call one or more devices [aqua, aqua_ii, modula, espresso, compact]
     log_invalid: true                     # logs invalid frames for debugging purpose
 
 sensor:
@@ -40,6 +40,7 @@ sensor:
     systa_reader_id: systa_bus_01
     kind: aqua_tsa
     name: "AQUA TSA (Kollektor)"
+    unit_of_measurement: "°C"
     accuracy_decimals: 1
     device_class: temperature
     state_class: measurement
@@ -102,6 +103,7 @@ sensor:
     systa_reader_id: systa_bus_01
     kind: aqua_ii_tsa
     name: "AQUA-II TSA1 (Kollektor)"
+    unit_of_measurement: "°C"
     accuracy_decimals: 1
     device_class: temperature
     state_class: measurement
@@ -395,6 +397,80 @@ sensor:
     device_class: power_factor
     state_class: measurement
 
+  # COPMACT sensors
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: compact_ta
+    name: "COMPACT TA"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: compact_two
+    name: "COMPACT TWO"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: compact_fa_tv
+    name: "COMPACT FA TV"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: compact_fa_tr
+    name: "COMPACT FA TR"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: compact_ti
+    name: "COMPACT TI"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: compact_ti_s
+    name: "COMPACT TI SOLL"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: compact_tv_s
+    name: "COMPACT TV SOLL"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: compact_two_s
+    name: "COMPACT TWO SOLL"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: compact_tzr
+    name: "COMPACT TZR"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
+
 text_sensor:
   # AQUA text sensors:
   - platform: systa_reader
@@ -438,6 +514,13 @@ text_sensor:
     mode: field
     kind: espresso_timestamp
     name: "Espresso Zeitstempel"
+
+  # COMPACT text sensors:
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    mode: field
+    kind: compact_timestamp
+    name: "Compact Zeitstempel"
 
   # General Systa BUS Frames in RAW HEX format
   # (use with care! only for debug purpose, because big text data chunks filling
