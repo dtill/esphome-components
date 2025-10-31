@@ -33,8 +33,8 @@ void CompactDecoder::on_fc_frame(const std::vector<uint8_t>& frame,
   float ti = u16(16) / 10.0f;
   float ti_s = u16(18) / 10.0f;
   float tv_s  = u16(20) / 10.0f;
-  float two_s = u16(24) / 10.0f;
-  float tzr = u16(26) / 10.0f;
+  float two_s = u16(22) / 10.0f;
+  float tzr = u16(24) / 10.0f;
 
   r_.pub_compact_ta(ta);
   r_.pub_compact_two(two);
