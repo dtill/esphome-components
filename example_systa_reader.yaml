@@ -508,7 +508,7 @@ text_sensor:
   - platform: systa_reader
     systa_reader_id: systa_bus_01
     mode: field
-    kind: compüact_timestamp
+    kind: compact_timestamp
     name: "Compact Zeitstempel"
 
   # General Systa BUS Frames in RAW HEX format
