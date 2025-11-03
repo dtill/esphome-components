@@ -93,6 +93,7 @@ class SystaReader : public uart::UARTDevice, public Component {
   void set_aqua_ii_tse_sensor(sensor::Sensor *s)         { aqua_ii_tse_ = s; }
   void set_aqua_ii_dfl_sensor(sensor::Sensor *s)         { aqua_ii_dfl_ = s; }
   void set_aqua_ii_pwm_sensor(sensor::Sensor *s)         { aqua_ii_pwm_ = s; }
+  void set_aqua_ii_koll_lstg_sensor(sensor::Sensor *s)   { aqua_ii_koll_lstg_ = s; }
   void set_aqua_ii_tag_sensor(sensor::Sensor *s)         { aqua_ii_tag_ = s; }
   void set_aqua_ii_ges_sensor(sensor::Sensor *s)         { aqua_ii_ges_ = s; }
   void set_aqua_ii_status_code_sensor(sensor::Sensor *s) { aqua_ii_status_code_ = s; }
@@ -107,6 +108,7 @@ class SystaReader : public uart::UARTDevice, public Component {
   inline void pub_aqua_ii_tse(float v)           { if (aqua_ii_tse_) aqua_ii_tse_->publish_state(v); }
   inline void pub_aqua_ii_dfl(float v)           { if (aqua_ii_dfl_) aqua_ii_dfl_->publish_state(v); }
   inline void pub_aqua_ii_pwm(float v)           { if (aqua_ii_pwm_) aqua_ii_pwm_->publish_state(v); }
+  inline void pub_aqua_ii_koll_lstg(float v)           { if (aqua_ii_koll_lstg_) aqua_ii_koll_lstg_->publish_state(v); }
   inline void pub_aqua_ii_tag(float v)           { if (aqua_ii_tag_) aqua_ii_tag_->publish_state(v); }
   inline void pub_aqua_ii_ges(float v)           { if (aqua_ii_ges_) aqua_ii_ges_->publish_state(v); }
   inline void pub_aqua_ii_status_code(float v)   { if (aqua_ii_status_code_) aqua_ii_status_code_->publish_state(v); }
@@ -277,6 +279,7 @@ class SystaReader : public uart::UARTDevice, public Component {
   sensor::Sensor *aqua_ii_tse_{nullptr};
   sensor::Sensor *aqua_ii_dfl_{nullptr};
   sensor::Sensor *aqua_ii_pwm_{nullptr};
+  sensor::Sensor *aqua_ii_koll_lstg_{nullptr};
   sensor::Sensor *aqua_ii_tag_{nullptr};
   sensor::Sensor *aqua_ii_ges_{nullptr};
   sensor::Sensor *aqua_ii_status_code_{nullptr};

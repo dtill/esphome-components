@@ -146,6 +146,13 @@ sensor:
     state_class: measurement
   - platform: systa_reader
     systa_reader_id: systa_bus_01
+    kind: aqua_ii_koll_lstg
+    name: "AQUA-II Kollektorleistung"
+    unit_of_measurement: "kW"
+    accuracy_decimals: 0
+    device_class: energy
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
     kind: aqua_ii_tag
     name: "AQUA-II Tagesgewinn"
     unit_of_measurement: "kWh"
