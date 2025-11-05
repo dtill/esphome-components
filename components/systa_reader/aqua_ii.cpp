@@ -78,9 +78,11 @@ void Aqua2Decoder::on_fc_frame(const std::vector<uint8_t> &frame,
   uint8_t mo = payload.size() > 25 ? payload[25] : 0; // Monat
   uint8_t y  = payload.size() > 26 ? payload[26] : 0; // Jahr (00..99)
 
-  uint16_t koll_lstg = read_u16_le(payload, 29);       // Kollektorleistung
-  uint16_t tag_erg = read_u16_le(payload, 29);       // Tagesleistung
-  uint32_t gesamt  = read_u32_le(payload, 33);       // Gesamtleistung
+  uint16_t koll_lstg = read_u16_le(payload, 29);        // Kollektorleistung
+  uint16_t tag_erg = read_u16_le(payload, 29);          // Tagesleistung
+  uint32_t gesamt  = read_u32_le(payload, 33);          // Gesamtleistung
+  float tsa2  = read_i16_le(payload,  48) / 10.0f;      // TSA2 (Kollektor2) // evtl. nicht überall so
+  float tam2  = read_i16_le(payload,  50) / 10.0f;      // TAM2 (Aussentemp2)// evtl. nicht überall so
 
   // ---- Publish
   r_.pub_aqua_ii_tsa(tsa);
@@ -93,6 +95,8 @@ void Aqua2Decoder::on_fc_frame(const std::vector<uint8_t> &frame,
   r_.pub_aqua_ii_koll_lstg(koll_lstg);
   r_.pub_aqua_ii_tag(tag_erg);
   r_.pub_aqua_ii_ges(gesamt);
+  r_.pub_aqua_ii_ges(tsa2);
+  r_.pub_aqua_ii_ges(tam2);
   r_.pub_aqua_ii_status_code(status);
 
   if (const char *t = status_text(status)) {
@@ -108,8 +112,8 @@ void Aqua2Decoder::on_fc_frame(const std::vector<uint8_t> &frame,
   r_.pub_aqua_ii_timestamp(ts);
 
   ESP_LOGI(TAG_AQUA_II,
-           "AQUA-II: TSA=%.1f TW=%.1f TSV=%.1f TAM=%.1f TSE=%.1f DFL=%.1f PWM=%u LSTG=%u TAG=%u GES=%u Status=%02X @ %02u.%02u.%02u %02u:%02u",
-           tsa, tw, tsv, tam, tse, dfl, pwm, koll_lstg, tag_erg, gesamt, status, d, mo, y, h, m);
+           "AQUA-II: TSA=%.1f TSA2=%.1f TAM2=%.1f TW=%.1f TSV=%.1f TAM=%.1f TSE=%.1f DFL=%.1f PWM=%u LSTG=%u TAG=%u GES=%u Status=%02X @ %02u.%02u.%02u %02u:%02u",
+           tsa, tsa2, tam2, tw, tsv, tam, tse, dfl, pwm, koll_lstg, tag_erg, gesamt, status, d, mo, y, h, m);
 }
 
 }  // namespace systa_reader

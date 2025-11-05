@@ -10,7 +10,8 @@ KIND = cv.one_of(
     # AQUA
     "aqua_tsa","aqua_tse","aqua_twu","aqua_tw2","aqua_sol","aqua_tag","aqua_gesamt","aqua_status_code",
     # AQUA_II
-    "aqua_ii_tsa","aqua_ii_twu","aqua_ii_tsv","aqua_ii_tam","aqua_ii_tse","aqua_ii_dfl","aqua_ii_pwm", "aqua_ii_koll_lstg", "aqua_ii_tag","aqua_ii_gesamt","aqua_ii_status_code",
+    "aqua_ii_tsa","aqua_ii_twu","aqua_ii_tsv","aqua_ii_tam","aqua_ii_tse","aqua_ii_dfl","aqua_ii_pwm",
+    "aqua_ii_koll_lstg", "aqua_ii_tag","aqua_ii_gesamt", "aqua_ii_tsa2", "aqua_ii_tam2", "aqua_ii_status_code",
     # MODULA
     "modula_ta","modula_two","modula_tbv","modula_tbr","modula_tv","modula_tv2",
     "modula_tr","modula_tr2","modula_tpo","modula_tpu","modula_tzr",
@@ -51,6 +52,8 @@ async def to_code(config):
     elif k == "aqua_ii_koll_lstg":  cg.add(parent.set_aqua_ii_koll_lstg_sensor(s))
     elif k == "aqua_ii_tag":        cg.add(parent.set_aqua_ii_tag_sensor(s))
     elif k == "aqua_ii_gesamt":     cg.add(parent.set_aqua_ii_ges_sensor(s))
+    elif k == "aqua_ii_tsa2":       cg.add(parent.set_aqua_ii_tsa2_sensor(s))
+    elif k == "aqua_ii_tam2":       cg.add(parent.set_aqua_ii_tam2_sensor(s))
     elif k == "aqua_ii_status_code":cg.add(parent.set_aqua_ii_status_code_sensor(s))
     elif k == "modula_ta":          cg.add(parent.set_modula_ta_sensor(s))
     elif k == "modula_two":         cg.add(parent.set_modula_two_sensor(s))

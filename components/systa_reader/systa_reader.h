@@ -96,6 +96,8 @@ class SystaReader : public uart::UARTDevice, public Component {
   void set_aqua_ii_koll_lstg_sensor(sensor::Sensor *s)   { aqua_ii_koll_lstg_ = s; }
   void set_aqua_ii_tag_sensor(sensor::Sensor *s)         { aqua_ii_tag_ = s; }
   void set_aqua_ii_ges_sensor(sensor::Sensor *s)         { aqua_ii_ges_ = s; }
+  void set_aqua_ii_tsa2_sensor(sensor::Sensor *s)         { aqua_ii_tsa2_ = s; }
+  void set_aqua_ii_tam2_sensor(sensor::Sensor *s)         { aqua_ii_tam2_ = s; }
   void set_aqua_ii_status_code_sensor(sensor::Sensor *s) { aqua_ii_status_code_ = s; }
   // AQUA_II text
   void set_aqua_ii_status_text_sensor(text_sensor::TextSensor *t) { aqua_ii_status_text_ = t; }
@@ -111,6 +113,8 @@ class SystaReader : public uart::UARTDevice, public Component {
   inline void pub_aqua_ii_koll_lstg(float v)           { if (aqua_ii_koll_lstg_) aqua_ii_koll_lstg_->publish_state(v); }
   inline void pub_aqua_ii_tag(float v)           { if (aqua_ii_tag_) aqua_ii_tag_->publish_state(v); }
   inline void pub_aqua_ii_ges(float v)           { if (aqua_ii_ges_) aqua_ii_ges_->publish_state(v); }
+  inline void pub_aqua_ii_tsa2(float v)           { if (aqua_ii_tsa2_) aqua_ii_tsa2_->publish_state(v); }
+  inline void pub_aqua_ii_tam2(float v)           { if (aqua_ii_tam2_) aqua_ii_tam2_->publish_state(v); }
   inline void pub_aqua_ii_status_code(float v)   { if (aqua_ii_status_code_) aqua_ii_status_code_->publish_state(v); }
   inline void pub_aqua_ii_status_text(const std::string &s) { if (aqua_ii_status_text_) aqua_ii_status_text_->publish_state(s); }
   inline void pub_aqua_ii_timestamp(const std::string &s)   { if (aqua_ii_timestamp_)   aqua_ii_timestamp_->publish_state(s); }
@@ -282,6 +286,8 @@ class SystaReader : public uart::UARTDevice, public Component {
   sensor::Sensor *aqua_ii_koll_lstg_{nullptr};
   sensor::Sensor *aqua_ii_tag_{nullptr};
   sensor::Sensor *aqua_ii_ges_{nullptr};
+  sensor::Sensor *aqua_ii_tsa2_{nullptr};
+  sensor::Sensor *aqua_ii_tam2_{nullptr};
   sensor::Sensor *aqua_ii_status_code_{nullptr};
   text_sensor::TextSensor *aqua_ii_status_text_{nullptr};
   text_sensor::TextSensor *aqua_ii_timestamp_{nullptr};
