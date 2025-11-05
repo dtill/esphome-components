@@ -109,6 +109,14 @@ sensor:
     state_class: measurement
   - platform: systa_reader
     systa_reader_id: systa_bus_01
+    kind: aqua_ii_tsa2
+    name: "AQUA-II TSA2 (Kollektor2)"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
     kind: aqua_ii_twu
     name: "AQUA-II TWU (Speicher Unten)"
     unit_of_measurement: "°C"
@@ -127,6 +135,14 @@ sensor:
     systa_reader_id: systa_bus_01
     kind: aqua_ii_tam
     name: "AQUA-II TAM (Außen)"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: aqua_ii_tam2
+    name: "AQUA-II TAM2 (Außentemp2)"
     unit_of_measurement: "°C"
     accuracy_decimals: 1
     device_class: temperature
@@ -155,6 +171,13 @@ sensor:
     accuracy_decimals: 0
     device_class: power_factor
     state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: aqua_ii_koll_lstg
+    name: "AQUA-II Kollektorleistung"
+    unit_of_measurement: "kW"
+    accuracy_decimals: 0
+    device_class: energy
   - platform: systa_reader
     systa_reader_id: systa_bus_01
     kind: aqua_ii_tag
