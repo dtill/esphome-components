@@ -8,6 +8,21 @@ static const char *const TAG_AQUA_II = "systa_reader.aqua_ii";
 
 const char *Aqua2Decoder::status_text(uint8_t raw) {
   switch (raw) {
+    case 0:  return "Warten auf Sonne";
+    case 1:  return "Frostschutz";
+    case 2:  return "Anschieben";
+    case 3:  return "Einschaltverzögerung";
+    case 4:  return "Einspeisen";
+    case 5:  return "Speicher voll";
+    case 6:  return "Kollektor überhitzt";
+    case 7:  return "Manuell (TEST, HAND, AUS)";
+    case 8:  return "Messung";
+    case 9:  return "Störabschaltung";
+    default: return nullptr;
+  }
+}
+const char *Aqua2Decoder::status_stoer_text(uint8_t raw) {
+  switch (raw) {
     case 0:  return "Kein Fehler";
     case 1:  return "Durchfluss im Solarkreis blockiert oder Pumpe defekt";
     case 2:  return "Luft in der Anlage";

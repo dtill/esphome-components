@@ -34,6 +34,7 @@ class Aqua2Decoder {
   }
 
   static const char *status_text(uint8_t raw);
+  static const char *status_stoer_text(uint8_t raw);
 
   SystaReader &r_;
 };
