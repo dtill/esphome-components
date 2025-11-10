@@ -186,7 +186,7 @@ sensor:
       const float dfl = id(aqua_durchfluss).state;  // l/min
       const float tsv = id(aqua_tsv).state;         // °C
       const float tse = id(aqua_tse).state;         // °C
-      if (isnan(dfl) || isnan(tsv) || isnan(tse)) return NAN;
+      if (isnan(dfl) || isnan(tsv) || isnan(tse)) return 0.0f;
       const float deltaT = tsv - tse;               // K
       const float power_kW = (dfl / 60.0f) * 1.0f * 4.18f * deltaT;
       return power_kW < 0.0f ? 0.0f : power_kW;
