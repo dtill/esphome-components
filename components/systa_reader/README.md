@@ -127,6 +127,7 @@ sensor:
     systa_reader_id: systa_bus_01
     kind: aqua_ii_tsv
     name: "AQUA-II TSV (Solarvorlauf)"
+    id: aqua_ii_tsv
     unit_of_measurement: "°C"
     accuracy_decimals: 1
     device_class: temperature
@@ -151,6 +152,7 @@ sensor:
     systa_reader_id: systa_bus_01
     kind: aqua_ii_tse
     name: "AQUA-II TSE (Solarrücklauf)"
+    id: aqua_ii_tse
     unit_of_measurement: "°C"
     accuracy_decimals: 1
     device_class: temperature
@@ -159,6 +161,7 @@ sensor:
     systa_reader_id: systa_bus_01
     kind: aqua_ii_dfl
     name: "AQUA-II Durchfluss"
+    id: aqua_ii_dfl
     unit_of_measurement: "l/min"
     accuracy_decimals: 1
     device_class: volume_flow_rate
@@ -171,13 +174,6 @@ sensor:
     accuracy_decimals: 0
     device_class: power_factor
     state_class: measurement
-#  - platform: systa_reader
-#    systa_reader_id: systa_bus_01
-#    kind: aqua_ii_koll_lstg
-#    name: "AQUA-II Kollektorleistung"
-#    unit_of_measurement: "kW"
-#    accuracy_decimals: 0
-#    device_class: energy
   - platform: template
     name: "AQUA-II Kollektorleistung (berechnet)"
     id: aqua_ii_kollektorleistung_calculated
@@ -198,6 +194,7 @@ sensor:
     name: "AQUA-II Tagesgewinn (berechnet)"
     id: aqua_ii_tagesgewinn_calculated
     sensor: aqua_ii_kollektorleistung_calculated
+    time_unit: h
     unit_of_measurement: "kWh"
     accuracy_decimals: 2
     device_class: energy
