@@ -19,6 +19,17 @@ external_components:
     components: [systa_reader]
     refresh: 0s
 
+time:
+  - platform: homeassistant
+    id: homeassistant_time
+    on_time:
+      # Every Day at specified hour
+      - seconds: 0
+        minutes: 0
+        hours: 0
+        then:
+          - sensor.integration.reset: aqua_ii_tagesgewinn_calculated #Reset power integrator
+
 uart:
   id: uart_bus
   tx_pin: GPIO1
@@ -194,11 +205,13 @@ sensor:
     name: "AQUA-II Tagesgewinn (berechnet)"
     id: aqua_ii_tagesgewinn_calculated
     sensor: aqua_ii_kollektorleistung_calculated
+    integration_method: left
     time_unit: h
     unit_of_measurement: "kWh"
     accuracy_decimals: 2
     device_class: energy
     state_class: total_increasing
+    restore: false
   - platform: systa_reader
     systa_reader_id: systa_bus_01
     kind: aqua_ii_tag
