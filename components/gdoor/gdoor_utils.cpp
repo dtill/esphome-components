@@ -16,46 +16,44 @@
  */
 #include "gdoor_utils.h"
 
+#ifndef APB_CLK_FREQ
+// Fallback for ESP32 APB clock frequency (80 MHz) if not defined by the SDK.
+#define APB_CLK_FREQ 80000000U
+#endif
+
 namespace GDOOR_UTILS {
+
     uint8_t crc(uint8_t *words, uint16_t len) {
         uint8_t crc = 0;
-        for(uint16_t i=0; i<len; i++) {//iterate over all words
-            crc = crc + words[i];
+        // Simple checksum: sum of all bytes
+        for (uint16_t i = 0; i < len; i++) {
+            crc = static_cast<uint8_t>(crc + words[i]);
         }
         return crc;
     }
 
-    uint8_t parity_odd(uint8_t word)
-    {
+    uint8_t parity_odd(uint8_t word) {
         uint8_t ones = 0;
-
-        while(word != 0) {
+        // Count the number of set bits (Hamming weight)
+        while (word != 0) {
             ones++;
-            word &= (uint8_t)(word-1);
+            word = static_cast<uint8_t>(word & (word - 1));
         }
-
-        /* if ones is odd, least significant bit will be 1 */
-        return ones &0x01;
-    }
-
-    size_t print_json_string(Print& p, const char *keyname, const char *value) {
-        size_t r = 0;
-        r+= p.print("\"");
-        r+= p.print(keyname);
-        r+= p.print("\": \"");
-        r+= p.print(value);
-        r+= p.print("\"");
-        return r;
+        // If the number of set bits is odd, least significant bit is 1
+        return static_cast<uint8_t>(ones & 0x01);
     }
 
     uint16_t divider(uint32_t frequency) {
         uint16_t divider = 0;
         if (frequency > 0) {
-            divider = (uint16_t)(APB_CLK_FREQ / frequency);
+            // Calculate divider for the given frequency based on APB clock
+            divider = static_cast<uint16_t>(APB_CLK_FREQ / frequency);
         }
+        // Limit divider to the valid range for 16-bit hardware
         if (divider < 2 || divider > 65535) {
             divider = 0;
         }
         return divider;
     }
-}
+
+}  // namespace GDOOR_UTILS
