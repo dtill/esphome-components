@@ -22,71 +22,117 @@
 #include "defines.h"
 #include "gdoor_utils.h"
 
-class GDOOR_DATA : public Printable { // Class/Struct to collect bus related infos
-    public:
-        uint16_t len;
-        uint8_t data[MAX_WORDLEN];
-        uint16_t raw[MAX_WORDLEN*9];
-        uint8_t valid;
+/**
+ * @brief Container for low-level bus data.
+ */
+class GDOOR_DATA {
+  public:
+    uint16_t len = 0;
+    uint8_t  data[MAX_WORDLEN];
+    uint16_t raw[MAX_WORDLEN * 9];
+    uint8_t  valid = 0;
 
-        boolean parse(uint16_t *counts, uint16_t len);
+    /**
+     * @brief Parse incoming pulse counts into bus data.
+     * @return true if parsing was successful, false otherwise.
+     */
+    bool parse(uint16_t *counts, uint16_t len);
 
-        virtual size_t printTo(Print& p) const {
-            size_t r = 0;
+    /**
+     * @brief Append JSON representation to the given string.
+     *
+     * Example output fragment:
+     *   "busdata": "A1B2...", "raw": ["0x...", ...], "valid": true
+     *
+     * @param out String to append JSON to.
+     * @return Number of characters appended.
+     */
+    std::size_t to_json(std::string &out) const {
+        std::size_t r = 0;
 
-            // Json compatible output
-            r+= GDOOR_UTILS::print_json_hexstring<uint8_t>(p, "busdata", data, len);
-            r+= p.print(", ");
+        // "busdata": "..."
+        r += GDOOR_UTILS::print_json_hexstring<uint8_t>(out, "busdata", data, len);
+        out += ", ";
+        r += 2;
 
-            r+= GDOOR_UTILS::print_json_hexarray<uint16_t>(p, "raw", raw, len*9);
-            r+= p.print(", ");
+        // "raw": ["0x...", ...]
+        r += GDOOR_UTILS::print_json_hexarray<uint16_t>(out, "raw", raw, len * 9);
+        out += ", ";
+        r += 2;
 
-            r+= GDOOR_UTILS::print_json_bool<uint8_t>(p, "valid", valid);
+        // "valid": true / false
+        r += GDOOR_UTILS::print_json_bool<uint8_t>(out, "valid", valid);
 
-            return r;
-       }
+        return r;
+    }
 };
 
-class GDOOR_DATA_PROTOCOL : public Printable { // Class/Struct to collect bus high level protocol data
-    public:
-        GDOOR_DATA *raw;
-        const char *type;
-        const char *action;
-        uint8_t parameters[2];
-        uint8_t source[3];
-        uint8_t destination[3];
+/**
+ * @brief Container for high-level decoded protocol information.
+ */
+class GDOOR_DATA_PROTOCOL {
+  public:
+    GDOOR_DATA *raw = nullptr;
+    const char *type = nullptr;
+    const char *action = nullptr;
+    uint8_t parameters[2]   = {0, 0};
+    uint8_t source[3]       = {0, 0, 0};
+    uint8_t destination[3]  = {0, 0, 0};
 
-        GDOOR_DATA_PROTOCOL(GDOOR_DATA* data, bool idle = false);
+    GDOOR_DATA_PROTOCOL(GDOOR_DATA *data, bool idle = false);
 
-        virtual size_t printTo(Print& p) const {
-            size_t r = 0;
-            static uint32_t cnt = 0;
+    /**
+     * @brief Append JSON representation to the given string.
+     *
+     * Example fields:
+     *   "action", "parameters", "source", "destination", "type", "busdata", "event_id"
+     *
+     * @param out String to append JSON to.
+     * @return Number of characters appended.
+     */
+    std::size_t to_json(std::string &out) const {
+        std::size_t r = 0;
+        static uint32_t cnt = 0;
 
-            // Json compatible output
-            r+= GDOOR_UTILS::print_json_string(p, "action", action);
-            r+= p.print(", ");
+        // "action": "..."
+        r += GDOOR_UTILS::print_json_string(out, "action", action);
+        out += ", ";
+        r += 2;
 
-            r+= GDOOR_UTILS::print_json_hexstring<uint8_t>(p, "parameters", parameters, 2);
-            r+= p.print(", ");
+        // "parameters": "A1B2"
+        r += GDOOR_UTILS::print_json_hexstring<uint8_t>(out, "parameters", parameters, 2);
+        out += ", ";
+        r += 2;
 
-            r+= GDOOR_UTILS::print_json_hexstring<uint8_t>(p, "source", source, 3);
-            r+= p.print(", ");
+        // "source": "..."
+        r += GDOOR_UTILS::print_json_hexstring<uint8_t>(out, "source", source, 3);
+        out += ", ";
+        r += 2;
 
-            r+= GDOOR_UTILS::print_json_hexstring<uint8_t>(p, "destination", destination, 3);
-            r+= p.print(", ");
+        // "destination": "..."
+        r += GDOOR_UTILS::print_json_hexstring<uint8_t>(out, "destination", destination, 3);
+        out += ", ";
+        r += 2;
 
-            r+= GDOOR_UTILS::print_json_string(p, "type", type);
-            r+= p.print(", ");
+        // "type": "..."
+        r += GDOOR_UTILS::print_json_string(out, "type", type);
 
-            if (this->raw != NULL) {
-                r+= GDOOR_UTILS::print_json_hexstring<uint8_t>(p, "busdata", this->raw->data, this->raw->len);
-                r+= p.print(", ");
-            }
-
-            r+= GDOOR_UTILS::print_json_value<uint32_t>(p, "event_id", cnt++);
-
-            return r;
+        // Optional raw busdata passthrough
+        if (this->raw != nullptr) {
+            out += ", ";
+            r += 2;
+            r += GDOOR_UTILS::print_json_hexstring<uint8_t>(
+                out, "busdata", this->raw->data, this->raw->len
+            );
         }
+
+        // "event_id": <counter>
+        out += ", ";
+        r += 2;
+        r += GDOOR_UTILS::print_json_value<uint32_t>(out, "event_id", cnt++);
+
+        return r;
+    }
 };
 
-#endif
+#endif  // GDOOR_DATA_H
