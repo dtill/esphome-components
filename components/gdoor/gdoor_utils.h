@@ -16,6 +16,7 @@
  */
 #ifndef GDOOR_UTILS_H
 #define GDOOR_UTILS_H
+
 #include <cstdint>  // uint8_t, uint16_t, uint32_t
 #include <cstddef>  // size_t
 #include <string>

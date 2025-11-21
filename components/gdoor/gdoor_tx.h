@@ -15,8 +15,9 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 #ifndef GDOOR_TX_H
-
 #define GDOOR_TX_H
+
+#include <cstdint>
 
 namespace GDOOR_TX { //Namespace as we can only use it once
     extern uint16_t tx_state;

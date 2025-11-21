@@ -16,8 +16,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 #ifndef GDOOR_DATA_H
-
 #define GDOOR_DATA_H
+
 #include <map>
 #include "defines.h"
 #include "gdoor_utils.h"

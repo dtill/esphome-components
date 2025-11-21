@@ -16,8 +16,9 @@
  */
 
 #ifndef GDOOR_RX_H
-
 #define GDOOR_RX_H
+
+#include <cstdint>
 #include "gdoor_data.h"
 
 namespace GDOOR_RX { //Namespace as we can only use it once
