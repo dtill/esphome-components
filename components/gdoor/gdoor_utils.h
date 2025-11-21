@@ -16,6 +16,8 @@
  */
 #ifndef GDOOR_UTILS_H
 #define GDOOR_UTILS_H
+#include <cstdint>  // uint8_t, uint16_t, uint32_t
+#include <cstddef>  // size_t
 
 namespace GDOOR_UTILS {
     uint8_t crc(uint8_t *words, uint16_t len);
