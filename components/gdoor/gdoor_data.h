@@ -19,7 +19,6 @@
 
 #define GDOOR_DATA_H
 #include <map>
-#include <Arduino.h>
 #include "defines.h"
 #include "gdoor_utils.h"
 

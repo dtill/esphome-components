@@ -17,7 +17,6 @@
 #ifndef GDOOR_TX_H
 
 #define GDOOR_TX_H
-#include <Arduino.h>
 
 namespace GDOOR_TX { //Namespace as we can only use it once
     extern uint16_t tx_state;
