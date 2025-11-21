@@ -18,14 +18,12 @@
 
 #define GDOOR_TX_H
 #include <Arduino.h>
-#include <esp32-hal-ledc.h>
 
 namespace GDOOR_TX { //Namespace as we can only use it once
-    void loop();    // drives the micros() state-machine
+    extern uint16_t tx_state;
     void send(uint8_t *words, uint16_t len);
     void send(String str);
     void setup(uint8_t txpin, uint8_t txenpin);
-    bool busy();    // new helper for GDOOR::active()
 };
 
 #endif

@@ -39,7 +39,6 @@ namespace GDOOR {
     */
     void loop() {
         GDOOR_RX::loop();
-        GDOOR_TX::loop();
     }
 
     /**
@@ -73,7 +72,7 @@ namespace GDOOR {
     * @return true: GDOOR RX or TX is active. False: no GDOOR activity.
     */
     bool active() {
-        return (GDOOR_TX::busy() || GDOOR_RX::rx_state != 0);
+        return (GDOOR_TX::tx_state != 0 || GDOOR_RX::rx_state != 0);
     }
 
     /** Set RX Threshold (Sensitivity) to a certain level,
