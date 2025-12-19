@@ -13,6 +13,9 @@ class Palletti2Decoder {
   void on_fc_frame(const std::vector<uint8_t>& frame,
                    const std::vector<uint8_t>& payload,
                    const std::string &hex);
+  void on_display_frame(const std::vector<uint8_t>& frame,
+                        const std::vector<uint8_t>& payload,
+                        const std::string &hex);
 
  private:
   static inline uint8_t read_u8(const std::vector<uint8_t> &b, int i) {return (i >= 0 && static_cast<size_t>(i) < b.size()) ? b[i] : 0;}
