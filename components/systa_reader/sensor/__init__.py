@@ -19,6 +19,10 @@ KIND = cv.one_of(
     "espresso_ta","espresso_two","espresso_fa_tv","espresso_fa_tr","espresso_hk1_ti","espresso_hk2_ti2",
     "espresso_hk1_tv","espresso_hk2_tv2","espresso_hk1_tr","espresso_hk2_tr2","espresso_tpo",
     "espresso_tpu","espresso_tzr","espresso_pk","espresso_hk1_phk","espresso_hk2_phk2",
+    # PALLETTI-II
+    "palletti_ii_ta","palletti_ii_two","palletti_ii_fa_tv","palletti_ii_fa_tr","palletti_ii_hk1_ti","palletti_ii_hk2_ti2",
+    "palletti_ii_hk1_tv","palletti_ii_hk2_tv2","palletti_ii_hk1_tr","palletti_ii_hk2_tr2","palletti_ii_tpo",
+    "palletti_ii_tpu","palletti_ii_tzr","palletti_ii_pk","palletti_ii_hk1_phk","palletti_ii_hk2_phk2",
     # COMPACT
     "compact_ta","compact_two","compact_fa_tv","compact_fa_tr","compact_ti","compact_ti_s",
     "compact_tv_s","compact_two_s","compact_status_code",
@@ -82,6 +86,22 @@ async def to_code(config):
     elif k == "espresso_pk":        cg.add(parent.set_espresso_pk_sensor(s))
     elif k == "espresso_hk1_phk":   cg.add(parent.set_espresso_hk1_phk_sensor(s))
     elif k == "espresso_hk2_phk2":  cg.add(parent.set_espresso_hk2_phk2_sensor(s))
+    elif k == "palletti_ii_ta":        cg.add(parent.set_palletti_ii_ta_sensor(s))
+    elif k == "palletti_ii_two":       cg.add(parent.set_palletti_ii_two_sensor(s))
+    elif k == "palletti_ii_fa_tv":     cg.add(parent.set_palletti_ii_fa_tv_sensor(s))
+    elif k == "palletti_ii_fa_tr":     cg.add(parent.set_palletti_ii_fa_tr_sensor(s))
+    elif k == "palletti_ii_hk1_ti":    cg.add(parent.set_palletti_ii_hk1_ti_sensor(s))
+    elif k == "palletti_ii_hk2_ti2":   cg.add(parent.set_palletti_ii_hk2_ti2_sensor(s))
+    elif k == "palletti_ii_hk1_tv":    cg.add(parent.set_palletti_ii_hk1_tv_sensor(s))
+    elif k == "palletti_ii_hk2_tv2":   cg.add(parent.set_palletti_ii_hk2_tv2_sensor(s))
+    elif k == "palletti_ii_hk1_tr":    cg.add(parent.set_palletti_ii_hk1_tr_sensor(s))
+    elif k == "palletti_ii_hk2_tr2":   cg.add(parent.set_palletti_ii_hk2_tr2_sensor(s))
+    elif k == "palletti_ii_tpo":       cg.add(parent.set_palletti_ii_tpo_sensor(s))
+    elif k == "palletti_ii_tpu":       cg.add(parent.set_palletti_ii_tpu_sensor(s))
+    elif k == "palletti_ii_tzr":       cg.add(parent.set_palletti_ii_tzr_sensor(s))
+    elif k == "palletti_ii_pk":        cg.add(parent.set_palletti_ii_pk_sensor(s))
+    elif k == "palletti_ii_hk1_phk":   cg.add(parent.set_palletti_ii_hk1_phk_sensor(s))
+    elif k == "palletti_ii_hk2_phk2":  cg.add(parent.set_palletti_ii_hk2_phk2_sensor(s))
     elif k == "compact_ta":        cg.add(parent.set_compact_ta_sensor(s))
     elif k == "compact_two":       cg.add(parent.set_compact_two_sensor(s))
     elif k == "compact_fa_tv":     cg.add(parent.set_compact_fa_tv_sensor(s))

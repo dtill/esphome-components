@@ -14,6 +14,7 @@ class AquaDecoder;
 class Aqua2Decoder;
 class ModulaDecoder;
 class EspressoDecoder;
+class Palletti2Decoder;
 class CompactDecoder;
 class SystaReaderTextSink;  // forward
 
@@ -26,6 +27,7 @@ class SystaReader : public uart::UARTDevice, public Component {
   static constexpr uint32_t DEV_ESPRESSO  = (1u << 3);
   static constexpr uint32_t DEV_SOLAR     = (1u << 4);
   static constexpr uint32_t DEV_COMPACT     = (1u << 5);
+  static constexpr uint32_t DEV_PALLETTI_II  = (1u << 6);
   // reserve more bits for future devices:
   // static constexpr uint32_t DEV_FOO   = (1u << 4);
   // static constexpr uint32_t DEV_BAR   = (1u << 5);
@@ -54,6 +56,7 @@ class SystaReader : public uart::UARTDevice, public Component {
   friend class AquaDecoder;
   friend class Aqua2Decoder;
   friend class EspressoDecoder;
+  friend class Palletti2Decoder;
   friend class CompactDecoder;
 
   // setters (werden von Subplatforms aufgerufen)
@@ -70,9 +73,12 @@ class SystaReader : public uart::UARTDevice, public Component {
   // AQUA text
   void set_aqua_status_text_sensor(text_sensor::TextSensor *t) { aqua_status_text_ = t; }
   void set_aqua_timestamp_text_sensor(text_sensor::TextSensor *t) { aqua_timestamp_ = t; }
-  // AQUA Display
+  // Displays
   void set_aqua_display_text_sensor(text_sensor::TextSensor *t) { aqua_display_text_ = t; }
+  void set_palletti_ii_display_text_sensor(text_sensor::TextSensor *t) { palletti_ii_display_text_ = t; }
   inline void pub_aqua_display_text(const std::string &s) { if (aqua_display_text_) aqua_display_text_->publish_state(s); }
+  inline void pub_palletti_ii_display_text(const std::string &s) { if (palletti_ii_text_) palletti_ii_display_text_->publish_state(s); }
+
   // publish helpers
   inline void pub_aqua_tsa(float v)           { if (aqua_tsa_) aqua_tsa_->publish_state(v); }
   inline void pub_aqua_tse(float v)           { if (aqua_tse_) aqua_tse_->publish_state(v); }
@@ -182,6 +188,43 @@ class SystaReader : public uart::UARTDevice, public Component {
   inline void pub_espresso_hk1_phk(float v){ if (espresso_hk1_phk_) espresso_hk1_phk_->publish_state(v); }
   inline void pub_espresso_hk2_phk2(float v){ if (espresso_hk2_phk2_) espresso_hk2_phk2_->publish_state(v); }
   inline void pub_espresso_timestamp(const std::string &s){ if (espresso_timestamp_) espresso_timestamp_->publish_state(s); }
+
+  // PALLETTI_II Setter
+  void set_palletti_ii_ta_sensor(sensor::Sensor *s) { palletti_ii_ta_ = s; }
+  void set_palletti_ii_two_sensor(sensor::Sensor *s) { palletti_ii_two_ = s; }
+  void set_palletti_ii_fa_tv_sensor(sensor::Sensor *s) { palletti_ii_fa_tv_ = s; }
+  void set_palletti_ii_fa_tr_sensor(sensor::Sensor *s) { palletti_ii_fa_tr_ = s; }
+  void set_palletti_ii_hk1_ti_sensor(sensor::Sensor *s) { palletti_ii_hk1_ti_ = s; }
+  void set_palletti_ii_hk2_ti2_sensor(sensor::Sensor *s) { palletti_ii_hk2_ti2_ = s; }
+  void set_palletti_ii_hk1_tv_sensor (sensor::Sensor *s) { palletti_ii_hk1_tv_  = s; }
+  void set_palletti_ii_hk2_tv2_sensor(sensor::Sensor *s) { palletti_ii_hk2_tv2_ = s; }
+  void set_palletti_ii_hk1_tr_sensor(sensor::Sensor *s) { palletti_ii_hk1_tr_ = s; }
+  void set_palletti_ii_hk2_tr2_sensor(sensor::Sensor *s) { palletti_ii_hk2_tr2_ = s; }
+  void set_palletti_ii_tpo_sensor(sensor::Sensor *s) { palletti_ii_tpo_ = s; }
+  void set_palletti_ii_tpu_sensor(sensor::Sensor *s) { palletti_ii_tpu_ = s; }
+  void set_palletti_ii_tzr_sensor(sensor::Sensor *s) { palletti_ii_tzr_ = s; }
+  void set_palletti_ii_pk_sensor(sensor::Sensor *s) { palletti_ii_pk_ = s; }
+  void set_palletti_ii_hk1_phk_sensor(sensor::Sensor *s) { palletti_ii_hk1_phk_ = s; }
+  void set_palletti_ii_hk2_phk2_sensor(sensor::Sensor *s) { palletti_ii_hk2_phk2_ = s; }
+  void set_palletti_ii_timestamp_text_sensor(text_sensor::TextSensor *t) { palletti_ii_timestamp_ = t; }
+  // ESPRESSO: private Publisher
+  inline void pub_palletti_ii_ta(float v){ if (palletti_ii_ta_) palletti_ii_ta_->publish_state(v); }
+  inline void pub_palletti_ii_two(float v){ if (palletti_ii_two_) palletti_ii_two_->publish_state(v); }
+  inline void pub_palletti_ii_fa_tv(float v){ if (palletti_ii_fa_tv_) palletti_ii_fa_tv_->publish_state(v); }
+  inline void pub_palletti_ii_fa_tr(float v){ if (palletti_ii_fa_tr_) palletti_ii_fa_tr_->publish_state(v); }
+  inline void pub_palletti_ii_hk1_ti(float v){ if (palletti_ii_hk1_ti_) palletti_ii_hk1_ti_->publish_state(v); }
+  inline void pub_palletti_ii_hk2_ti2(float v){ if (palletti_ii_hk2_ti2_) palletti_ii_hk2_ti2_->publish_state(v); }
+  inline void pub_palletti_ii_hk1_tv (float v){ if (palletti_ii_hk1_tv_)  palletti_ii_hk1_tv_->publish_state(v); }
+  inline void pub_palletti_ii_hk2_tv2(float v){ if (palletti_ii_hk2_tv2_) palletti_ii_hk2_tv2_->publish_state(v); }
+  inline void pub_palletti_ii_hk1_tr(float v){ if (palletti_ii_hk1_tr_) palletti_ii_hk1_tr_->publish_state(v); }
+  inline void pub_palletti_ii_hk2_tr2(float v){ if (palletti_ii_hk2_tr2_) palletti_ii_hk2_tr2_->publish_state(v); }
+  inline void pub_palletti_ii_tpo(float v){ if (palletti_ii_tpo_) palletti_ii_tpo_->publish_state(v); }
+  inline void pub_palletti_ii_tpu(float v){ if (palletti_ii_tpu_) palletti_ii_tpu_->publish_state(v); }
+  inline void pub_palletti_ii_tzr(float v){ if (palletti_ii_tzr_) palletti_ii_tzr_->publish_state(v); }
+  inline void pub_palletti_ii_pk(float v){ if (palletti_ii_pk_) palletti_ii_pk_->publish_state(v); }
+  inline void pub_palletti_ii_hk1_phk(float v){ if (palletti_ii_hk1_phk_) palletti_ii_hk1_phk_->publish_state(v); }
+  inline void pub_palletti_ii_hk2_phk2(float v){ if (palletti_ii_hk2_phk2_) palletti_ii_hk2_phk2_->publish_state(v); }
+  inline void pub_palletti_ii_timestamp(const std::string &s){ if (palletti_ii_timestamp_) palletti_ii_timestamp_->publish_state(s); }
 
   // COMPACT Setter
   void set_compact_ta_sensor(sensor::Sensor *s) { compact_ta_ = s; }

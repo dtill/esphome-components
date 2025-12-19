@@ -3,6 +3,7 @@
 #include "aqua_ii.h"
 #include "modula.h"
 #include "espresso.h"
+#include "palletti_ii.h"
 #include "compact.h"
 #include "esphome/core/log.h"
 
@@ -26,6 +27,7 @@ void SystaReader::setup() {
   if ((enabled_mask_ & DEV_AQUA_II)  && !aqua_ii_)  aqua_ii_  = new Aqua2Decoder(*this);
   if ((enabled_mask_ & DEV_MODULA)   && !modula_)   modula_   = new ModulaDecoder(*this);
   if ((enabled_mask_ & DEV_ESPRESSO) && !espresso_) espresso_ = new EspressoDecoder(*this);
+  if ((enabled_mask_ & DEV_PALLETTI_II) && !palletti_ii_) palletti_ii_ = new Palletti2Decoder(*this);
   if ((enabled_mask_ & DEV_COMPACT) && !compact_) compact_ = new CompactDecoder(*this);
   // future:
   // if ((enabled_mask_ & DEV_SOLAR) && !solar_) solar_ = new SolarDecoder(*this);
@@ -276,9 +278,13 @@ void SystaReader::route_fc_frame_to_device_(const std::vector<uint8_t>& frame,
   if ((enabled_mask_ & DEV_MODULA) && f2 == 0x0C && f3 == 0x01 && modula_) {
     modula_->on_fc_frame(frame, payload, hex);
   }
-  // ESPRESSO: FC .. 0C 01  (shares signature with MODULA, both can receive)
+  // ESPRESSO: FC .. 0C 01  (shares signature with EXPRESSO, both can receive)
   if ((enabled_mask_ & DEV_ESPRESSO) && f2 == 0x0C && f3 == 0x01 && espresso_) {
     espresso_->on_fc_frame(frame, payload, hex);
+  }
+  // PALLETTI2: FC .. 0C 01  (shares signature with PALLETTI, both can receive)
+  if ((enabled_mask_ & DEV_PALLETTI_II) && f2 == 0x0C && f3 == 0x01 && palletti_ii_) {
+    palletti_ii_->on_fc_frame(frame, payload, hex);
   }
   // COMPACT: FC .. 0D 01
   if ((enabled_mask_ & DEV_COMPACT) && f2 == 0x0D && f3 == 0x01 && compact_) {
@@ -294,9 +300,8 @@ void SystaReader::route_display_frame_to_device_(const std::vector<uint8_t>& fra
   if (frame.size() < 4 || frame[0] != 0x0F || frame[1] != 0x22 || frame[2] != 0x04 || frame[3] != 0x00)
     return;
   // If only AQUA should consume display frames, keep only AQUA here.
-  if ((enabled_mask_ & DEV_AQUA) && aqua_) {
-    aqua_->on_display_frame(frame, payload, hex);
-  }
+  if ((enabled_mask_ & DEV_AQUA) && aqua_) {aqua_->on_display_frame(frame, payload, hex);}
+  if ((enabled_mask_ & DEV_PALLETTI_II) && palletti_ii_) {palletti_ii_->on_display_frame(frame, payload, hex);}
   // If MODULA/ESPRESSO should also see display frames, uncomment:
   // if ((enabled_mask_ & DEV_MODULA) && modula_)   modula_->on_display_frame(frame, payload, hex);
   // if ((enabled_mask_ & DEV_ESPRESSO) && espresso_) espresso_->on_display_frame(frame, payload, hex);
