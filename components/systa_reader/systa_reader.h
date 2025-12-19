@@ -378,7 +378,7 @@ class SystaReader : public uart::UARTDevice, public Component {
   text_sensor::TextSensor *espresso_timestamp_{nullptr};
 
   // decoder instances
-  EspressoDecoder *espresso_{nullptr};
+  Palletti2Decoder *espresso_{nullptr};
   // PALLETTI-II sensor pointers
   sensor::Sensor *palletti_ii_ta_{nullptr};
   sensor::Sensor *palletti_ii_two_{nullptr};
