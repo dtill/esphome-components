@@ -51,6 +51,7 @@ class SystaReader : public uart::UARTDevice, public Component {
   void add_sink_all(HexSink *s)  { sinks_all_.push_back(s); }
   void add_sink_aqua(HexSink *s) { sinks_aqua_.push_back(s); }
   void add_sink_aqua_ii(HexSink *s) { sinks_aqua_ii_.push_back(s); }
+  void add_sink_palletti_ii(HexSink *s) { sinks_palletti_ii_.push_back(s); }
 
   friend class ModulaDecoder;
   friend class AquaDecoder;
@@ -254,6 +255,7 @@ class SystaReader : public uart::UARTDevice, public Component {
   void publish_hex_all(const std::string &hex)  { for (auto *s : sinks_all_)  s->publish_frame_hex(hex); }
   void publish_hex_aqua(const std::string &hex) { for (auto *s : sinks_aqua_) s->publish_frame_hex(hex); }
   void publish_hex_aqua_ii(const std::string &hex) { for (auto *s : sinks_aqua_ii_) s->publish_frame_hex(hex); }
+  void publish_hex_palletti_ii(const std::string &hex) { for (auto *s : sinks_palletti_ii_) s->publish_frame_hex(hex); }
 
  private:
   uint32_t enabled_mask_{0};
@@ -298,6 +300,7 @@ class SystaReader : public uart::UARTDevice, public Component {
   std::vector<HexSink*> sinks_all_;
   std::vector<HexSink*> sinks_aqua_;
   std::vector<HexSink*> sinks_aqua_ii_;
+  std::vector<HexSink*> sinks_palletti_ii_;
   std::vector<SystaReaderTextSink *> sinks_{};
   bool log_invalid_{true};
 
@@ -371,6 +374,28 @@ class SystaReader : public uart::UARTDevice, public Component {
   sensor::Sensor *espresso_hk1_phk_{nullptr};
   sensor::Sensor *espresso_hk2_phk2_{nullptr};
   text_sensor::TextSensor *espresso_timestamp_{nullptr};
+
+  // decoder instances
+  EspressoDecoder *espresso_{nullptr};
+  // PALLETTI-II sensor pointers
+  sensor::Sensor *palletti_ii_ta_{nullptr};
+  sensor::Sensor *palletti_ii_two_{nullptr};
+  sensor::Sensor *palletti_ii_fa_tv_{nullptr};
+  sensor::Sensor *palletti_ii_fa_tr_{nullptr};
+  sensor::Sensor *palletti_ii_hk1_ti_{nullptr};
+  sensor::Sensor *palletti_ii_hk2_ti2_{nullptr};
+  sensor::Sensor *palletti_ii_hk1_tv_{nullptr};
+  sensor::Sensor *palletti_ii_hk2_tv2_{nullptr};
+  sensor::Sensor *palletti_ii_hk1_tr_{nullptr};
+  sensor::Sensor *palletti_ii_hk2_tr2_{nullptr};
+  sensor::Sensor *palletti_ii_tpo_{nullptr};
+  sensor::Sensor *palletti_ii_tpu_{nullptr};
+  sensor::Sensor *palletti_ii_tzr_{nullptr};
+  sensor::Sensor *palletti_ii_pk_{nullptr};
+  sensor::Sensor *palletti_ii_hk1_phk_{nullptr};
+  sensor::Sensor *palletti_ii_hk2_phk2_{nullptr};
+  text_sensor::TextSensor *espresso_timestamp_{nullptr};
+  text_sensor::TextSensor *palletti_ii_display_text_{nullptr};
 
   // decoder instances
   CompactDecoder *compact_{nullptr};
