@@ -191,7 +191,7 @@ class SystaReader : public uart::UARTDevice, public Component {
   // PALLETTI_II Setter
   // Bedienteil-Display
   void set_palletti_ii_display_text_sensor(text_sensor::TextSensor *t) { palletti_ii_display_text_ = t; }
-  inline void pub_palletti_ii_display_text(const std::string &s) { if (palletti_ii_text_) palletti_ii_display_text_->publish_state(s); }
+  inline void pub_palletti_ii_display_text(const std::string &s) { if (palletti_ii_display_text_) palletti_ii_display_text_->publish_state(s); }
 
   void set_palletti_ii_ta_sensor(sensor::Sensor *s) { palletti_ii_ta_ = s; }
   void set_palletti_ii_two_sensor(sensor::Sensor *s) { palletti_ii_two_ = s; }
