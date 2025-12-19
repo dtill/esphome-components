@@ -74,11 +74,9 @@ class SystaReader : public uart::UARTDevice, public Component {
   // AQUA text
   void set_aqua_status_text_sensor(text_sensor::TextSensor *t) { aqua_status_text_ = t; }
   void set_aqua_timestamp_text_sensor(text_sensor::TextSensor *t) { aqua_timestamp_ = t; }
-  // Displays
+  // Aqua-Display
   void set_aqua_display_text_sensor(text_sensor::TextSensor *t) { aqua_display_text_ = t; }
-  void set_palletti_ii_display_text_sensor(text_sensor::TextSensor *t) { palletti_ii_display_text_ = t; }
   inline void pub_aqua_display_text(const std::string &s) { if (aqua_display_text_) aqua_display_text_->publish_state(s); }
-  inline void pub_palletti_ii_display_text(const std::string &s) { if (palletti_ii_text_) palletti_ii_display_text_->publish_state(s); }
 
   // publish helpers
   inline void pub_aqua_tsa(float v)           { if (aqua_tsa_) aqua_tsa_->publish_state(v); }
@@ -191,6 +189,10 @@ class SystaReader : public uart::UARTDevice, public Component {
   inline void pub_espresso_timestamp(const std::string &s){ if (espresso_timestamp_) espresso_timestamp_->publish_state(s); }
 
   // PALLETTI_II Setter
+  // Bedienteil-Display
+  void set_palletti_ii_display_text_sensor(text_sensor::TextSensor *t) { palletti_ii_display_text_ = t; }
+  inline void pub_palletti_ii_display_text(const std::string &s) { if (palletti_ii_text_) palletti_ii_display_text_->publish_state(s); }
+
   void set_palletti_ii_ta_sensor(sensor::Sensor *s) { palletti_ii_ta_ = s; }
   void set_palletti_ii_two_sensor(sensor::Sensor *s) { palletti_ii_two_ = s; }
   void set_palletti_ii_fa_tv_sensor(sensor::Sensor *s) { palletti_ii_fa_tv_ = s; }
@@ -208,7 +210,7 @@ class SystaReader : public uart::UARTDevice, public Component {
   void set_palletti_ii_hk1_phk_sensor(sensor::Sensor *s) { palletti_ii_hk1_phk_ = s; }
   void set_palletti_ii_hk2_phk2_sensor(sensor::Sensor *s) { palletti_ii_hk2_phk2_ = s; }
   void set_palletti_ii_timestamp_text_sensor(text_sensor::TextSensor *t) { palletti_ii_timestamp_ = t; }
-  // ESPRESSO: private Publisher
+  // PALLETTI-II: private Publisher
   inline void pub_palletti_ii_ta(float v){ if (palletti_ii_ta_) palletti_ii_ta_->publish_state(v); }
   inline void pub_palletti_ii_two(float v){ if (palletti_ii_two_) palletti_ii_two_->publish_state(v); }
   inline void pub_palletti_ii_fa_tv(float v){ if (palletti_ii_fa_tv_) palletti_ii_fa_tv_->publish_state(v); }
@@ -247,7 +249,7 @@ class SystaReader : public uart::UARTDevice, public Component {
   inline void pub_compact_ti_s(float v){ if (compact_ti_s_) compact_ti_s_->publish_state(v); }
   inline void pub_compact_tv_s (float v){ if (compact_tv_s_)  compact_tv_s_->publish_state(v); }
   inline void pub_compact_two_s(float v){ if (compact_two_s_) compact_two_s_->publish_state(v); }
-   inline void pub_compact_status_code(float v)   { if (compact_status_code_) compact_status_code_->publish_state(v); }
+  inline void pub_compact_status_code(float v)   { if (compact_status_code_) compact_status_code_->publish_state(v); }
   inline void pub_compact_timestamp(const std::string &s){ if (compact_timestamp_) compact_timestamp_->publish_state(s); }
 
   // General setters
