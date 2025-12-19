@@ -22,7 +22,7 @@ FIELD_KIND = cv.one_of(
     "aqua_ii_status_text", "aqua_ii_timestamp",
     "modula_timestamp",
     "espresso_timestamp",
-    "palletti_ii_timestamp",
+    "palletti_ii_timestamp", "palletti_ii_display_text"
     "compact_timestamp",
     lower=True
 )
