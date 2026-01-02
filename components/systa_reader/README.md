@@ -1,7 +1,10 @@
 # Systa-Reader ESPHome Component
 
 An esphome component for the DIY "Systa-BUS-Reader" Bus-Adapter, 
-based and inspired by this [ringwelt.de](https://ringwelt.de/homeautomation/heizungsanlage/einfuehrung.html)-blog
+based and inspired by 
+    
+- [ringwelt.de](https://ringwelt.de/homeautomation/heizungsanlage/einfuehrung.html) (Hardware circuit)
+- [SystaBridge](https://github.com/marvinGitHub/systa-bridge) by [marvinGitHub](https://github.com/marvinGitHub) (Decoding SystaBUS-Protocol )
 
 Supported Features: read and interpret Paradigma SystaBus messages
 
@@ -19,16 +22,16 @@ external_components:
     components: [systa_reader]
     refresh: 0s
 
-time:
-  - platform: homeassistant
-    id: homeassistant_time
-    on_time:
-      # Every Day at specified hour
-      - seconds: 0
-        minutes: 0
-        hours: 0
-        then:
-          - sensor.integration.reset: aqua_ii_tagesgewinn_calculated #Reset power integrator
+#time:
+#  - platform: homeassistant
+#    id: homeassistant_time
+#    on_time:
+#      # Every Day at specified hour
+#      - seconds: 0
+#        minutes: 0
+#        hours: 0
+#        then:
+#          - sensor.integration.reset: aqua_ii_tagesgewinn_calculated #Reset power integrator
 
 uart:
   id: uart_bus
@@ -42,7 +45,7 @@ uart:
 systa_reader:                             # can be multiple systa_reader but only one per uart.
   - id: systa_bus_01
     uart_id: uart_bus
-    systa_device: [aqua, modula, espresso]  # call one or more devices [aqua, aqua_ii, modula, espresso, compact]
+    systa_device: [palletti_ii]     # call one or more devices [aqua, aqua_ii, modula, espresso, palletti_ii, compact]
     log_invalid: true                     # logs invalid frames for debugging purpose
 
 sensor:
@@ -185,33 +188,33 @@ sensor:
     accuracy_decimals: 0
     device_class: power_factor
     state_class: measurement
-  - platform: template
-    name: "AQUA-II Kollektorleistung (berechnet)"
-    id: aqua_ii_kollektorleistung_calculated
-    unit_of_measurement: "kW"
-    accuracy_decimals: 2
-    device_class: energy
-    state_class: measurement
-    update_interval: 10s
-    lambda: |-
-      const float dfl = id(aqua_durchfluss).state;  // l/min
-      const float tsv = id(aqua_tsv).state;         // °C
-      const float tse = id(aqua_tse).state;         // °C
-      if (isnan(dfl) || isnan(tsv) || isnan(tse)) return 0.0f;
-      const float deltaT = tsv - tse;               // K
-      const float power_kW = (dfl / 60.0f) * 1.0f * 4.18f * deltaT;
-      return power_kW < 0.0f ? 0.0f : power_kW;
-  - platform: integration
-    name: "AQUA-II Tagesgewinn (berechnet)"
-    id: aqua_ii_tagesgewinn_calculated
-    sensor: aqua_ii_kollektorleistung_calculated
-    integration_method: left
-    time_unit: h
-    unit_of_measurement: "kWh"
-    accuracy_decimals: 2
-    device_class: energy
-    state_class: total_increasing
-    restore: false
+  #- platform: template
+  #  name: "AQUA-II Kollektorleistung (berechnet)"
+  #  id: aqua_ii_kollektorleistung_calculated
+  #  unit_of_measurement: "kW"
+  #  accuracy_decimals: 2
+  #  device_class: energy
+  #  state_class: measurement
+  #  update_interval: 10s
+  #  lambda: |-
+  #    const float dfl = id(aqua_durchfluss).state;  // l/min
+  #    const float tsv = id(aqua_tsv).state;         // °C
+  #    const float tse = id(aqua_tse).state;         // °C
+  #    if (isnan(dfl) || isnan(tsv) || isnan(tse)) return 0.0f;
+  #    const float deltaT = tsv - tse;               // K
+  #    const float power_kW = (dfl / 60.0f) * 1.0f * 4.18f * deltaT;
+  #    return power_kW < 0.0f ? 0.0f : power_kW;
+  #- platform: integration
+  #  name: "AQUA-II Tagesgewinn (berechnet)"
+  #  id: aqua_ii_tagesgewinn_calculated
+  #  sensor: aqua_ii_kollektorleistung_calculated
+  #  integration_method: left
+  #  time_unit: h
+  #  unit_of_measurement: "kWh"
+  #  accuracy_decimals: 2
+  #  device_class: energy
+  #  state_class: total_increasing
+  #  restore: false
   - platform: systa_reader
     systa_reader_id: systa_bus_01
     kind: aqua_ii_tag
@@ -454,6 +457,136 @@ sensor:
     device_class: power_factor
     state_class: measurement
 
+  # PALLETTI-II sensors
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: palletti_ii_ta
+    name: "PALLETTI-II TA"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: palletti_ii_two
+    name: "PALLETTI-II TWO"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: palletti_ii_fa_tv
+    name: "PALLETTI-II FA TV"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: palletti_ii_fa_tr
+    name: "PALLETTI-II FA TR"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: palletti_ii_hk1_ti
+    name: "PALLETTI-II HK1 TI"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: palletti_ii_hk2_ti2
+    name: "PALLETTI-II HK2 TI2"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: palletti_ii_hk1_tv
+    name: "PALLETTI-II HK1 TV"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: palletti_ii_hk2_tv2
+    name: "PALLETTI-II HK2 TV2"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: palletti_ii_hk1_tr
+    name: "PALLETTI-II HK1 TR"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: palletti_ii_hk2_tr2
+    name: "PALLETTI-II HK2 TR2"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: palletti_ii_tpo
+    name: "PALLETTI-II TPO"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: palletti_ii_tpu
+    name: "PALLETTI-II TPU"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: palletti_ii_tzr
+    name: "PALLETTI-II TZR"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: palletti_ii_pk
+    name: "PALLETTI-II PK"
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    device_class: power_factor
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: palletti_ii_hk1_phk
+    name: "PALLETTI-II HK1 PHK"
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    device_class: power_factor
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: palletti_ii_hk2_phk2
+    name: "PALLETTI-II HK2 PHK"
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    device_class: power_factor
+    state_class: measurement
+
   # COPMACT sensors
   - platform: systa_reader
     systa_reader_id: systa_bus_01
@@ -567,7 +700,19 @@ text_sensor:
     systa_reader_id: systa_bus_01
     mode: field
     kind: espresso_timestamp
-    name: "Espresso Zeitstempel"
+    name: "ESPRESSO Zeitstempel"
+
+  # PALLETTI-II text sensors:
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    mode: field
+    kind: palletti_ii_timestamp
+    name: "PALLETTI-II Zeitstempel"
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    mode: field
+    kind: palletti_ii_display_text
+    name: "PALLETTI-II Displaytext"
 
   # COMPACT text sensors:
   - platform: systa_reader
