@@ -47,9 +47,10 @@ void AquaDecoder::on_fc_frame(const std::vector<uint8_t>& frame,
 
 
   auto u16 = [&](int i){ return read_u16_be(frame, i); };
+  auto s16 = [&](int i){ return (int16_t)read_u16_be(frame, i); };
   auto u32 = [&](int i){ return read_u32_be(frame, i); };
 
-  float tsa    = u16(4)  / 10.0f;
+  float tsa    = s16(4)  / 10.0f;
   float tse    = u16(6)  / 10.0f;
   float twu    = u16(8)  / 10.0f;
   float tw2    = u16(10) / 10.0f;

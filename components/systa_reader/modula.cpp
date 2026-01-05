@@ -34,8 +34,9 @@ void ModulaDecoder::on_fc_frame(const std::vector<uint8_t>& frame,
 
   // Werte (wie in deiner Vorlage) – Indizes sind **am Gesamtframe** (Big-Endian)
   auto u16 = [&](int i){ return read_u16_be(frame, i); };
+  auto s16 = [&](int i){ return (int16_t)read_u16_be(frame, i); };
 
-  float ta = u16(8) / 10.0f;
+  float ta = s16(8) / 10.0f;
   float two = u16(10) / 10.0f;
   float tbv = u16(12) / 10.0f;
   float tbr = u16(14) / 10.0f;

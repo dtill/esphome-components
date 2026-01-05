@@ -14,6 +14,7 @@ void Palletti2Decoder::on_fc_frame(const std::vector<uint8_t>& frame,
     return;
 
   auto u16 = [&](int i){ return read_u16_be(frame, i); };
+  auto s16 = [&](int i){ return (int16_t)read_u16_be(frame, i); };
   auto u8  = [&](int i){ return read_u8(frame, i); };
 
   // Zeitstempel
@@ -26,7 +27,7 @@ void Palletti2Decoder::on_fc_frame(const std::vector<uint8_t>& frame,
   r_.pub_palletti_ii_timestamp(ts);
 
   // Werte gemäß Vorlage
-  float ta = u16(8) / 10.0f;
+  float ta = s16(8) / 10.0f;
   float two = u16(10) / 10.0f;
   float fa_tv = u16(12) / 10.0f;
   float fa_tr = u16(14) / 10.0f;
