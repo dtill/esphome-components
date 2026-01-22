@@ -22,17 +22,6 @@ external_components:
     components: [systa_reader]
     refresh: 0s
 
-#time:
-#  - platform: homeassistant
-#    id: homeassistant_time
-#    on_time:
-#      # Every Day at specified hour
-#      - seconds: 0
-#        minutes: 0
-#        hours: 0
-#        then:
-#          - sensor.integration.reset: aqua_ii_tagesgewinn_calculated #Reset power integrator
-
 uart:
   id: uart_bus
   tx_pin: GPIO1
@@ -188,33 +177,6 @@ sensor:
     accuracy_decimals: 0
     device_class: power_factor
     state_class: measurement
-  #- platform: template
-  #  name: "AQUA-II Kollektorleistung (berechnet)"
-  #  id: aqua_ii_kollektorleistung_calculated
-  #  unit_of_measurement: "kW"
-  #  accuracy_decimals: 2
-  #  device_class: energy
-  #  state_class: measurement
-  #  update_interval: 10s
-  #  lambda: |-
-  #    const float dfl = id(aqua_durchfluss).state;  // l/min
-  #    const float tsv = id(aqua_tsv).state;         // °C
-  #    const float tse = id(aqua_tse).state;         // °C
-  #    if (isnan(dfl) || isnan(tsv) || isnan(tse)) return 0.0f;
-  #    const float deltaT = tsv - tse;               // K
-  #    const float power_kW = (dfl / 60.0f) * 1.0f * 4.18f * deltaT;
-  #    return power_kW < 0.0f ? 0.0f : power_kW;
-  #- platform: integration
-  #  name: "AQUA-II Tagesgewinn (berechnet)"
-  #  id: aqua_ii_tagesgewinn_calculated
-  #  sensor: aqua_ii_kollektorleistung_calculated
-  #  integration_method: left
-  #  time_unit: h
-  #  unit_of_measurement: "kWh"
-  #  accuracy_decimals: 2
-  #  device_class: energy
-  #  state_class: total_increasing
-  #  restore: false
   - platform: systa_reader
     systa_reader_id: systa_bus_01
     kind: aqua_ii_tag
@@ -720,19 +682,4 @@ text_sensor:
     mode: field
     kind: compact_timestamp
     name: "Compact Zeitstempel"
-
-  # General Systa BUS Frames in RAW HEX format
-  # (use with care! only for debug purpose, because big text data chunks filling
-  # homeassistant history data space over longer periods):
-
-  #- platform: systa_reader
-  #  systa_reader_id: systa_bus_01
-  #  mode: raw
-  #  filter: all
-  #  name: "Systa Raw HEX (ALL)"
-  #- platform: systa_reader
-  #  systa_reader_id: systa_bus_01
-  #  mode: raw
-  #  filter: aqua
-  #  name: "Systa Raw HEX (AQUA)"
 ```
