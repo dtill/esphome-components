@@ -105,7 +105,15 @@ sensor:
   - platform: systa_reader
     systa_reader_id: systa_bus_01
     kind: aqua_ii_tsa
-    name: "AQUA-II TSA1 (Kollektor)"
+    name: "AQUA-II TSA (Kollektor)"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: aqua_ii_tsa1
+    name: "AQUA-II TSA1 (Kollektor1)"
     unit_of_measurement: "°C"
     accuracy_decimals: 1
     device_class: temperature
