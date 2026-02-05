@@ -73,6 +73,26 @@ sensor:
     state_class: measurement
   - platform: systa_reader
     systa_reader_id: systa_bus_01
+    kind: aqua_pwm
+    name: "AQUA PWM (Pumpe)"
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    device_class: power_factor
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: aqua_var1
+    name: "AQUA VAR1"
+    accuracy_decimals: 0
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: aqua_stat
+    name: "AQUA STAT"
+    accuracy_decimals: 0
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
     kind: aqua_sol
     name: "AQUA Solare Leistung"
     unit_of_measurement: "kW"
