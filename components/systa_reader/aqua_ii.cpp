@@ -78,8 +78,8 @@ void Aqua2Decoder::on_fc_frame(const std::vector<uint8_t> &frame,
   uint8_t mo = payload.size() > 25 ? payload[25] : 0; // Monat
   uint8_t y  = payload.size() > 26 ? payload[26] : 0; // Jahr (00..99)
 
-  uint16_t koll_lstg = read_u16_le(payload, 29);        // Kollektorleistung
   uint16_t tag_erg = read_u16_le(payload, 29);          // Tagesleistung
+  uint16_t koll_lstg = read_u16_le(payload, 31);        // Kollektorleistung
   uint32_t gesamt  = read_u32_le(payload, 33);          // Gesamtleistung
   float tsa1  = read_i16_le(payload,  46) / 10.0f;      // TSA1 (Kollektor1) // evtl. nicht überall so
   float tsa2  = read_i16_le(payload,  48) / 10.0f;      // TSA2 (Kollektor2) // evtl. nicht überall so
