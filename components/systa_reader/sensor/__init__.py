@@ -8,7 +8,7 @@ CONF_KIND = "kind"
 
 KIND = cv.one_of(
     # AQUA
-    "aqua_tsa","aqua_tse","aqua_twu","aqua_tw2","aqua_pwm","aqua_sol","aqua_tag","aqua_gesamt","aqua_status_code","aqua_var1","aqua_stat"
+    "aqua_tsa","aqua_tse","aqua_twu","aqua_tw2","aqua_pwm","aqua_sol","aqua_tag","aqua_gesamt","aqua_status_code","aqua_var1","aqua_stat",
     # AQUA_II
     "aqua_ii_tsa","aqua_ii_twu","aqua_ii_tsv","aqua_ii_tam","aqua_ii_tse","aqua_ii_dfl","aqua_ii_pwm",
     "aqua_ii_koll_lstg", "aqua_ii_tag","aqua_ii_gesamt", "aqua_ii_tsa1", "aqua_ii_tsa2", "aqua_ii_tam2", "aqua_ii_status_code",
