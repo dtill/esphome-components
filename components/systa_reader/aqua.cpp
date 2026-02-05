@@ -69,8 +69,8 @@ void AquaDecoder::on_fc_frame(const std::vector<uint8_t>& frame,
   r_.pub_aqua_twu(twu);
   r_.pub_aqua_tw2(tw2);
   r_.pub_aqua_pwm(pwm);
-  r_.pub_aqua_pwm(var1);
-  r_.pub_aqua_pwm(stat);
+  r_.pub_aqua_var1(var1);
+  r_.pub_aqua_stat(stat);
   r_.pub_aqua_sol(sol);
   r_.pub_aqua_tag(tag);
   r_.pub_aqua_ges(gesamt);
