@@ -84,7 +84,7 @@ class SystaReader : public uart::UARTDevice, public Component {
   inline void pub_aqua_tse(float v)           { if (aqua_tse_) aqua_tse_->publish_state(v); }
   inline void pub_aqua_twu(float v)           { if (aqua_twu_) aqua_twu_->publish_state(v); }
   inline void pub_aqua_tw2(float v)           { if (aqua_tw2_) aqua_tw2_->publish_state(v); }
-  inline void pub_aqua_pwm(int v)           { if (aqua_pwm_) aqua_pwm_->publish_state(v); }
+  inline void pub_aqua_pwm(int v)             { if (aqua_pwm_) aqua_pwm_->publish_state(v); }
   inline void pub_aqua_sol(float v)           { if (aqua_sol_) aqua_sol_->publish_state(v); }
   inline void pub_aqua_tag(float v)           { if (aqua_tag_) aqua_tag_->publish_state(v); }
   inline void pub_aqua_ges(float v)           { if (aqua_ges_) aqua_ges_->publish_state(v); }
