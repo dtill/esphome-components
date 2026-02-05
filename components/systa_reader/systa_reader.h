@@ -68,6 +68,8 @@ class SystaReader : public uart::UARTDevice, public Component {
   void set_aqua_twu_sensor(sensor::Sensor *s)         { aqua_twu_ = s; }
   void set_aqua_tw2_sensor(sensor::Sensor *s)         { aqua_tw2_ = s; }
   void set_aqua_pwm_sensor(sensor::Sensor *s)         { aqua_pwm_ = s; }
+  void set_aqua_var1_sensor(sensor::Sensor *s)         { aqua_var1_ = s; }
+  void set_aqua_var1_sensor(sensor::Sensor *s)         { aqua_stat_ = s; }
   void set_aqua_sol_sensor(sensor::Sensor *s)         { aqua_sol_ = s; }
   void set_aqua_tag_sensor(sensor::Sensor *s)         { aqua_tag_ = s; }
   void set_aqua_ges_sensor(sensor::Sensor *s)         { aqua_ges_ = s; }
@@ -85,6 +87,8 @@ class SystaReader : public uart::UARTDevice, public Component {
   inline void pub_aqua_twu(float v)           { if (aqua_twu_) aqua_twu_->publish_state(v); }
   inline void pub_aqua_tw2(float v)           { if (aqua_tw2_) aqua_tw2_->publish_state(v); }
   inline void pub_aqua_pwm(int v)             { if (aqua_pwm_) aqua_pwm_->publish_state(v); }
+  inline void pub_aqua_var1(int v)             { if (aqua_var1_) aqua_var1_->publish_state(v); }
+  inline void pub_aqua_stat(int v)             { if (aqua_stat_) aqua_stat_->publish_state(v); }
   inline void pub_aqua_sol(float v)           { if (aqua_sol_) aqua_sol_->publish_state(v); }
   inline void pub_aqua_tag(float v)           { if (aqua_tag_) aqua_tag_->publish_state(v); }
   inline void pub_aqua_ges(float v)           { if (aqua_ges_) aqua_ges_->publish_state(v); }
@@ -318,6 +322,8 @@ class SystaReader : public uart::UARTDevice, public Component {
   sensor::Sensor *aqua_twu_{nullptr};
   sensor::Sensor *aqua_tw2_{nullptr};
   sensor::Sensor *aqua_pwm_{nullptr};
+  sensor::Sensor *aqua_var1_{nullptr};
+  sensor::Sensor *aqua_stat_{nullptr};
   sensor::Sensor *aqua_sol_{nullptr};
   sensor::Sensor *aqua_tag_{nullptr};
   sensor::Sensor *aqua_ges_{nullptr};

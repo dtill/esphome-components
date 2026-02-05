@@ -54,7 +54,9 @@ void AquaDecoder::on_fc_frame(const std::vector<uint8_t>& frame,
   float tse    = u16(6)  / 10.0f;
   float twu    = u16(8)  / 10.0f;
   float tw2    = u16(10) / 10.0f;
-  int pwm      = u8(12);
+  int   pwm    = u8(12);
+  int   var1   = u8(14);
+  int   stat   = u8(16);
   float sol    = u16(24);
   float tag    = u16(26);
   float gesamt = u32(28);
@@ -67,6 +69,8 @@ void AquaDecoder::on_fc_frame(const std::vector<uint8_t>& frame,
   r_.pub_aqua_twu(twu);
   r_.pub_aqua_tw2(tw2);
   r_.pub_aqua_pwm(pwm);
+  r_.pub_aqua_pwm(var1);
+  r_.pub_aqua_pwm(stat);
   r_.pub_aqua_sol(sol);
   r_.pub_aqua_tag(tag);
   r_.pub_aqua_ges(gesamt);
@@ -88,8 +92,8 @@ void AquaDecoder::on_fc_frame(const std::vector<uint8_t>& frame,
   snprintf(ts, sizeof(ts), "%02d.%02d %02d:%02d", day, month, hour, minute);
   r_.pub_aqua_timestamp(ts);
 
-  ESP_LOGI(TAG_AQUA, "AQUA: TSA=%.1f TSE=%.1f TWU=%.1f TW2=%.1f PWM=%u SOL=%.0f TAG=%.0f GES=%.0f code=%02X",
-           tsa, tse, twu, tw2, pwm, sol, tag, gesamt, status_code);
+  ESP_LOGI(TAG_AQUA, "AQUA: TSA=%.1f TSE=%.1f TWU=%.1f TW2=%.1f PWM=%u SOL=%.0f TAG=%.0f GES=%.0f code=%02X VAR1=%u STAT=%u",
+           tsa, tse, twu, tw2, pwm, sol, tag, gesamt, status_code, var1, stat);
 }
 void AquaDecoder::on_display_frame(const std::vector<uint8_t>& /*frame*/,
                                    const std::vector<uint8_t>& payload,
