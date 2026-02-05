@@ -67,6 +67,7 @@ class SystaReader : public uart::UARTDevice, public Component {
   void set_aqua_tse_sensor(sensor::Sensor *s)         { aqua_tse_ = s; }
   void set_aqua_twu_sensor(sensor::Sensor *s)         { aqua_twu_ = s; }
   void set_aqua_tw2_sensor(sensor::Sensor *s)         { aqua_tw2_ = s; }
+  void set_aqua_pwm_sensor(sensor::Sensor *s)         { aqua_pwm_ = s; }
   void set_aqua_sol_sensor(sensor::Sensor *s)         { aqua_sol_ = s; }
   void set_aqua_tag_sensor(sensor::Sensor *s)         { aqua_tag_ = s; }
   void set_aqua_ges_sensor(sensor::Sensor *s)         { aqua_ges_ = s; }
