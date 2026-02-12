@@ -88,74 +88,26 @@ public:
   void set_aqua_ges_sensor(sensor::Sensor *s) { aqua_ges_ = s; }
   void set_aqua_status_code_sensor(sensor::Sensor *s) { aqua_status_code_ = s; }
   // AQUA text
-  void set_aqua_status_text_sensor(text_sensor::TextSensor *t) {
-    aqua_status_text_ = t;
-  }
-  void set_aqua_timestamp_text_sensor(text_sensor::TextSensor *t) {
-    aqua_timestamp_ = t;
-  }
+  void set_aqua_status_text_sensor(text_sensor::TextSensor *t) {aqua_status_text_ = t;}
+  void set_aqua_timestamp_text_sensor(text_sensor::TextSensor *t) { aqua_timestamp_ = t;}
   // Aqua-Display
-  void set_aqua_display_text_sensor(text_sensor::TextSensor *t) {
-    aqua_display_text_ = t;
-  }
-  inline void pub_aqua_display_text(const std::string &s) {
-    if (aqua_display_text_)
-      aqua_display_text_->publish_state(s);
-  }
+  void set_aqua_display_text_sensor(text_sensor::TextSensor *t) {aqua_display_text_ = t;}
+  inline void pub_aqua_display_text(const std::string &s) {if (aqua_display_text_)aqua_display_text_->publish_state(s);}
 
   // publish helpers
-  inline void pub_aqua_tsa(float v) {
-    if (aqua_tsa_)
-      aqua_tsa_->publish_state(v);
-  }
-  inline void pub_aqua_tse(float v) {
-    if (aqua_tse_)
-      aqua_tse_->publish_state(v);
-  }
-  inline void pub_aqua_twu(float v) {
-    if (aqua_twu_)
-      aqua_twu_->publish_state(v);
-  }
-  inline void pub_aqua_tw2(float v) {
-    if (aqua_tw2_)
-      aqua_tw2_->publish_state(v);
-  }
-  inline void pub_aqua_pwm(int v) {
-    if (aqua_pwm_)
-      aqua_pwm_->publish_state(v);
-  }
-  inline void pub_aqua_var1(int v) {
-    if (aqua_var1_)
-      aqua_var1_->publish_state(v);
-  }
-  inline void pub_aqua_stat(int v) {
-    if (aqua_stat_)
-      aqua_stat_->publish_state(v);
-  }
-  inline void pub_aqua_sol(float v) {
-    if (aqua_sol_)
-      aqua_sol_->publish_state(v);
-  }
-  inline void pub_aqua_tag(float v) {
-    if (aqua_tag_)
-      aqua_tag_->publish_state(v);
-  }
-  inline void pub_aqua_ges(float v) {
-    if (aqua_ges_)
-      aqua_ges_->publish_state(v);
-  }
-  inline void pub_aqua_status_code(int v) {
-    if (aqua_status_code_)
-      aqua_status_code_->publish_state(v);
-  }
-  inline void pub_aqua_status_text(const std::string &s) {
-    if (aqua_status_text_)
-      aqua_status_text_->publish_state(s);
-  }
-  inline void pub_aqua_timestamp(const std::string &s) {
-    if (aqua_timestamp_)
-      aqua_timestamp_->publish_state(s);
-  }
+  inline void pub_aqua_tsa(float v) { if (aqua_tsa_)    aqua_tsa_->publish_state(v);}
+  inline void pub_aqua_tse(float v) { if (aqua_tse_)    aqua_tse_->publish_state(v);}
+  inline void pub_aqua_twu(float v) { if (aqua_twu_)    aqua_twu_->publish_state(v);}
+  inline void pub_aqua_tw2(float v) { if (aqua_tw2_)    aqua_tw2_->publish_state(v);}
+  inline void pub_aqua_pwm(int v)   { if (aqua_pwm_)    aqua_pwm_->publish_state(v);}
+  inline void pub_aqua_var1(int v)  { if (aqua_var1_)   aqua_var1_->publish_state(v);}
+  inline void pub_aqua_stat(int v)  { if (aqua_stat_)   aqua_stat_->publish_state(v);}
+  inline void pub_aqua_sol(float v) { if (aqua_sol_)    aqua_sol_->publish_state(v);}
+  inline void pub_aqua_tag(float v) { if (aqua_tag_)    aqua_tag_->publish_state(v);}
+  inline void pub_aqua_ges(float v) { if (aqua_ges_)    aqua_ges_->publish_state(v);}
+  inline void pub_aqua_status_code(int v)   {if (aqua_status_code_) aqua_status_code_->publish_state(v);}
+  inline void pub_aqua_status_text(const std::string &s) { if (aqua_status_text_) aqua_status_text_->publish_state(s);}
+  inline void pub_aqua_timestamp(const std::string &s) {if (aqua_timestamp_)aqua_timestamp_->publish_state(s);}
 
   // AQUA_II numeric
   void set_aqua_ii_tsa_sensor(sensor::Sensor *s) { aqua_ii_tsa_ = s; }
@@ -177,77 +129,25 @@ public:
     aqua_ii_status_code_ = s;
   }
   // AQUA_II text
-  void set_aqua_ii_status_text_sensor(text_sensor::TextSensor *t) {
-    aqua_ii_status_text_ = t;
-  }
-  void set_aqua_ii_timestamp_text_sensor(text_sensor::TextSensor *t) {
-    aqua_ii_timestamp_ = t;
-  }
+  void set_aqua_ii_status_text_sensor(text_sensor::TextSensor *t)       {aqua_ii_status_text_ = t;}
+  void set_aqua_ii_timestamp_text_sensor(text_sensor::TextSensor *t)    {aqua_ii_timestamp_ = t;}
   // publish helpers
-  inline void pub_aqua_ii_tsa(float v) {
-    if (aqua_ii_tsa_)
-      aqua_ii_tsa_->publish_state(v);
-  }
-  inline void pub_aqua_ii_twu(float v) {
-    if (aqua_ii_twu_)
-      aqua_ii_twu_->publish_state(v);
-  }
-  inline void pub_aqua_ii_tsv(float v) {
-    if (aqua_ii_tsv_)
-      aqua_ii_tsv_->publish_state(v);
-  }
-  inline void pub_aqua_ii_tam(float v) {
-    if (aqua_ii_tam_)
-      aqua_ii_tam_->publish_state(v);
-  }
-  inline void pub_aqua_ii_tse(float v) {
-    if (aqua_ii_tse_)
-      aqua_ii_tse_->publish_state(v);
-  }
-  inline void pub_aqua_ii_dfl(float v) {
-    if (aqua_ii_dfl_)
-      aqua_ii_dfl_->publish_state(v);
-  }
-  inline void pub_aqua_ii_pwm(float v) {
-    if (aqua_ii_pwm_)
-      aqua_ii_pwm_->publish_state(v);
-  }
-  inline void pub_aqua_ii_koll_lstg(float v) {
-    if (aqua_ii_koll_lstg_)
-      aqua_ii_koll_lstg_->publish_state(v);
-  }
-  inline void pub_aqua_ii_tag(float v) {
-    if (aqua_ii_tag_)
-      aqua_ii_tag_->publish_state(v);
-  }
-  inline void pub_aqua_ii_ges(float v) {
-    if (aqua_ii_ges_)
-      aqua_ii_ges_->publish_state(v);
-  }
-  inline void pub_aqua_ii_tsa1(float v) {
-    if (aqua_ii_tsa1_)
-      aqua_ii_tsa1_->publish_state(v);
-  }
-  inline void pub_aqua_ii_tsa2(float v) {
-    if (aqua_ii_tsa2_)
-      aqua_ii_tsa2_->publish_state(v);
-  }
-  inline void pub_aqua_ii_tam2(float v) {
-    if (aqua_ii_tam2_)
-      aqua_ii_tam2_->publish_state(v);
-  }
-  inline void pub_aqua_ii_status_code(float v) {
-    if (aqua_ii_status_code_)
-      aqua_ii_status_code_->publish_state(v);
-  }
-  inline void pub_aqua_ii_status_text(const std::string &s) {
-    if (aqua_ii_status_text_)
-      aqua_ii_status_text_->publish_state(s);
-  }
-  inline void pub_aqua_ii_timestamp(const std::string &s) {
-    if (aqua_ii_timestamp_)
-      aqua_ii_timestamp_->publish_state(s);
-  }
+  inline void pub_aqua_ii_tsa(float v) { if (aqua_ii_tsa_)  aqua_ii_tsa_->publish_state(v);}
+  inline void pub_aqua_ii_twu(float v) { if (aqua_ii_twu_)  aqua_ii_twu_->publish_state(v);}
+  inline void pub_aqua_ii_tsv(float v) { if (aqua_ii_tsv_)  aqua_ii_tsv_->publish_state(v);}
+  inline void pub_aqua_ii_tam(float v) { if (aqua_ii_tam_)  aqua_ii_tam_->publish_state(v);}
+  inline void pub_aqua_ii_tse(float v) { if (aqua_ii_tse_)  aqua_ii_tse_->publish_state(v);}
+  inline void pub_aqua_ii_dfl(float v) { if (aqua_ii_dfl_)  aqua_ii_dfl_->publish_state(v);}
+  inline void pub_aqua_ii_pwm(float v) { if (aqua_ii_pwm_)  aqua_ii_pwm_->publish_state(v);}
+  inline void pub_aqua_ii_koll_lstg(float v) { if (aqua_ii_koll_lstg_) aqua_ii_koll_lstg_->publish_state(v);}
+  inline void pub_aqua_ii_tag(float v) { if (aqua_ii_tag_) aqua_ii_tag_->publish_state(v);}
+  inline void pub_aqua_ii_ges(float v) { if (aqua_ii_ges_) aqua_ii_ges_->publish_state(v);}
+  inline void pub_aqua_ii_tsa1(float v) { if (aqua_ii_tsa1_) aqua_ii_tsa1_->publish_state(v);}
+  inline void pub_aqua_ii_tsa2(float v) { if (aqua_ii_tsa2_) aqua_ii_tsa2_->publish_state(v);}
+  inline void pub_aqua_ii_tam2(float v) { if (aqua_ii_tam2_) aqua_ii_tam2_->publish_state(v);}
+  inline void pub_aqua_ii_status_code(float v) { if (aqua_ii_status_code_) aqua_ii_status_code_->publish_state(v);}
+  inline void pub_aqua_ii_status_text(const std::string &s) { if (aqua_ii_status_text_) aqua_ii_status_text_->publish_state(s);}
+  inline void pub_aqua_ii_timestamp(const std::string &s) { if (aqua_ii_timestamp_) aqua_ii_timestamp_->publish_state(s);}
 
   // MODULA setters
   void set_modula_ta_sensor(sensor::Sensor *s) { modula_ta_ = s; }
@@ -261,58 +161,20 @@ public:
   void set_modula_tpo_sensor(sensor::Sensor *s) { modula_tpo_ = s; }
   void set_modula_tpu_sensor(sensor::Sensor *s) { modula_tpu_ = s; }
   void set_modula_tzr_sensor(sensor::Sensor *s) { modula_tzr_ = s; }
-  void set_modula_timestamp_text_sensor(text_sensor::TextSensor *t) {
-    modula_timestamp_ = t;
-  }
+  void set_modula_timestamp_text_sensor(text_sensor::TextSensor *t) {modula_timestamp_ = t;}
   // MODULA publish helpers
-  inline void pub_modula_ta(float v) {
-    if (modula_ta_)
-      modula_ta_->publish_state(v);
-  }
-  inline void pub_modula_two(float v) {
-    if (modula_two_)
-      modula_two_->publish_state(v);
-  }
-  inline void pub_modula_tbv(float v) {
-    if (modula_tbv_)
-      modula_tbv_->publish_state(v);
-  }
-  inline void pub_modula_tbr(float v) {
-    if (modula_tbr_)
-      modula_tbr_->publish_state(v);
-  }
-  inline void pub_modula_tv(float v) {
-    if (modula_tv_)
-      modula_tv_->publish_state(v);
-  }
-  inline void pub_modula_tv2(float v) {
-    if (modula_tv2_)
-      modula_tv2_->publish_state(v);
-  }
-  inline void pub_modula_tr(float v) {
-    if (modula_tr_)
-      modula_tr_->publish_state(v);
-  }
-  inline void pub_modula_tr2(float v) {
-    if (modula_tr2_)
-      modula_tr2_->publish_state(v);
-  }
-  inline void pub_modula_tpo(float v) {
-    if (modula_tpo_)
-      modula_tpo_->publish_state(v);
-  }
-  inline void pub_modula_tpu(float v) {
-    if (modula_tpu_)
-      modula_tpu_->publish_state(v);
-  }
-  inline void pub_modula_tzr(float v) {
-    if (modula_tzr_)
-      modula_tzr_->publish_state(v);
-  }
-  inline void pub_modula_timestamp(const std::string &s) {
-    if (modula_timestamp_)
-      modula_timestamp_->publish_state(s);
-  }
+  inline void pub_modula_ta(float v) { if (modula_ta_) modula_ta_->publish_state(v);}
+  inline void pub_modula_two(float v) { if (modula_two_) modula_two_->publish_state(v);}
+  inline void pub_modula_tbv(float v) { if (modula_tbv_) modula_tbv_->publish_state(v);}
+  inline void pub_modula_tbr(float v) { if (modula_tbr_) modula_tbr_->publish_state(v);}
+  inline void pub_modula_tv(float v) { if (modula_tv_) modula_tv_->publish_state(v);}
+  inline void pub_modula_tv2(float v) { if (modula_tv2_) modula_tv2_->publish_state(v);}
+  inline void pub_modula_tr(float v) { if (modula_tr_) modula_tr_->publish_state(v);}
+  inline void pub_modula_tr2(float v) { if (modula_tr2_) modula_tr2_->publish_state(v);}
+  inline void pub_modula_tpo(float v) { if (modula_tpo_) modula_tpo_->publish_state(v);}
+  inline void pub_modula_tpu(float v) { if (modula_tpu_) modula_tpu_->publish_state(v);}
+  inline void pub_modula_tzr(float v) { if (modula_tzr_) modula_tzr_->publish_state(v);}
+  inline void pub_modula_timestamp(const std::string &s) { if (modula_timestamp_) modula_timestamp_->publish_state(s);}
 
   // ESPRESSO Setter
   void set_espresso_ta_sensor(sensor::Sensor *s) { espresso_ta_ = s; }
@@ -403,7 +265,7 @@ public:
   }
   inline void pub_espresso_timestamp(const std::string &s) {
     if (espresso_timestamp_)
-      espresso_timestamp_->publish_state(s);
+      espresso_timestamp_->publish_stat
   }
 
   // PALLETTI_II Setter
@@ -603,45 +465,19 @@ public:
   void set_comfort_pkes_sensor(sensor::Sensor *s) { comfort_pkes_ = s; }
 
   // COMFORT Status Bits
-  void set_comfort_stat_phk_binary_sensor(binary_sensor::BinarySensor *s) {
-    comfort_stat_phk_ = s;
-  }
-  void set_comfort_stat_phk2_binary_sensor(binary_sensor::BinarySensor *s) {
-    comfort_stat_phk2_ = s;
-  }
-  void set_comfort_stat_pk_binary_sensor(binary_sensor::BinarySensor *s) {
-    comfort_stat_pk_ = s;
-  }
-  void set_comfort_stat_m1_open_binary_sensor(binary_sensor::BinarySensor *s) {
-    comfort_stat_m1_open_ = s;
-  }
-  void set_comfort_stat_m1_close_binary_sensor(binary_sensor::BinarySensor *s) {
-    comfort_stat_m1_close_ = s;
-  }
-  void set_comfort_stat_m2_open_binary_sensor(binary_sensor::BinarySensor *s) {
-    comfort_stat_m2_open_ = s;
-  }
-  void set_comfort_stat_m2_close_binary_sensor(binary_sensor::BinarySensor *s) {
-    comfort_stat_m2_close_ = s;
-  }
-  void set_comfort_stat_ulv_binary_sensor(binary_sensor::BinarySensor *s) {
-    comfort_stat_ulv_ = s;
-  }
-  void set_comfort_stat_pzi_binary_sensor(binary_sensor::BinarySensor *s) {
-    comfort_stat_pzi_ = s;
-  }
-  void set_comfort_stat_b1_binary_sensor(binary_sensor::BinarySensor *s) {
-    comfort_stat_b1_ = s;
-  }
-  void set_comfort_stat_taster_binary_sensor(binary_sensor::BinarySensor *s) {
-    comfort_stat_taster_ = s;
-  }
-  void set_comfort_stat_lon_binary_sensor(binary_sensor::BinarySensor *s) {
-    comfort_stat_lon_ = s;
-  }
-  void set_comfort_stat_ot_binary_sensor(binary_sensor::BinarySensor *s) {
-    comfort_stat_ot_ = s;
-  }
+  void set_comfort_stat_phk_binary_sensor(binary_sensor::BinarySensor *s) { comfort_stat_phk_ = s;}
+  void set_comfort_stat_phk2_binary_sensor(binary_sensor::BinarySensor *s) { comfort_stat_phk2_ = s;}
+  void set_comfort_stat_pk_binary_sensor(binary_sensor::BinarySensor *s) { comfort_stat_pk_ = s;}
+  void set_comfort_stat_m1_open_binary_sensor(binary_sensor::BinarySensor *s) { comfort_stat_m1_open_ = s;}
+  void set_comfort_stat_m1_close_binary_sensor(binary_sensor::BinarySensor *s) { comfort_stat_m1_close_ = s;}
+  void set_comfort_stat_m2_open_binary_sensor(binary_sensor::BinarySensor *s) { comfort_stat_m2_open_ = s;}
+  void set_comfort_stat_m2_close_binary_sensor(binary_sensor::BinarySensor *s) { comfort_stat_m2_close_ = s;}
+  void set_comfort_stat_ulv_binary_sensor(binary_sensor::BinarySensor *s) { comfort_stat_ulv_ = s;}
+  void set_comfort_stat_pzi_binary_sensor(binary_sensor::BinarySensor *s) { comfort_stat_pzi_ = s;}
+  void set_comfort_stat_b1_binary_sensor(binary_sensor::BinarySensor *s) { comfort_stat_b1_ = s;}
+  void set_comfort_stat_taster_binary_sensor(binary_sensor::BinarySensor *s) { comfort_stat_taster_ = s;}
+  void set_comfort_stat_lon_binary_sensor(binary_sensor::BinarySensor *s) { comfort_stat_lon_ = s;}
+  void set_comfort_stat_ot_binary_sensor(binary_sensor::BinarySensor *s) { comfort_stat_ot_ = s;}
 
   // COMFORT: private Publisher
   inline void pub_comfort_ti_s(float v) {
@@ -672,47 +508,47 @@ public:
     if (comfort_stat_)
       comfort_stat_->publish_state(v);
   }
-  inline void pub_comfort_bst(uint32_t v) {
+  inline void pub_comfort_bst(int v) {
     if (comfort_bst_)
       comfort_bst_->publish_state(v);
   }
-  inline void pub_comfort_kst(uint32_t v) {
+  inline void pub_comfort_kst(int v) {
     if (comfort_kst_)
       comfort_kst_->publish_state(v);
   }
-  inline void pub_comfort_err(uint16_t v) {
+  inline void pub_comfort_err(int v) {
     if (comfort_err_)
       comfort_err_->publish_state(v);
   }
-  inline void pub_comfort_sens(uint8_t v) {
+  inline void pub_comfort_sens(int v) {
     if (comfort_sens_)
       comfort_sens_->publish_state(v);
   }
-  inline void pub_comfort_ba1(uint8_t v) {
+  inline void pub_comfort_ba1(int v) {
     if (comfort_ba1_)
       comfort_ba1_->publish_state(v);
   }
-  inline void pub_comfort_niv1(uint8_t v) {
+  inline void pub_comfort_niv1(int v) {
     if (comfort_niv1_)
       comfort_niv1_->publish_state(v);
   }
-  inline void pub_comfort_ba2(uint8_t v) {
+  inline void pub_comfort_ba2(int v) {
     if (comfort_ba2_)
       comfort_ba2_->publish_state(v);
   }
-  inline void pub_comfort_niv2(uint8_t v) {
+  inline void pub_comfort_niv2(int v) {
     if (comfort_niv2_)
       comfort_niv2_->publish_state(v);
   }
-  inline void pub_comfort_phk1(uint8_t v) {
+  inline void pub_comfort_phk1(int v) {
     if (comfort_phk1_)
       comfort_phk1_->publish_state(v);
   }
-  inline void pub_comfort_phk2(uint8_t v) {
+  inline void pub_comfort_phk2(int v) {
     if (comfort_phk2_)
       comfort_phk2_->publish_state(v);
   }
-  inline void pub_comfort_pkes(uint8_t v) {
+  inline void pub_comfort_pkes(int v) {
     if (comfort_pkes_)
       comfort_pkes_->publish_state(v);
   }

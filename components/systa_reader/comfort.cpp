@@ -28,26 +28,26 @@ void ComfortDecoder::on_fc_frame(const std::vector<uint8_t> &frame,
   auto u16 = [&](int i) { return read_u16_be(payload, i); };
 
   // Values:
-  int16_t ti_s = s16(0) / 10.0f;
-  int16_t ti2_s = s16(2) / 10.0f;
-  int16_t tv_s = s16(4) / 10.0f;
-  int16_t tv2_s = s16(6) / 10.0f;
-  int16_t tw_s = s16(8) / 10.0f;
-  int16_t tp_s = s16(10) / 10.0f;
+  float ti_s = s16(0) / 10.0f;
+  float ti2_s = s16(2) / 10.0f;
+  float tv_s = s16(4) / 10.0f;
+  float tv2_s = s16(6) / 10.0f;
+  float tw_s = s16(8) / 10.0f;
+  float tp_s = s16(10) / 10.0f;
 
-  uint16_t stat = u16(12);
-  uint32_t bst = u32(14);
-  uint32_t kst = u32(18);
-  uint16_t err = u16(22);
-  uint8_t sens = u8(24);
+  int stat = u16(12);
+  int bst = u32(14);
+  int kst = u32(18);
+  int err = u16(22);
+  int sens = u8(24);
 
-  uint8_t ba1 = u8(25);
-  uint8_t niv1 = u8(26);
-  uint8_t ba2 = u8(27);
-  uint8_t niv2 = u8(28);
-  uint8_t p_hk1 = u8(29);
-  uint8_t p_hk2 = u8(30);
-  uint8_t p_kes = u8(31);
+  int ba1 = u8(25);
+  int niv1 = u8(26);
+  int ba2 = u8(27);
+  int niv2 = u8(28);
+  int p_hk1 = u8(29);
+  int p_hk2 = u8(30);
+  int p_kes = u8(31);
 
   // Publish
   r_.pub_comfort_ti_s(ti_s);
