@@ -62,7 +62,7 @@ void ComfortDecoder::on_fc_frame(const std::vector<uint8_t> &frame,
   r_.pub_comfort_kst(kst);
   r_.pub_comfort_err(err);
   r_.pub_comfort_sens(sens);
-  ESP_LOGI(TAG_COMFORT, "COMFORT: TI_S=%d  TI2_S=%d TV_S=%d  TV2_S=%d TW_S=%d TP_S=%d STAT=0x%04X BST=%u KST=%u ERR=0x%04X SENS=%u",
+  ESP_LOGI(TAG_COMFORT, "COMFORT: TI_S=%f  TI2_S=%f TV_S=%f  TV2_S=%f TW_S=%f TP_S=%f STAT=0x%04X BST=%u KST=%u ERR=0x%04X SENS=%u",
                     ti_s, ti2_s, tv_s, tv2_s, tw_s, tp_s, stat, bst, kst, err, sens);
   r_.pub_comfort_ba1(ba1);
   r_.pub_comfort_niv1(niv1);
