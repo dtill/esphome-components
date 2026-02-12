@@ -17,7 +17,7 @@ KIND = cv.one_of(
 )
 
 CONFIG_SCHEMA = binary_sensor.binary_sensor_schema().extend({
-    cv.GenerateID(CONF_PARENT_ID): cv.use_id(SystaReader),
+    cv.Required(CONF_PARENT_ID): cv.use_id(SystaReader),
     cv.Required("kind"): KIND,
 })
 
@@ -25,7 +25,7 @@ async def to_code(config):
     parent = await cg.get_variable(config[CONF_PARENT_ID])
     s = await binary_sensor.new_binary_sensor(config)
     
-    k = config["kind"]
+    k = config[CONF_KIND]
     if k == "comfort_stat_phk":      cg.add(parent.set_comfort_stat_phk_binary_sensor(s))
     elif k == "comfort_stat_phk2":     cg.add(parent.set_comfort_stat_phk2_binary_sensor(s))
     elif k == "comfort_stat_pk":       cg.add(parent.set_comfort_stat_pk_binary_sensor(s))
