@@ -57,7 +57,6 @@ void ComfortDecoder::on_fc_frame(const std::vector<uint8_t> &frame,
   r_.pub_comfort_tw_s(tw_s);
   r_.pub_comfort_tp_s(tp_s);
 
-  r_.pub_comfort_stat(stat);
   r_.pub_comfort_bst(bst);
   r_.pub_comfort_kst(kst);
   r_.pub_comfort_err(err);

@@ -30,131 +30,169 @@ systa_reader:
   systa_device: [comfort]  # Enable Comfort device (0C02 frames)
 
 sensor:
+
+  # Comfort Sensors
   - platform: systa_reader
+    systa_reader_id: systa_bus_01
     kind: comfort_ti_s
     name: "Comfort TI-Soll"
     unit_of_measurement: "°C"
     accuracy_decimals: 1
-
+    device_class: temperature
+    state_class: measurement
   - platform: systa_reader
+    systa_reader_id: systa_bus_01
     kind: comfort_ti2_s
     name: "Comfort TI2-Soll"
     unit_of_measurement: "°C"
     accuracy_decimals: 1
-
+    device_class: temperature
+    state_class: measurement
   - platform: systa_reader
+    systa_reader_id: systa_bus_01
     kind: comfort_tv_s
     name: "Comfort TV-Soll"
     unit_of_measurement: "°C"
     accuracy_decimals: 1
-
+    device_class: temperature
+    state_class: measurement
   - platform: systa_reader
+    systa_reader_id: systa_bus_01
     kind: comfort_tv2_s
     name: "Comfort TV2-Soll"
     unit_of_measurement: "°C"
+    device_class: temperature
     accuracy_decimals: 1
-
+    state_class: measurement
   - platform: systa_reader
+    systa_reader_id: systa_bus_01
     kind: comfort_tw_s
     name: "Comfort TW-Soll"
     unit_of_measurement: "°C"
     accuracy_decimals: 1
-
+    device_class: temperature
+    state_class: measurement
   - platform: systa_reader
+    systa_reader_id: systa_bus_01
     kind: comfort_tp_s
     name: "Comfort TP-Soll"
     unit_of_measurement: "°C"
     accuracy_decimals: 1
-
+    device_class: temperature
+    state_class: measurement
   - platform: systa_reader
-    kind: comfort_stat
-    name: "Comfort Status"
-
-  - platform: systa_reader
+    systa_reader_id: systa_bus_01
     kind: comfort_bst
     name: "Comfort Betriebsstunden"
     unit_of_measurement: "h"
-
+    accuracy_decimals: 0
+    state_class: total_increasing
   - platform: systa_reader
+    systa_reader_id: systa_bus_01
     kind: comfort_kst
     name: "Comfort Kesselstarts"
-
+    accuracy_decimals: 0
+    state_class: total_increasing
   - platform: systa_reader
+    systa_reader_id: systa_bus_01
     kind: comfort_err
     name: "Comfort Error"
-
   - platform: systa_reader
+    systa_reader_id: systa_bus_01
     kind: comfort_sens
     name: "Comfort Sensor Error"
-
   - platform: systa_reader
+    systa_reader_id: systa_bus_01
     kind: comfort_ba1
     name: "Comfort BA1"
-
   - platform: systa_reader
+    systa_reader_id: systa_bus_01
     kind: comfort_niv1
     name: "Comfort NIV1"
-
   - platform: systa_reader
+    systa_reader_id: systa_bus_01
     kind: comfort_ba2
     name: "Comfort BA2"
-
   - platform: systa_reader
+    systa_reader_id: systa_bus_01
     kind: comfort_niv2
     name: "Comfort NIV2"
-
   - platform: systa_reader
+    systa_reader_id: systa_bus_01
     kind: comfort_phk1
     name: "Comfort Pumpe HK1"
     unit_of_measurement: "%"
-
+    accuracy_decimals: 0
+    device_class: power_factor
+    state_class: measurement
   - platform: systa_reader
+    systa_reader_id: systa_bus_01
     kind: comfort_phk2
     name: "Comfort Pumpe HK2"
     unit_of_measurement: "%"
-
+    accuracy_decimals: 0
+    device_class: power_factor
+    state_class: measurement
   - platform: systa_reader
+    systa_reader_id: systa_bus_01
     kind: comfort_pkes
     name: "Comfort Pumpe Kessel"
     unit_of_measurement: "%"
+    accuracy_decimals: 0
+    device_class: power_factor
+    state_class: measurement
 
-  # Status Bitfield Sensors
+binary_sensor:
+  # Comfort Status Bitfield Sensors
   - platform: systa_reader
+    systa_reader_id: systa_bus_01
     kind: comfort_stat_phk
     name: "Comfort Stat PHK"
   - platform: systa_reader
+    systa_reader_id: systa_bus_01
     kind: comfort_stat_phk2
     name: "Comfort Stat PHK2"
   - platform: systa_reader
+    systa_reader_id: systa_bus_01
     kind: comfort_stat_pk
     name: "Comfort Stat PK"
   - platform: systa_reader
+    systa_reader_id: systa_bus_01
     kind: comfort_stat_m1_open
     name: "Comfort Stat M1 Open"
   - platform: systa_reader
+    systa_reader_id: systa_bus_01
     kind: comfort_stat_m1_close
     name: "Comfort Stat M1 Close"
   - platform: systa_reader
+    systa_reader_id: systa_bus_01
     kind: comfort_stat_m2_open
     name: "Comfort Stat M2 Open"
   - platform: systa_reader
+    systa_reader_id: systa_bus_01
     kind: comfort_stat_m2_close
     name: "Comfort Stat M2 Close"
   - platform: systa_reader
+    systa_reader_id: systa_bus_01
     kind: comfort_stat_ulv
     name: "Comfort Stat ULV"
   - platform: systa_reader
+    systa_reader_id: systa_bus_01
     kind: comfort_stat_pzi
     name: "Comfort Stat PZI"
   - platform: systa_reader
+    systa_reader_id: systa_bus_01
     kind: comfort_stat_b1
     name: "Comfort Stat B1"
   - platform: systa_reader
+    systa_reader_id: systa_bus_01
     kind: comfort_stat_taster
     name: "Comfort Stat Taster"
   - platform: systa_reader
+    systa_reader_id: systa_bus_01
     kind: comfort_stat_lon
     name: "Comfort Stat LON"
   - platform: systa_reader
+    systa_reader_id: systa_bus_01
     kind: comfort_stat_ot
     name: "Comfort Stat OT"

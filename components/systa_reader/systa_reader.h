@@ -395,7 +395,6 @@ public:
   void set_comfort_tv2_s_sensor(sensor::Sensor *s) { comfort_tv2_s_ = s; }
   void set_comfort_tw_s_sensor(sensor::Sensor *s) { comfort_tw_s_ = s; }
   void set_comfort_tp_s_sensor(sensor::Sensor *s) { comfort_tp_s_ = s; }
-  void set_comfort_stat_sensor(sensor::Sensor *s) { comfort_stat_ = s; }
   void set_comfort_bst_sensor(sensor::Sensor *s) { comfort_bst_ = s; }
   void set_comfort_kst_sensor(sensor::Sensor *s) { comfort_kst_ = s; }
   void set_comfort_err_sensor(sensor::Sensor *s) { comfort_err_ = s; }
@@ -430,7 +429,6 @@ public:
   inline void pub_comfort_tv2_s(float v) { if (comfort_tv2_s_) comfort_tv2_s_->publish_state(v);}
   inline void pub_comfort_tw_s(float v) { if (comfort_tw_s_) comfort_tw_s_->publish_state(v);}
   inline void pub_comfort_tp_s(float v) { if (comfort_tp_s_) comfort_tp_s_->publish_state(v);}
-  inline void pub_comfort_stat(float v) { if (comfort_stat_) comfort_stat_->publish_state(v);}
   inline void pub_comfort_bst(int v) { if (comfort_bst_) comfort_bst_->publish_state(v);}
   inline void pub_comfort_kst(int v) { if (comfort_kst_) comfort_kst_->publish_state(v);}
   inline void pub_comfort_err(int v) { if (comfort_err_) comfort_err_->publish_state(v);}
@@ -650,7 +648,6 @@ private:
   sensor::Sensor *comfort_tv2_s_{nullptr};
   sensor::Sensor *comfort_tw_s_{nullptr};
   sensor::Sensor *comfort_tp_s_{nullptr};
-  sensor::Sensor *comfort_stat_{nullptr};
   sensor::Sensor *comfort_bst_{nullptr};
   sensor::Sensor *comfort_kst_{nullptr};
   sensor::Sensor *comfort_err_{nullptr};
