@@ -62,7 +62,6 @@ public:
   void add_sink_all(HexSink *s) { sinks_all_.push_back(s); }
   void add_sink_aqua(HexSink *s) { sinks_aqua_.push_back(s); }
   void add_sink_aqua_ii(HexSink *s) { sinks_aqua_ii_.push_back(s); }
-  void add_sink_aqua_ii(HexSink *s) { sinks_aqua_ii_.push_back(s); }
   void add_sink_palletti_ii(HexSink *s) { sinks_palletti_ii_.push_back(s); }
   void add_sink_comfort(HexSink *s) { sinks_comfort_.push_back(s); }
 
