@@ -1,0 +1,160 @@
+substitutions:
+  # Adjust to your setup
+  uart_rx_pin: GPIO16
+  uart_tx_pin: GPIO17
+
+esphome:
+  name: systa-comfort-reader
+  friendly_name: "Systa Comfort Reader"
+
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+
+# Enable logging
+logger:
+  level: DEBUG
+
+# Enable UART
+uart:
+  id: uart_bus
+  tx_pin: ${uart_tx_pin}
+  rx_pin: ${uart_rx_pin}
+  baud_rate: 19200
+  stop_bits: 1
+
+# Systa Reader Component
+systa_reader:
+  uart_id: uart_bus
+  systa_device: [comfort]  # Enable Comfort device (0C02 frames)
+
+sensor:
+  - platform: systa_reader
+    kind: comfort_ti_s
+    name: "Comfort TI-Soll"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+
+  - platform: systa_reader
+    kind: comfort_ti2_s
+    name: "Comfort TI2-Soll"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+
+  - platform: systa_reader
+    kind: comfort_tv_s
+    name: "Comfort TV-Soll"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+
+  - platform: systa_reader
+    kind: comfort_tv2_s
+    name: "Comfort TV2-Soll"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+
+  - platform: systa_reader
+    kind: comfort_tw_s
+    name: "Comfort TW-Soll"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+
+  - platform: systa_reader
+    kind: comfort_tp_s
+    name: "Comfort TP-Soll"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+
+  - platform: systa_reader
+    kind: comfort_stat
+    name: "Comfort Status"
+
+  - platform: systa_reader
+    kind: comfort_bst
+    name: "Comfort Betriebsstunden"
+    unit_of_measurement: "h"
+
+  - platform: systa_reader
+    kind: comfort_kst
+    name: "Comfort Kesselstarts"
+
+  - platform: systa_reader
+    kind: comfort_err
+    name: "Comfort Error"
+
+  - platform: systa_reader
+    kind: comfort_sens
+    name: "Comfort Sensor Error"
+
+  - platform: systa_reader
+    kind: comfort_ba1
+    name: "Comfort BA1"
+
+  - platform: systa_reader
+    kind: comfort_niv1
+    name: "Comfort NIV1"
+
+  - platform: systa_reader
+    kind: comfort_ba2
+    name: "Comfort BA2"
+
+  - platform: systa_reader
+    kind: comfort_niv2
+    name: "Comfort NIV2"
+
+  - platform: systa_reader
+    kind: comfort_phk1
+    name: "Comfort Pumpe HK1"
+    unit_of_measurement: "%"
+
+  - platform: systa_reader
+    kind: comfort_phk2
+    name: "Comfort Pumpe HK2"
+    unit_of_measurement: "%"
+
+  - platform: systa_reader
+    kind: comfort_pkes
+    name: "Comfort Pumpe Kessel"
+    unit_of_measurement: "%"
+
+  # Status Bitfield Sensors
+  - platform: systa_reader
+    kind: comfort_stat_phk
+    name: "Comfort Stat PHK"
+  - platform: systa_reader
+    kind: comfort_stat_phk2
+    name: "Comfort Stat PHK2"
+  - platform: systa_reader
+    kind: comfort_stat_pk
+    name: "Comfort Stat PK"
+  - platform: systa_reader
+    kind: comfort_stat_m1_open
+    name: "Comfort Stat M1 Open"
+  - platform: systa_reader
+    kind: comfort_stat_m1_close
+    name: "Comfort Stat M1 Close"
+  - platform: systa_reader
+    kind: comfort_stat_m2_open
+    name: "Comfort Stat M2 Open"
+  - platform: systa_reader
+    kind: comfort_stat_m2_close
+    name: "Comfort Stat M2 Close"
+  - platform: systa_reader
+    kind: comfort_stat_ulv
+    name: "Comfort Stat ULV"
+  - platform: systa_reader
+    kind: comfort_stat_pzi
+    name: "Comfort Stat PZI"
+  - platform: systa_reader
+    kind: comfort_stat_b1
+    name: "Comfort Stat B1"
+  - platform: systa_reader
+    kind: comfort_stat_taster
+    name: "Comfort Stat Taster"
+  - platform: systa_reader
+    kind: comfort_stat_lon
+    name: "Comfort Stat LON"
+  - platform: systa_reader
+    kind: comfort_stat_ot
+    name: "Comfort Stat OT"
