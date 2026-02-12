@@ -4,16 +4,16 @@ import esphome.config_validation as cv
 from esphome.components import uart
 from esphome.const import CONF_ID
 
-AUTO_LOAD = ["sensor", "text_sensor"]
+AUTO_LOAD = ["sensor", "text_sensor", "binary_sensor"]
 CODEOWNERS = ["@dtill"]
-DEPENDENCIES = ["uart", "sensor", "text_sensor"]
+DEPENDENCIES = ["uart", "sensor", "text_sensor", "binary_sensor"]
 MULTI_CONF = True  # allow multiple systa_reader blocks, but we'll enforce 1 per UART
 
 systa_ns = cg.esphome_ns.namespace("systa_reader")
 SystaReader = systa_ns.class_("SystaReader", uart.UARTDevice, cg.Component)
 
 # ----- devices (list)
-SYSTA_DEVICE = cv.one_of("aqua", "aqua_ii", "modula", "espresso", "solar", "palletti_ii", "compact", lower=True)
+SYSTA_DEVICE = cv.one_of("aqua", "aqua_ii", "modula", "espresso", "solar", "palletti_ii", "compact", "comfort", lower=True)
 SYSTA_DEVICES_LIST = cv.All(cv.ensure_list(SYSTA_DEVICE), cv.Length(min=1))
 
 # bit flags (room to grow—switch to 64-bit in C++ if you like)
@@ -25,6 +25,7 @@ DEV_FLAGS = {
     "solar":    1 << 4,
     "compact":  1 << 5,
     "palletti_ii":  1 << 6,
+    "comfort":  1 << 7,
 }
 
 CONF_UART_ID = "uart_id"

@@ -26,6 +26,11 @@ KIND = cv.one_of(
     # COMPACT
     "compact_ta","compact_two","compact_fa_tv","compact_fa_tr","compact_ti","compact_ti_s",
     "compact_tv_s","compact_two_s","compact_status_code",
+    # COMFORT
+    "comfort_ti_s", "comfort_ti2_s", "comfort_tv_s", "comfort_tv2_s", "comfort_tw_s", "comfort_tp_s",
+    "comfort_stat", "comfort_bst", "comfort_kst", "comfort_err", "comfort_sens",
+    "comfort_ba1", "comfort_niv1", "comfort_ba2", "comfort_niv2",
+    "comfort_phk1", "comfort_phk2", "comfort_pkes",
     lower=True
 )
 
@@ -115,3 +120,21 @@ async def to_code(config):
     elif k == "compact_tv_s":      cg.add(parent.set_compact_tv_s_sensor(s))
     elif k == "compact_two_s":     cg.add(parent.set_compact_two_s_sensor(s))
     elif k == "compact_status_code":cg.add(parent.set_compact_status_code_sensor(s))
+    elif k == "comfort_ti_s":      cg.add(parent.set_comfort_ti_s_sensor(s))
+    elif k == "comfort_ti2_s":     cg.add(parent.set_comfort_ti2_s_sensor(s))
+    elif k == "comfort_tv_s":      cg.add(parent.set_comfort_tv_s_sensor(s))
+    elif k == "comfort_tv2_s":     cg.add(parent.set_comfort_tv2_s_sensor(s))
+    elif k == "comfort_tw_s":      cg.add(parent.set_comfort_tw_s_sensor(s))
+    elif k == "comfort_tp_s":      cg.add(parent.set_comfort_tp_s_sensor(s))
+    elif k == "comfort_stat":      cg.add(parent.set_comfort_stat_sensor(s))
+    elif k == "comfort_bst":       cg.add(parent.set_comfort_bst_sensor(s))
+    elif k == "comfort_kst":       cg.add(parent.set_comfort_kst_sensor(s))
+    elif k == "comfort_err":       cg.add(parent.set_comfort_err_sensor(s))
+    elif k == "comfort_sens":      cg.add(parent.set_comfort_sens_sensor(s))
+    elif k == "comfort_ba1":       cg.add(parent.set_comfort_ba1_sensor(s))
+    elif k == "comfort_niv1":      cg.add(parent.set_comfort_niv1_sensor(s))
+    elif k == "comfort_ba2":       cg.add(parent.set_comfort_ba2_sensor(s))
+    elif k == "comfort_niv2":      cg.add(parent.set_comfort_niv2_sensor(s))
+    elif k == "comfort_phk1":      cg.add(parent.set_comfort_phk1_sensor(s))
+    elif k == "comfort_phk2":      cg.add(parent.set_comfort_phk2_sensor(s))
+    elif k == "comfort_pkes":      cg.add(parent.set_comfort_pkes_sensor(s))
