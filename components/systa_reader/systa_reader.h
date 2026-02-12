@@ -265,7 +265,7 @@ public:
   }
   inline void pub_espresso_timestamp(const std::string &s) {
     if (espresso_timestamp_)
-      espresso_timestamp_->publish_stat
+      espresso_timestamp_->publish_state(v);
   }
 
   // PALLETTI_II Setter
