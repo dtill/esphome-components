@@ -63,6 +63,8 @@ void ComfortDecoder::on_fc_frame(const std::vector<uint8_t> &frame,
   r_.pub_comfort_err(err);
   r_.pub_comfort_sens(sens);
 
+  ESP_LOGI(TAG_COMFORT, "COMFORT: TI_S=%d TV_S=%d BST=%u KST=%u STAT=0x%04X ERR=0x%04X", ti_s, tv_s, bst, kst, stat, err);
+
   r_.pub_comfort_ba1(ba1);
   r_.pub_comfort_niv1(niv1);
   r_.pub_comfort_ba2(ba2);
@@ -98,10 +100,6 @@ void ComfortDecoder::on_fc_frame(const std::vector<uint8_t> &frame,
   r_.pub_comfort_stat_lon((bool)(stat & 2048));
   // Bit 12: OT
   r_.pub_comfort_stat_ot((bool)(stat & 4096));
-
-  ESP_LOGI(TAG_COMFORT,
-           "COMFORT: TI_S=%d TV_S=%d BST=%u KST=%u STAT=0x%04X ERR=0x%04X",
-           ti_s, tv_s, bst, kst, stat, err);
 }
 
 } // namespace systa_reader

@@ -192,86 +192,30 @@ public:
   void set_espresso_tzr_sensor(sensor::Sensor *s) { espresso_tzr_ = s; }
   void set_espresso_pk_sensor(sensor::Sensor *s) { espresso_pk_ = s; }
   void set_espresso_hk1_phk_sensor(sensor::Sensor *s) { espresso_hk1_phk_ = s; }
-  void set_espresso_hk2_phk2_sensor(sensor::Sensor *s) {
-    espresso_hk2_phk2_ = s;
-  }
-  void set_espresso_timestamp_text_sensor(text_sensor::TextSensor *t) {
-    espresso_timestamp_ = t;
-  }
+  void set_espresso_hk2_phk2_sensor(sensor::Sensor *s) { espresso_hk2_phk2_ = s;}
+  void set_espresso_timestamp_text_sensor(text_sensor::TextSensor *t) { espresso_timestamp_ = t;}
   // ESPRESSO: private Publisher
-  inline void pub_espresso_ta(float v) {
-    if (espresso_ta_)
-      espresso_ta_->publish_state(v);
-  }
-  inline void pub_espresso_two(float v) {
-    if (espresso_two_)
-      espresso_two_->publish_state(v);
-  }
-  inline void pub_espresso_fa_tv(float v) {
-    if (espresso_fa_tv_)
-      espresso_fa_tv_->publish_state(v);
-  }
-  inline void pub_espresso_fa_tr(float v) {
-    if (espresso_fa_tr_)
-      espresso_fa_tr_->publish_state(v);
-  }
-  inline void pub_espresso_hk1_ti(float v) {
-    if (espresso_hk1_ti_)
-      espresso_hk1_ti_->publish_state(v);
-  }
-  inline void pub_espresso_hk2_ti2(float v) {
-    if (espresso_hk2_ti2_)
-      espresso_hk2_ti2_->publish_state(v);
-  }
-  inline void pub_espresso_hk1_tv(float v) {
-    if (espresso_hk1_tv_)
-      espresso_hk1_tv_->publish_state(v);
-  }
-  inline void pub_espresso_hk2_tv2(float v) {
-    if (espresso_hk2_tv2_)
-      espresso_hk2_tv2_->publish_state(v);
-  }
-  inline void pub_espresso_hk1_tr(float v) {
-    if (espresso_hk1_tr_)
-      espresso_hk1_tr_->publish_state(v);
-  }
-  inline void pub_espresso_hk2_tr2(float v) {
-    if (espresso_hk2_tr2_)
-      espresso_hk2_tr2_->publish_state(v);
-  }
-  inline void pub_espresso_tpo(float v) {
-    if (espresso_tpo_)
-      espresso_tpo_->publish_state(v);
-  }
-  inline void pub_espresso_tpu(float v) {
-    if (espresso_tpu_)
-      espresso_tpu_->publish_state(v);
-  }
-  inline void pub_espresso_tzr(float v) {
-    if (espresso_tzr_)
-      espresso_tzr_->publish_state(v);
-  }
-  inline void pub_espresso_pk(float v) {
-    if (espresso_pk_)
-      espresso_pk_->publish_state(v);
-  }
-  inline void pub_espresso_hk1_phk(float v) {
-    if (espresso_hk1_phk_)
-      espresso_hk1_phk_->publish_state(v);
-  }
-  inline void pub_espresso_hk2_phk2(float v) {
-    if (espresso_hk2_phk2_)
-      espresso_hk2_phk2_->publish_state(v);
-  }
-  inline void pub_espresso_timestamp(const std::string &s) {
-    if (espresso_timestamp_)
-      espresso_timestamp_->publish_state(s);
-  }
+  inline void pub_espresso_ta(float v) { if (espresso_ta_) espresso_ta_->publish_state(v);}
+  inline void pub_espresso_two(float v) { if (espresso_two_) espresso_two_->publish_state(v);}
+  inline void pub_espresso_fa_tv(float v) { if (espresso_fa_tv_) espresso_fa_tv_->publish_state(v);}
+  inline void pub_espresso_fa_tr(float v) { if (espresso_fa_tr_) espresso_fa_tr_->publish_state(v);}
+  inline void pub_espresso_hk1_ti(float v) { if (espresso_hk1_ti_) espresso_hk1_ti_->publish_state(v);}
+  inline void pub_espresso_hk2_ti2(float v) { if (espresso_hk2_ti2_) espresso_hk2_ti2_->publish_state(v);}
+  inline void pub_espresso_hk1_tv(float v) { if (espresso_hk1_tv_) espresso_hk1_tv_->publish_state(v);}
+  inline void pub_espresso_hk2_tv2(float v) { if (espresso_hk2_tv2_) espresso_hk2_tv2_->publish_state(v);}
+  inline void pub_espresso_hk1_tr(float v) { if (espresso_hk1_tr_) espresso_hk1_tr_->publish_state(v);}
+  inline void pub_espresso_hk2_tr2(float v) { if (espresso_hk2_tr2_) espresso_hk2_tr2_->publish_state(v);}
+  inline void pub_espresso_tpo(float v) { if (espresso_tpo_) espresso_tpo_->publish_state(v);}
+  inline void pub_espresso_tpu(float v) { if (espresso_tpu_) espresso_tpu_->publish_state(v);}
+  inline void pub_espresso_tzr(float v) { if (espresso_tzr_) espresso_tzr_->publish_state(v);}
+  inline void pub_espresso_pk(float v) { if (espresso_pk_) espresso_pk_->publish_state(v);}
+  inline void pub_espresso_hk1_phk(float v) { if (espresso_hk1_phk_) espresso_hk1_phk_->publish_state(v);}
+  inline void pub_espresso_hk2_phk2(float v) { if (espresso_hk2_phk2_) espresso_hk2_phk2_->publish_state(v);}
+  inline void pub_espresso_timestamp(const std::string &s) { if (espresso_timestamp_) espresso_timestamp_->publish_state(s);}
 
   // PALLETTI_II Setter
   // Bedienteil-Display
-  void set_palletti_ii_display_text_sensor(text_sensor::TextSensor *t) {
-    palletti_ii_display_text_ = t;
+  void set_palletti_ii_display_text_sensor(text_sensor::TextSensor *t) { palletti_ii_display_text_ = t;
   }
   inline void pub_palletti_ii_display_text(const std::string &s) {
     if (palletti_ii_display_text_)
@@ -480,132 +424,39 @@ public:
   void set_comfort_stat_ot_binary_sensor(binary_sensor::BinarySensor *s) { comfort_stat_ot_ = s;}
 
   // COMFORT: private Publisher
-  inline void pub_comfort_ti_s(float v) {
-    if (comfort_ti_s_)
-      comfort_ti_s_->publish_state(v);
-  }
-  inline void pub_comfort_ti2_s(float v) {
-    if (comfort_ti2_s_)
-      comfort_ti2_s_->publish_state(v);
-  }
-  inline void pub_comfort_tv_s(float v) {
-    if (comfort_tv_s_)
-      comfort_tv_s_->publish_state(v);
-  }
-  inline void pub_comfort_tv2_s(float v) {
-    if (comfort_tv2_s_)
-      comfort_tv2_s_->publish_state(v);
-  }
-  inline void pub_comfort_tw_s(float v) {
-    if (comfort_tw_s_)
-      comfort_tw_s_->publish_state(v);
-  }
-  inline void pub_comfort_tp_s(float v) {
-    if (comfort_tp_s_)
-      comfort_tp_s_->publish_state(v);
-  }
-  inline void pub_comfort_stat(float v) {
-    if (comfort_stat_)
-      comfort_stat_->publish_state(v);
-  }
-  inline void pub_comfort_bst(int v) {
-    if (comfort_bst_)
-      comfort_bst_->publish_state(v);
-  }
-  inline void pub_comfort_kst(int v) {
-    if (comfort_kst_)
-      comfort_kst_->publish_state(v);
-  }
-  inline void pub_comfort_err(int v) {
-    if (comfort_err_)
-      comfort_err_->publish_state(v);
-  }
-  inline void pub_comfort_sens(int v) {
-    if (comfort_sens_)
-      comfort_sens_->publish_state(v);
-  }
-  inline void pub_comfort_ba1(int v) {
-    if (comfort_ba1_)
-      comfort_ba1_->publish_state(v);
-  }
-  inline void pub_comfort_niv1(int v) {
-    if (comfort_niv1_)
-      comfort_niv1_->publish_state(v);
-  }
-  inline void pub_comfort_ba2(int v) {
-    if (comfort_ba2_)
-      comfort_ba2_->publish_state(v);
-  }
-  inline void pub_comfort_niv2(int v) {
-    if (comfort_niv2_)
-      comfort_niv2_->publish_state(v);
-  }
-  inline void pub_comfort_phk1(int v) {
-    if (comfort_phk1_)
-      comfort_phk1_->publish_state(v);
-  }
-  inline void pub_comfort_phk2(int v) {
-    if (comfort_phk2_)
-      comfort_phk2_->publish_state(v);
-  }
-  inline void pub_comfort_pkes(int v) {
-    if (comfort_pkes_)
-      comfort_pkes_->publish_state(v);
-  }
+  inline void pub_comfort_ti_s(float v) { if (comfort_ti_s_) comfort_ti_s_->publish_state(v);}
+  inline void pub_comfort_ti2_s(float v) { if (comfort_ti2_s_) comfort_ti2_s_->publish_state(v);}
+  inline void pub_comfort_tv_s(float v) { if (comfort_tv_s_) comfort_tv_s_->publish_state(v);}
+  inline void pub_comfort_tv2_s(float v) { if (comfort_tv2_s_) comfort_tv2_s_->publish_state(v);}
+  inline void pub_comfort_tw_s(float v) { if (comfort_tw_s_) comfort_tw_s_->publish_state(v);}
+  inline void pub_comfort_tp_s(float v) { if (comfort_tp_s_) comfort_tp_s_->publish_state(v);}
+  inline void pub_comfort_stat(float v) { if (comfort_stat_) comfort_stat_->publish_state(v);}
+  inline void pub_comfort_bst(int v) { if (comfort_bst_) comfort_bst_->publish_state(v);}
+  inline void pub_comfort_kst(int v) { if (comfort_kst_) comfort_kst_->publish_state(v);}
+  inline void pub_comfort_err(int v) { if (comfort_err_) comfort_err_->publish_state(v);}
+  inline void pub_comfort_sens(int v) { if (comfort_sens_) comfort_sens_->publish_state(v);}
+  inline void pub_comfort_ba1(int v) { if (comfort_ba1_) comfort_ba1_->publish_state(v);}
+  inline void pub_comfort_niv1(int v) { if (comfort_niv1_) comfort_niv1_->publish_state(v);}
+  inline void pub_comfort_ba2(int v) { if (comfort_ba2_) comfort_ba2_->publish_state(v);}
+  inline void pub_comfort_niv2(int v) { if (comfort_niv2_) comfort_niv2_->publish_state(v);}
+  inline void pub_comfort_phk1(int v) { if (comfort_phk1_) comfort_phk1_->publish_state(v);}
+  inline void pub_comfort_phk2(int v) { if (comfort_phk2_) comfort_phk2_->publish_state(v);}
+  inline void pub_comfort_pkes(int v) { if (comfort_pkes_) comfort_pkes_->publish_state(v);}
 
   // COMFORT Status Bits Publishers
-  inline void pub_comfort_stat_phk(bool v) {
-    if (comfort_stat_phk_)
-      comfort_stat_phk_->publish_state(v);
-  }
-  inline void pub_comfort_stat_phk2(bool v) {
-    if (comfort_stat_phk2_)
-      comfort_stat_phk2_->publish_state(v);
-  }
-  inline void pub_comfort_stat_pk(bool v) {
-    if (comfort_stat_pk_)
-      comfort_stat_pk_->publish_state(v);
-  }
-  inline void pub_comfort_stat_m1_open(bool v) {
-    if (comfort_stat_m1_open_)
-      comfort_stat_m1_open_->publish_state(v);
-  }
-  inline void pub_comfort_stat_m1_close(bool v) {
-    if (comfort_stat_m1_close_)
-      comfort_stat_m1_close_->publish_state(v);
-  }
-  inline void pub_comfort_stat_m2_open(bool v) {
-    if (comfort_stat_m2_open_)
-      comfort_stat_m2_open_->publish_state(v);
-  }
-  inline void pub_comfort_stat_m2_close(bool v) {
-    if (comfort_stat_m2_close_)
-      comfort_stat_m2_close_->publish_state(v);
-  }
-  inline void pub_comfort_stat_ulv(bool v) {
-    if (comfort_stat_ulv_)
-      comfort_stat_ulv_->publish_state(v);
-  }
-  inline void pub_comfort_stat_pzi(bool v) {
-    if (comfort_stat_pzi_)
-      comfort_stat_pzi_->publish_state(v);
-  }
-  inline void pub_comfort_stat_b1(bool v) {
-    if (comfort_stat_b1_)
-      comfort_stat_b1_->publish_state(v);
-  }
-  inline void pub_comfort_stat_taster(bool v) {
-    if (comfort_stat_taster_)
-      comfort_stat_taster_->publish_state(v);
-  }
-  inline void pub_comfort_stat_lon(bool v) {
-    if (comfort_stat_lon_)
-      comfort_stat_lon_->publish_state(v);
-  }
-  inline void pub_comfort_stat_ot(bool v) {
-    if (comfort_stat_ot_)
-      comfort_stat_ot_->publish_state(v);
-  }
+  inline void pub_comfort_stat_phk(bool v) { if (comfort_stat_phk_) comfort_stat_phk_->publish_state(v);}
+  inline void pub_comfort_stat_phk2(bool v) { if (comfort_stat_phk2_) comfort_stat_phk2_->publish_state(v);}
+  inline void pub_comfort_stat_pk(bool v) { if (comfort_stat_pk_) comfort_stat_pk_->publish_state(v);}
+  inline void pub_comfort_stat_m1_open(bool v) { if (comfort_stat_m1_open_) comfort_stat_m1_open_->publish_state(v);}
+  inline void pub_comfort_stat_m1_close(bool v) { if (comfort_stat_m1_close_) comfort_stat_m1_close_->publish_state(v);}
+  inline void pub_comfort_stat_m2_open(bool v) { if (comfort_stat_m2_open_) comfort_stat_m2_open_->publish_state(v);}
+  inline void pub_comfort_stat_m2_close(bool v) { if (comfort_stat_m2_close_) comfort_stat_m2_close_->publish_state(v);}
+  inline void pub_comfort_stat_ulv(bool v) { if (comfort_stat_ulv_) comfort_stat_ulv_->publish_state(v);}
+  inline void pub_comfort_stat_pzi(bool v) { if (comfort_stat_pzi_) comfort_stat_pzi_->publish_state(v);}
+  inline void pub_comfort_stat_b1(bool v) { if (comfort_stat_b1_) comfort_stat_b1_->publish_state(v);}
+  inline void pub_comfort_stat_taster(bool v) { if (comfort_stat_taster_) comfort_stat_taster_->publish_state(v);}
+  inline void pub_comfort_stat_lon(bool v) { if (comfort_stat_lon_) comfort_stat_lon_->publish_state(v);}
+  inline void pub_comfort_stat_ot(bool v) { if (comfort_stat_ot_) comfort_stat_ot_->publish_state(v);}
 
   // General setters
   bool log_invalid() const { return log_invalid_; }
