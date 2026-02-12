@@ -62,8 +62,6 @@ void ComfortDecoder::on_fc_frame(const std::vector<uint8_t> &frame,
   r_.pub_comfort_kst(kst);
   r_.pub_comfort_err(err);
   r_.pub_comfort_sens(sens);
-  ESP_LOGI(TAG_COMFORT, "COMFORT: TI_S=%f  TI2_S=%f TV_S=%f  TV2_S=%f TW_S=%f TP_S=%f STAT=0x%04X BST=%u KST=%u ERR=0x%04X SENS=%u",
-                    ti_s, ti2_s, tv_s, tv2_s, tw_s, tp_s, stat, bst, kst, err, sens);
   r_.pub_comfort_ba1(ba1);
   r_.pub_comfort_niv1(niv1);
   r_.pub_comfort_ba2(ba2);
@@ -72,6 +70,9 @@ void ComfortDecoder::on_fc_frame(const std::vector<uint8_t> &frame,
   r_.pub_comfort_phk1(p_hk1);
   r_.pub_comfort_phk2(p_hk2);
   r_.pub_comfort_pkes(p_kes);
+
+//ESP_LOGI(TAG_COMFORT, "COMFORT: TI_S=%.1f  TI2_S=%.1f TV_S=%.1f  TV2_S=%.1f TW_S=%.1f TP_S=%.1f STAT=0x%04X BST=%u KST=%u ERR=0x%04X SENS=%u",
+//                    ti_s, ti2_s, tv_s, tv2_s, tw_s, tp_s, stat, bst, kst, err, sens);
 
   // Status Bitfield
   // Bit 0: PHK
