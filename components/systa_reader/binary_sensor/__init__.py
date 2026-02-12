@@ -3,7 +3,8 @@ import esphome.config_validation as cv
 from esphome.components import binary_sensor
 from .. import SystaReader, CONF_UART_ID, systa_ns
 
-CONF_SYSTA_READER_ID = "systa_reader_id"
+CONF_PARENT_ID = "systa_reader_id"
+CONF_KIND = "kind"
 
 KIND = cv.one_of(
     # COMFORT Status Bits
@@ -15,13 +16,13 @@ KIND = cv.one_of(
     lower=True
 )
 
-CONFIG_SCHEMA = binary_sensor.BINARY_SENSOR_SCHEMA.extend({
-    cv.GenerateID(CONF_SYSTA_READER_ID): cv.use_id(SystaReader),
+CONFIG_SCHEMA = binary_sensor.binary_sensor_schema().extend({
+    cv.GenerateID(CONF_PARENT_ID): cv.use_id(SystaReader),
     cv.Required("kind"): KIND,
 })
 
 async def to_code(config):
-    parent = await cg.get_variable(config[CONF_SYSTA_READER_ID])
+    parent = await cg.get_variable(config[CONF_PARENT_ID])
     s = await binary_sensor.new_binary_sensor(config)
     
     k = config["kind"]
