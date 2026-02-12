@@ -101,6 +101,24 @@ void ComfortDecoder::on_fc_frame(const std::vector<uint8_t> &frame,
   r_.pub_comfort_stat_lon((bool)(stat & 2048));
   // Bit 12: OT
   r_.pub_comfort_stat_ot((bool)(stat & 4096));
+
+  ESP_LOGI(TAG_COMFORT,
+  "BITS: PHK:%d PHK2:%d PK:%d M1:%d/%d M2:%d/%d ULV:%d PZI:%d B1:%d T:%d LON:%d OT:%d",
+  (bool)(stat & 1),    // PHK
+  (bool)(stat & 2),    // PHK2
+  (bool)(stat & 4),    // PK
+  (bool)(stat & 8),    // M1 open
+  (bool)(stat & 16),   // M1 close
+  (bool)(stat & 32),   // M2 open
+  (bool)(stat & 64),   // M2 close
+  (bool)(stat & 128),  // ULV
+  (bool)(stat & 256),  // PZI
+  (bool)(stat & 512),  // B1
+  (bool)(stat & 1024), // Taster
+  (bool)(stat & 2048), // LON
+  (bool)(stat & 4096)  // OT
+);
+
 }
 
 } // namespace systa_reader
