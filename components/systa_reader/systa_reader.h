@@ -32,7 +32,6 @@ public:
   static constexpr uint32_t DEV_ESPRESSO = (1u << 3);
   static constexpr uint32_t DEV_SOLAR = (1u << 4);
   static constexpr uint32_t DEV_COMPACT = (1u << 5);
-  static constexpr uint32_t DEV_COMPACT = (1u << 5);
   static constexpr uint32_t DEV_PALLETTI_II = (1u << 6);
   static constexpr uint32_t DEV_COMFORT = (1u << 7);
   // reserve more bits for future devices:

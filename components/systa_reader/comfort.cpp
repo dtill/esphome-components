@@ -6,13 +6,6 @@ namespace systa_reader {
 
 static const char *const TAG_COMFORT = "systa_reader.comfort";
 
-const char *ComfortDecoder::status_text(uint16_t raw) {
-  // TODO: Add status text mapping if available in systa-decoder script or
-  // requirements For now returning nullptr or generic text in the main logic if
-  // needed
-  return nullptr;
-}
-
 void ComfortDecoder::on_fc_frame(const std::vector<uint8_t> &frame,
                                  const std::vector<uint8_t> &payload,
                                  const std::string &hex) {
