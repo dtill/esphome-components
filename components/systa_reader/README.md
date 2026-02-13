@@ -4,7 +4,7 @@ An esphome component for the DIY "Systa-BUS-Reader" Bus-Adapter,
 based and inspired by 
     
 - [ringwelt.de](https://ringwelt.de/homeautomation/heizungsanlage/einfuehrung.html) (Hardware circuit)
-- [SystaBridge](https://github.com/marvinGitHub/systa-bridge) by [marvinGitHub](https://github.com/marvinGitHub) (Decoding SystaBUS-Protocol )
+- [SystaBridge](https://github.com/marvinGitHub/systa-bridge) by [marvinGitHub](https://github.com/marvinGitHub) (Decoding Systa Comfort II Protocol )
 
 Supported Features: read and interpret Paradigma SystaBus messages
 
