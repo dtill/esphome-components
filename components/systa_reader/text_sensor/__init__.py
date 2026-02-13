@@ -87,5 +87,5 @@ async def to_code(config):
         elif k == "compact_timestamp":
             cg.add(parent.set_compact_timestamp_text_sensor(var))
         elif k == "comfort_boiler_err":
-            cg.add(parent.set_compact_timestamp_text_sensor(var))
+            cg.add(parent.set_comfort_boiler_err_text_sensor(var))
 
