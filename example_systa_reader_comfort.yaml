@@ -197,8 +197,7 @@ text_sensor:
   # COMFORT text sensors:
   - platform: systa_reader
     systa_reader_id: systa_bus_01
-    kind: comfort_boiler_err
     mode: field
+    kind: comfort_boiler_err
     name: "Comfort Boiler ERR"
-    id: comfort_err_text
     icon: "mdi:alert-circle-outline"
