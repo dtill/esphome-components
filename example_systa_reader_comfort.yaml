@@ -198,8 +198,11 @@ binary_sensor:
     name: "Comfort Stat OT"
 
 text_sensor:
+  # COMFORT text sensors:
   - platform: systa_reader
-    type: string
-    name: "Comfort Fehlercode"
+    systa_reader_id: systa_bus_01
+    kind: comfort_boiler_err
+    mode: field
+    name: "Comfort Boiler ERR"
     id: comfort_err_text
     icon: "mdi:alert-circle-outline"

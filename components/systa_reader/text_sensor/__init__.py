@@ -23,7 +23,7 @@ FIELD_KIND = cv.one_of(
     "modula_timestamp",
     "espresso_timestamp",
     "palletti_ii_timestamp", "palletti_ii_display_text",
-    "compact_timestamp",
+    "compact_timestamp", "comfort_boiler_err"
     lower=True
 )
 
