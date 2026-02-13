@@ -438,7 +438,7 @@ public:
   inline void pub_comfort_phk1(int v) { if (comfort_phk1_) comfort_phk1_->publish_state(v);}
   inline void pub_comfort_phk2(int v) { if (comfort_phk2_) comfort_phk2_->publish_state(v);}
   inline void pub_comfort_pkes(int v) { if (comfort_pkes_) comfort_pkes_->publish_state(v);}
-  inline void pub_comfort_boiler_err_text(const std::string &s) { if (comfort_boiler_err_text) comfort_boiler_err_text_->publish_state(s);}
+  inline void pub_comfort_boiler_err_text(const std::string &s) { if (comfort_boiler_err_text_) comfort_boiler_err_text_->publish_state(s);}
 
   // COMFORT Status Bits Publishers
   inline void pub_comfort_stat_phk(bool v) { if (comfort_stat_phk_) comfort_stat_phk_->publish_state(v);}
