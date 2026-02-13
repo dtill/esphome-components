@@ -95,10 +95,6 @@ sensor:
     state_class: total_increasing
   - platform: systa_reader
     systa_reader_id: systa_bus_01
-    kind: comfort_err
-    name: "Comfort Error"
-  - platform: systa_reader
-    systa_reader_id: systa_bus_01
     kind: comfort_sens
     name: "Comfort Sensor Error"
   - platform: systa_reader
