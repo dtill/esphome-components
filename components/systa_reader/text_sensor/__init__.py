@@ -14,7 +14,7 @@ CONF_KIND  = "kind"     # field-only
 MODE = cv.one_of("raw", "field", lower=True)
 
 # allow single value or list of values
-_FILTER_ONE = cv.one_of("all", "aqua", "aqua_ii", "modula", "espresso", "palletti_ii", "compact", lower=True)
+_FILTER_ONE = cv.one_of("all", "aqua", "aqua_ii", "modula", "espresso", "palletti_ii", "compact", "comfort", lower=True)
 FILTER = cv.Any(_FILTER_ONE, cv.All(cv.ensure_list(_FILTER_ONE), cv.Length(min=1)))
 
 FIELD_KIND = cv.one_of(
