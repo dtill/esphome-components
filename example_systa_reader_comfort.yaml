@@ -97,6 +97,7 @@ sensor:
     systa_reader_id: systa_bus_01
     kind: comfort_sens
     name: "Comfort Sensor Error"
+    accuracy_decimals: 0
   - platform: systa_reader
     systa_reader_id: systa_bus_01
     kind: comfort_ba1
