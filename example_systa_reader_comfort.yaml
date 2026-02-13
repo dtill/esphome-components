@@ -102,18 +102,22 @@ sensor:
     systa_reader_id: systa_bus_01
     kind: comfort_ba1
     name: "Comfort BA1"
+    accuracy_decimals: 0
   - platform: systa_reader
     systa_reader_id: systa_bus_01
     kind: comfort_niv1
     name: "Comfort NIV1"
+    accuracy_decimals: 0
   - platform: systa_reader
     systa_reader_id: systa_bus_01
     kind: comfort_ba2
     name: "Comfort BA2"
+    accuracy_decimals: 0
   - platform: systa_reader
     systa_reader_id: systa_bus_01
     kind: comfort_niv2
     name: "Comfort NIV2"
+    accuracy_decimals: 0
   - platform: systa_reader
     systa_reader_id: systa_bus_01
     kind: comfort_phk1
