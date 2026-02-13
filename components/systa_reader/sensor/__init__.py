@@ -28,7 +28,7 @@ KIND = cv.one_of(
     "compact_tv_s","compact_two_s","compact_status_code",
     # COMFORT
     "comfort_ti_s", "comfort_ti2_s", "comfort_tv_s", "comfort_tv2_s", "comfort_tw_s", "comfort_tp_s",
-    "comfort_stat", "comfort_bst", "comfort_kst", "comfort_err", "comfort_sens",
+    "comfort_bst", "comfort_kst", "comfort_err", "comfort_sens",
     "comfort_ba1", "comfort_niv1", "comfort_ba2", "comfort_niv2",
     "comfort_phk1", "comfort_phk2", "comfort_pkes",
     lower=True
@@ -126,7 +126,6 @@ async def to_code(config):
     elif k == "comfort_tv2_s":     cg.add(parent.set_comfort_tv2_s_sensor(s))
     elif k == "comfort_tw_s":      cg.add(parent.set_comfort_tw_s_sensor(s))
     elif k == "comfort_tp_s":      cg.add(parent.set_comfort_tp_s_sensor(s))
-    elif k == "comfort_stat":      cg.add(parent.set_comfort_stat_sensor(s))
     elif k == "comfort_bst":       cg.add(parent.set_comfort_bst_sensor(s))
     elif k == "comfort_kst":       cg.add(parent.set_comfort_kst_sensor(s))
     elif k == "comfort_err":       cg.add(parent.set_comfort_err_sensor(s))

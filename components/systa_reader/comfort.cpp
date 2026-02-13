@@ -49,7 +49,15 @@ void ComfortDecoder::on_fc_frame(const std::vector<uint8_t> &frame,
   int p_hk2 = u8(30);
   int p_kes = u8(31);
 
+  std::string err_text;
+  // Erzeugt einen String im Format 0x0001, 0x0123, etc.
+  char buf[10];
+  sprintf(buf, "0x%04X", err);
+  err_text = buf;
+
   // Publish
+  r_.pub_comfort_boiler_err_text(err_text);
+
   r_.pub_comfort_ti_s(ti_s);
   r_.pub_comfort_ti2_s(ti2_s);
   r_.pub_comfort_tv_s(tv_s);
@@ -70,8 +78,8 @@ void ComfortDecoder::on_fc_frame(const std::vector<uint8_t> &frame,
   r_.pub_comfort_phk2(p_hk2);
   r_.pub_comfort_pkes(p_kes);
 
-//ESP_LOGI(TAG_COMFORT, "COMFORT: TI_S=%.1f  TI2_S=%.1f TV_S=%.1f  TV2_S=%.1f TW_S=%.1f TP_S=%.1f STAT=0x%04X BST=%u KST=%u ERR=0x%04X SENS=%u",
-//                    ti_s, ti2_s, tv_s, tv2_s, tw_s, tp_s, stat, bst, kst, err, sens);
+ESP_LOGI(TAG_COMFORT, "COMFORT: TI_S=%.1f  TI2_S=%.1f TV_S=%.1f  TV2_S=%.1f TW_S=%.1f TP_S=%.1f STAT=0x%04X BST=%u KST=%u ERR=0x%04X SENS=%u",
+                    ti_s, ti2_s, tv_s, tv2_s, tw_s, tp_s, stat, bst, kst, err, sens);
 
   // Status Bitfield
   // Bit 0: PHK
@@ -102,7 +110,7 @@ void ComfortDecoder::on_fc_frame(const std::vector<uint8_t> &frame,
   r_.pub_comfort_stat_ot((bool)(stat & 4096));
 
   ESP_LOGI(TAG_COMFORT,
-  "BITS: PHK:%d PHK2:%d PK:%d M1:%d/%d M2:%d/%d ULV:%d PZI:%d B1:%d T:%d LON:%d OT:%d",
+  "COMFORT STATUS: PHK:%d PHK2:%d PK:%d M1:%d/%d M2:%d/%d ULV:%d PZI:%d B1:%d T:%d LON:%d OT:%d",
   (bool)(stat & 1),    // PHK
   (bool)(stat & 2),    // PHK2
   (bool)(stat & 4),    // PK

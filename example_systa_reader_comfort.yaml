@@ -196,3 +196,10 @@ binary_sensor:
     systa_reader_id: systa_bus_01
     kind: comfort_stat_ot
     name: "Comfort Stat OT"
+
+text_sensor:
+  - platform: systa_reader
+    type: string
+    name: "Comfort Fehlercode"
+    id: comfort_err_text
+    icon: "mdi:alert-circle-outline"

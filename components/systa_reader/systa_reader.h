@@ -340,12 +340,9 @@ public:
   void set_compact_ti_s_sensor(sensor::Sensor *s) { compact_ti_s_ = s; }
   void set_compact_tv_s_sensor(sensor::Sensor *s) { compact_tv_s_ = s; }
   void set_compact_two_s_sensor(sensor::Sensor *s) { compact_two_s_ = s; }
-  void set_compact_status_code_sensor(sensor::Sensor *s) {
-    compact_status_code_ = s;
-  }
-  void set_compact_timestamp_text_sensor(text_sensor::TextSensor *t) {
-    compact_timestamp_ = t;
-  }
+  void set_compact_status_code_sensor(sensor::Sensor *s) { compact_status_code_ = s;}
+  void set_compact_timestamp_text_sensor(text_sensor::TextSensor *t) { compact_timestamp_ = t;}
+
   // COMPACT: private Publisher
   inline void pub_compact_ta(float v) {
     if (compact_ta_)
@@ -406,6 +403,7 @@ public:
   void set_comfort_phk1_sensor(sensor::Sensor *s) { comfort_phk1_ = s; }
   void set_comfort_phk2_sensor(sensor::Sensor *s) { comfort_phk2_ = s; }
   void set_comfort_pkes_sensor(sensor::Sensor *s) { comfort_pkes_ = s; }
+  void set_comfort_boiler_err_text_sensor(text_sensor::TextSensor *t) { comfort_boiler_err_text = t;}
 
   // COMFORT Status Bits
   void set_comfort_stat_phk_binary_sensor(binary_sensor::BinarySensor *s) { comfort_stat_phk_ = s;}
@@ -440,6 +438,7 @@ public:
   inline void pub_comfort_phk1(int v) { if (comfort_phk1_) comfort_phk1_->publish_state(v);}
   inline void pub_comfort_phk2(int v) { if (comfort_phk2_) comfort_phk2_->publish_state(v);}
   inline void pub_comfort_pkes(int v) { if (comfort_pkes_) comfort_pkes_->publish_state(v);}
+  inline void pub_comfort_boiler_err_text(const std::string &s) { if (comfort_boiler_err_text) comfort_boiler_err_text_->publish_state(s);}
 
   // COMFORT Status Bits Publishers
   inline void pub_comfort_stat_phk(bool v) { if (comfort_stat_phk_) comfort_stat_phk_->publish_state(v);}
@@ -659,6 +658,7 @@ private:
   sensor::Sensor *comfort_phk1_{nullptr};
   sensor::Sensor *comfort_phk2_{nullptr};
   sensor::Sensor *comfort_pkes_{nullptr};
+  text_sensor::TextSensor *comfort_boiler_err_text_{nullptr};
 
   // COMFORT status bit sensors
   binary_sensor::BinarySensor *comfort_stat_phk_{nullptr};

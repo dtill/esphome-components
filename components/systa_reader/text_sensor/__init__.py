@@ -86,4 +86,6 @@ async def to_code(config):
             cg.add(parent.set_palletti_ii_display_text_sensor(var))
         elif k == "compact_timestamp":
             cg.add(parent.set_compact_timestamp_text_sensor(var))
+        elif k == "comfort_boiler_err":
+            cg.add(parent.set_compact_timestamp_text_sensor(var))
 
