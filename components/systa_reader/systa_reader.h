@@ -403,7 +403,7 @@ public:
   void set_comfort_phk1_sensor(sensor::Sensor *s) { comfort_phk1_ = s; }
   void set_comfort_phk2_sensor(sensor::Sensor *s) { comfort_phk2_ = s; }
   void set_comfort_pkes_sensor(sensor::Sensor *s) { comfort_pkes_ = s; }
-  void set_comfort_boiler_err_text_sensor(text_sensor::TextSensor *t) { comfort_boiler_err_text = t;}
+  void set_comfort_boiler_err_text_sensor(text_sensor::TextSensor *t) { comfort_boiler_err_text_ = t;}
 
   // COMFORT Status Bits
   void set_comfort_stat_phk_binary_sensor(binary_sensor::BinarySensor *s) { comfort_stat_phk_ = s;}
