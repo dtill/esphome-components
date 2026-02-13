@@ -54,7 +54,7 @@ void ComfortDecoder::on_fc_frame(const std::vector<uint8_t> &frame,
   char buf[10];
   sprintf(buf, "0x%04X", err);
   err_text = buf;
-
+  ESP_LOGI(TAG_COMFORT, "Publishing Error Text: %s", err_text.c_str()); // HIER LOGGEN
   // Publish
   r_.pub_comfort_boiler_err_text(err_text);
 
@@ -67,7 +67,6 @@ void ComfortDecoder::on_fc_frame(const std::vector<uint8_t> &frame,
 
   r_.pub_comfort_bst(bst);
   r_.pub_comfort_kst(kst);
-  r_.pub_comfort_err(err);
   r_.pub_comfort_sens(sens);
   r_.pub_comfort_ba1(ba1);
   r_.pub_comfort_niv1(niv1);

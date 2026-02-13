@@ -394,7 +394,6 @@ public:
   void set_comfort_tp_s_sensor(sensor::Sensor *s) { comfort_tp_s_ = s; }
   void set_comfort_bst_sensor(sensor::Sensor *s) { comfort_bst_ = s; }
   void set_comfort_kst_sensor(sensor::Sensor *s) { comfort_kst_ = s; }
-  void set_comfort_err_sensor(sensor::Sensor *s) { comfort_err_ = s; }
   void set_comfort_sens_sensor(sensor::Sensor *s) { comfort_sens_ = s; }
   void set_comfort_ba1_sensor(sensor::Sensor *s) { comfort_ba1_ = s; }
   void set_comfort_niv1_sensor(sensor::Sensor *s) { comfort_niv1_ = s; }
@@ -403,7 +402,7 @@ public:
   void set_comfort_phk1_sensor(sensor::Sensor *s) { comfort_phk1_ = s; }
   void set_comfort_phk2_sensor(sensor::Sensor *s) { comfort_phk2_ = s; }
   void set_comfort_pkes_sensor(sensor::Sensor *s) { comfort_pkes_ = s; }
-  void set_comfort_boiler_err_text_sensor(text_sensor::TextSensor *t) { comfort_boiler_err_text_ = t;}
+  void set_comfort_boiler_err_text_sensor(text_sensor::TextSensor *t) { comfort_boiler_err_text_sensor_ = t;}
 
   // COMFORT Status Bits
   void set_comfort_stat_phk_binary_sensor(binary_sensor::BinarySensor *s) { comfort_stat_phk_ = s;}
@@ -429,7 +428,6 @@ public:
   inline void pub_comfort_tp_s(float v) { if (comfort_tp_s_) comfort_tp_s_->publish_state(v);}
   inline void pub_comfort_bst(int v) { if (comfort_bst_) comfort_bst_->publish_state(v);}
   inline void pub_comfort_kst(int v) { if (comfort_kst_) comfort_kst_->publish_state(v);}
-  inline void pub_comfort_err(int v) { if (comfort_err_) comfort_err_->publish_state(v);}
   inline void pub_comfort_sens(int v) { if (comfort_sens_) comfort_sens_->publish_state(v);}
   inline void pub_comfort_ba1(int v) { if (comfort_ba1_) comfort_ba1_->publish_state(v);}
   inline void pub_comfort_niv1(int v) { if (comfort_niv1_) comfort_niv1_->publish_state(v);}
@@ -438,7 +436,7 @@ public:
   inline void pub_comfort_phk1(int v) { if (comfort_phk1_) comfort_phk1_->publish_state(v);}
   inline void pub_comfort_phk2(int v) { if (comfort_phk2_) comfort_phk2_->publish_state(v);}
   inline void pub_comfort_pkes(int v) { if (comfort_pkes_) comfort_pkes_->publish_state(v);}
-  inline void pub_comfort_boiler_err_text(const std::string &s) { if (comfort_boiler_err_text_) comfort_boiler_err_text_->publish_state(s);}
+  inline void pub_comfort_boiler_err_text(const std::string &s) { if (comfort_boiler_err_text_sensor_) comfort_boiler_err_text_sensor_->publish_state(s);}
 
   // COMFORT Status Bits Publishers
   inline void pub_comfort_stat_phk(bool v) { if (comfort_stat_phk_) comfort_stat_phk_->publish_state(v);}
@@ -649,7 +647,6 @@ private:
   sensor::Sensor *comfort_tp_s_{nullptr};
   sensor::Sensor *comfort_bst_{nullptr};
   sensor::Sensor *comfort_kst_{nullptr};
-  sensor::Sensor *comfort_err_{nullptr};
   sensor::Sensor *comfort_sens_{nullptr};
   sensor::Sensor *comfort_ba1_{nullptr};
   sensor::Sensor *comfort_niv1_{nullptr};
@@ -658,7 +655,7 @@ private:
   sensor::Sensor *comfort_phk1_{nullptr};
   sensor::Sensor *comfort_phk2_{nullptr};
   sensor::Sensor *comfort_pkes_{nullptr};
-  text_sensor::TextSensor *comfort_boiler_err_text_{nullptr};
+  text_sensor::TextSensor *comfort_boiler_err_text_sensor_{nullptr};
 
   // COMFORT status bit sensors
   binary_sensor::BinarySensor *comfort_stat_phk_{nullptr};
