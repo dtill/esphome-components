@@ -1,33 +1,28 @@
-substitutions:
-  # Adjust to your setup
-  uart_rx_pin: GPIO16
-  uart_tx_pin: GPIO17
+# for updates and code examples + more systa devices supported please check
+# https://github.com/dtill/esphome-components/tree/main/components/systa_reader
 
-esphome:
-  name: systa-comfort-reader
-  friendly_name: "Systa Comfort Reader"
+external_components:
+  - source:
+      type: git
+      url: https://github.com/dtill/esphome-components
+    components: [systa_reader]
+    refresh: 0s
 
-esp32:
-  board: esp32dev
-  framework:
-    type: arduino
-
-# Enable logging
-logger:
-  level: DEBUG
-
-# Enable UART
 uart:
   id: uart_bus
-  tx_pin: ${uart_tx_pin}
-  rx_pin: ${uart_rx_pin}
-  baud_rate: 19200
+  tx_pin: GPIO1
+  rx_pin: GPIO13
+  baud_rate: 9600
+  data_bits: 8
+  parity: NONE
   stop_bits: 1
 
 # Systa Reader Component
 systa_reader:
-  uart_id: uart_bus
-  systa_device: [comfort]  # Enable Comfort device (0C02 frames)
+  - id: systa_bus_01
+    uart_id: uart_bus
+    systa_device: [comfort]  # Enable Comfort device (0C02 frames)
+    log_invalid: true        # logs invalid frames for debugging purpose
 
 sensor:
 

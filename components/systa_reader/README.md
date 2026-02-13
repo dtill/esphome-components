@@ -8,7 +8,17 @@ based and inspired by
 
 Supported Features: read and interpret Paradigma SystaBus messages
 
-Tested Paradigma Systa-hardware: SystaSolar/Aqua/Modulo II/Expresso/SystaComfort I.
+Tested Paradigma Systa-hardware: 
+ - Solar
+ - Aqua / Aqua II
+ - Modula II
+ - Expresso
+ - Palletti II
+ - Compact
+ - SystaComfort II
+ - Bedienteil Display
+
+[Comfort II Example YAML](../../example_systa_reader_comfort.yaml)
 
 [Example YAML](../../example_systa_reader.yaml) configuration:
 ```yaml
@@ -31,11 +41,11 @@ uart:
   parity: NONE
   stop_bits: 1
 
-systa_reader:                             # can be multiple systa_reader but only one per uart.
+systa_reader:                       # can be multiple systa_reader but only one per uart.
   - id: systa_bus_01
     uart_id: uart_bus
-    systa_device: [palletti_ii]     # call one or more devices [aqua, aqua_ii, modula, espresso, palletti_ii, compact]
-    log_invalid: true                     # logs invalid frames for debugging purpose
+    systa_device: [aqua_ii]     # call one or more devices [aqua, aqua_ii, modula, espresso, palletti_ii, compact, comfort]
+    log_invalid: true               # logs invalid frames for debugging purpose
 
 sensor:
     # AQUA sensors:
