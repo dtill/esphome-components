@@ -22,8 +22,9 @@
 #define MAX_WORDLEN 25
 
 // RX Statemachine
-#define FLAG_DATA_READY 0x01
-#define FLAG_OVF 0x02
+#define FLAG_RX_ACTIVE           0x01
+#define FLAG_BITSTREAM_RECEIVED  0x02
+#define FLAG_DATA_READY          0x08
 
 // RX
 #define TIMER_FREQ_RX 120000

@@ -15,106 +15,234 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+/*
+ * RX implementation for ESPHome >= v2025.6.3 (ESP-IDF / Arduino-ESP32 v3).
+ *
+ * Strategy: mirrors gdoor-alt exactly, only hardware API wrappers change:
+ *   - hw_timer_t  → ESP-IDF GPTIMER (driver/gptimer.h)
+ *   - timerWrite(timer, 0) / timerStart() from GPIO ISR
+ *       → gptimer_get_raw_count() + gptimer_set_alarm_action() from GPIO ISR
+ *         (both are ISR-safe via portENTER_CRITICAL spinlocks)
+ *   - timerStop() from timer callbacks
+ *       → alarm auto-disables after firing (auto_reload_on_alarm = false)
+ *   - "always running timer + alarm deadline" replaces start/stop per edge
+ *
+ * Timing (120 kHz = 8.33 µs/tick):
+ *   BIT_TIMEOUT_TICKS       = 20  → 166.7 µs  (bit-end detection)
+ *   BITSTREAM_TIMEOUT_TICKS = 270 → 2250  µs  (frame-end detection)
+ */
+
 #include "defines.h"
 #include "gdoor_rx.h"
 #include "gdoor_data.h"
+#include "gdoor_utils.h"
 #include "esphome/core/log.h"
 
 static const char *TAG = "gdoor_esphome.gdoor_rx";
-namespace GDOOR_RX {
-    #define EDGE_BUF_SIZE   7000
-    static volatile uint32_t edge_timings[EDGE_BUF_SIZE] = {0};
-    static volatile int32_t edge_pos = -1;
-    const uint32_t FRAME_END_US = 40000;
-    uint8_t pin_rx = 0;
-    GDOOR_DATA retval;
-    uint16_t rx_state = 0;
 
-    void ARDUINO_ISR_ATTR isr_extint_rx() {
-        if (edge_pos < EDGE_BUF_SIZE - 1) {
-            edge_timings[++edge_pos] = micros();
-        } else {
-            rx_state |= FLAG_OVF;             // Overflow-Flag
-        }
+// Fires 166.7 µs after the last carrier edge → burst ended, store count.
+// Matches old: timerAlarmWrite(timer_bit_received, 20, true) at 120kHz.
+#define BIT_TIMEOUT_TICKS       20u
+
+// Fires 2250 µs after the last carrier edge → entire frame ended.
+// Matches old: timerAlarmWrite(timer_bitstream_received, 6*STARTBIT_MIN_LEN, true)
+// = 6 × 45 = 270 ticks at 120kHz.
+#define BITSTREAM_TIMEOUT_TICKS (6u * STARTBIT_MIN_LEN)  // = 270
+
+namespace GDOOR_RX {
+
+    // -------------------------------------------------------------------------
+    // State — all accessed from ISR context, so volatile
+    // -------------------------------------------------------------------------
+    static volatile uint16_t counts[MAX_WORDLEN * 9]; // pulse counts per bit burst
+    static volatile uint16_t isr_cnt    = 0;           // edges counted in current burst
+    static volatile uint8_t  bitcounter = 0;           // number of complete bits stored
+
+    uint16_t rx_state = 0; // state flags (extern in header for active() check)
+
+    static GDOOR_DATA retval;
+
+    static gptimer_handle_t timer_bit_received       = nullptr;
+    static gptimer_handle_t timer_bitstream_received = nullptr;
+
+    static uint8_t pin_rx = 0;
+
+    // -------------------------------------------------------------------------
+    // reset_state — clears counters and disables both timer alarms.
+    // Does NOT touch rx_state so FLAG_DATA_READY survives until read().
+    // Called from enable(), disable(), and loop() after parse.
+    // -------------------------------------------------------------------------
+    static void reset_state() {
+        bitcounter = 0;
+        isr_cnt    = 0;
+        // Passing nullptr disables the alarm (no new firing until GPIO ISR re-arms).
+        if (timer_bit_received)
+            gptimer_set_alarm_action(timer_bit_received, nullptr);
+        if (timer_bitstream_received)
+            gptimer_set_alarm_action(timer_bitstream_received, nullptr);
     }
 
-    void enable() { attachInterrupt(pin_rx, isr_extint_rx, FALLING); }
-    void disable() { detachInterrupt(pin_rx); }
-    void reset() { edge_pos = -1; rx_state = 0; }
+    // -------------------------------------------------------------------------
+    // GPIO ISR — fires on every FALLING edge of the 60 kHz carrier burst.
+    //
+    // For each edge:
+    //   1. Mark RX as active
+    //   2. Count the edge
+    //   3. Re-arm the bit-end   alarm: deadline = now + BIT_TIMEOUT_TICKS
+    //   4. Re-arm the frame-end alarm: deadline = now + BITSTREAM_TIMEOUT_TICKS
+    //
+    // Both gptimer_get_raw_count() and gptimer_set_alarm_action() are ISR-safe
+    // (they use portENTER_CRITICAL spinlocks internally — pure register ops).
+    // -------------------------------------------------------------------------
+    void ARDUINO_ISR_ATTR isr_extint_rx() {
+        rx_state |= (uint16_t)FLAG_RX_ACTIVE;
+        isr_cnt++;
 
+        uint64_t now;
+        gptimer_alarm_config_t alarm = {};
+        alarm.flags.auto_reload_on_alarm = false; // one-shot: auto-disables after firing
+
+        // Bit-end alarm
+        (void)gptimer_get_raw_count(timer_bit_received, &now);
+        alarm.alarm_count = now + BIT_TIMEOUT_TICKS;
+        (void)gptimer_set_alarm_action(timer_bit_received, &alarm);
+
+        // Frame-end alarm
+        (void)gptimer_get_raw_count(timer_bitstream_received, &now);
+        alarm.alarm_count = now + BITSTREAM_TIMEOUT_TICKS;
+        (void)gptimer_set_alarm_action(timer_bitstream_received, &alarm);
+    }
+
+    // -------------------------------------------------------------------------
+    // GPTIMER callback: bit burst ended (no new edge for BIT_TIMEOUT_TICKS).
+    // Stores the edge count for the completed burst; resets the edge counter.
+    // Mirrors old isr_timer_bit_received() exactly.
+    // -------------------------------------------------------------------------
+    static bool IRAM_ATTR cb_bit_received(
+        gptimer_handle_t /*timer*/,
+        const gptimer_alarm_event_data_t * /*edata*/,
+        void * /*user_ctx*/)
+    {
+        if (bitcounter >= (uint8_t)(MAX_WORDLEN * 9)) {
+            bitcounter = 0; // guard against buffer overrun
+        }
+        counts[bitcounter] = isr_cnt;
+        isr_cnt = 0;
+        bitcounter++;
+        // Alarm auto-disables (auto_reload_on_alarm = false).
+        // It will be re-armed by the next GPIO edge.
+        return false; // no high-priority task woken
+    }
+
+    // -------------------------------------------------------------------------
+    // GPTIMER callback: frame ended (no new edge for BITSTREAM_TIMEOUT_TICKS).
+    // Signals loop() that a complete frame is ready for parsing.
+    // Mirrors old isr_timer_bitstream_received() exactly.
+    // -------------------------------------------------------------------------
+    static bool IRAM_ATTR cb_bitstream_received(
+        gptimer_handle_t /*timer*/,
+        const gptimer_alarm_event_data_t * /*edata*/,
+        void * /*user_ctx*/)
+    {
+        rx_state &= (uint16_t)~FLAG_RX_ACTIVE;
+        rx_state |= (uint16_t)FLAG_BITSTREAM_RECEIVED;
+        // Alarm auto-disables after firing.
+        return false;
+    }
+
+    // -------------------------------------------------------------------------
+    // enable / disable — RX interrupt gate, called by GDOOR_TX around TX bursts.
+    // Both mirror gdoor-alt: reset state on both enter and exit.
+    // -------------------------------------------------------------------------
+    void enable() {
+        rx_state = 0;      // clear all flags including any stale state
+        reset_state();     // clear counters, disable pending timer alarms
+        attachInterrupt(pin_rx, isr_extint_rx, FALLING);
+    }
+
+    void disable() {
+        detachInterrupt(pin_rx);  // stop new edges first
+        rx_state = 0;
+        reset_state();
+    }
+
+    // -------------------------------------------------------------------------
+    // setup — called once from GdoorComponent::setup()
+    // -------------------------------------------------------------------------
     void setup(uint8_t rxpin) {
         pin_rx = rxpin;
-        pinMode(pin_rx, INPUT_PULLUP);
-        reset();
+        pinMode(pin_rx, INPUT); // INPUT — the onboard comparator drives the pin actively
+
+        retval.len   = 0;
+        retval.valid = 0;
+
+        // Shared GPTIMER config: 120 kHz resolution, count up
+        gptimer_config_t timer_config = {};
+        timer_config.clk_src       = GPTIMER_CLK_SRC_DEFAULT;
+        timer_config.direction     = GPTIMER_COUNT_UP;
+        timer_config.resolution_hz = TIMER_FREQ_RX; // 120000
+
+        // --- Bit-end timer ---
+        gptimer_new_timer(&timer_config, &timer_bit_received);
+
+        gptimer_event_callbacks_t cbs = {};
+        cbs.on_alarm = cb_bit_received;
+        gptimer_register_event_callbacks(timer_bit_received, &cbs, nullptr);
+
+        // Alarm disabled initially (nullptr); GPIO ISR will arm it on first edge.
+        gptimer_set_alarm_action(timer_bit_received, nullptr);
+        gptimer_enable(timer_bit_received);
+        gptimer_start(timer_bit_received); // always running; alarm deadline set per-edge
+
+        // --- Frame-end timer ---
+        gptimer_new_timer(&timer_config, &timer_bitstream_received);
+
+        cbs.on_alarm = cb_bitstream_received;
+        gptimer_register_event_callbacks(timer_bitstream_received, &cbs, nullptr);
+
+        gptimer_set_alarm_action(timer_bitstream_received, nullptr);
+        gptimer_enable(timer_bitstream_received);
+        gptimer_start(timer_bitstream_received); // always running
+
+        ESP_LOGCONFIG(TAG, "GDoor RX setup:");
+        ESP_LOGCONFIG(TAG, "  RX pin            : GPIO %u", pin_rx);
+        ESP_LOGCONFIG(TAG, "  Timer resolution  : %u Hz", TIMER_FREQ_RX);
+        ESP_LOGCONFIG(TAG, "  Bit timeout       : %u ticks (%.0f µs)",
+                      BIT_TIMEOUT_TICKS,
+                      BIT_TIMEOUT_TICKS * 1e6f / TIMER_FREQ_RX);
+        ESP_LOGCONFIG(TAG, "  Bitstream timeout : %u ticks (%.0f µs)",
+                      BITSTREAM_TIMEOUT_TICKS,
+                      BITSTREAM_TIMEOUT_TICKS * 1e6f / TIMER_FREQ_RX);
+
+        // Enable external interrupt last
         enable();
     }
 
+    // -------------------------------------------------------------------------
+    // loop — called from GdoorComponent::loop() via GDOOR::loop().
+    // Detects frame completion, parses, then resets counters for next frame.
+    // -------------------------------------------------------------------------
     void loop() {
-        if (rx_state & FLAG_OVF) {
-            #if ESPHOME_LOG_LEVEL >= ESPHOME_LOG_LEVEL_VERBOSE
-            ESP_LOGW(TAG, "Edge-buffer overflow – Frame verworfen");
-            #endif
-            reset();                     // if Edge-buffer overflow: reset buffer & state
-            rx_state &= ~FLAG_OVF;
-            return;
-        }
-        if (edge_pos < 0) return;
-        if ((micros() - edge_timings[edge_pos]) > FRAME_END_US) {
-            noInterrupts();
-            int32_t local_pos = edge_pos;
-            static uint32_t local_timings[MAX_WORDLEN * 40];
-            memcpy(local_timings,
-                   (void*)edge_timings,
-                   (local_pos + 1) * sizeof(uint32_t));
-            edge_pos = -1;            // Buffer wieder freigeben
-            interrupts();
-
-            if (local_pos < 1) return;
-            uint16_t counts[MAX_WORDLEN * 9] = {0};
-            uint8_t bit_idx = 0;
-            uint16_t current_pulse_count = 0;
-            const uint32_t PAUSE_BETWEEN_BITS_US = 150;
-            for (int i = 0; i <= local_pos; i++) {
-                current_pulse_count++;
-                bool is_last_pulse = (i == local_pos);
-                if (!is_last_pulse) {
-                    uint32_t delta_to_next = local_timings[i+1] - local_timings[i];
-                    if (delta_to_next > PAUSE_BETWEEN_BITS_US) {
-                        if (bit_idx < (MAX_WORDLEN * 9)) counts[bit_idx++] = current_pulse_count;
-                        current_pulse_count = 0;
-                    }
-                } else {
-                    if (bit_idx < (MAX_WORDLEN * 9)) counts[bit_idx++] = current_pulse_count;
-                }
+        if (rx_state & FLAG_BITSTREAM_RECEIVED) {
+            rx_state &= (uint16_t)~FLAG_BITSTREAM_RECEIVED;
+            ESP_LOGVV(TAG, "Gira RX done, bits=%u", bitcounter);
+            if (retval.parse(const_cast<uint16_t *>(counts), bitcounter)) {
+                ESP_LOGVV(TAG, "Gira RX parsed OK");
+                rx_state |= FLAG_DATA_READY; // preserved through reset_state()
             }
-
-            #if ESPHOME_LOG_LEVEL >= ESPHOME_LOG_LEVEL_VERBOSE          // only compile if loglevel VERBOSE (LOGV)
-            char debug_buffer[256];
-            int offset = 0;
-            offset += snprintf(debug_buffer, sizeof(debug_buffer),
-                               "Reconstructed Counts: [");
-            for (int i = 0; i < bit_idx; i++) {
-              if (offset < 240)
-                offset += snprintf(debug_buffer + offset,
-                                   sizeof(debug_buffer) - offset,
-                                   "%d, ", counts[i]);
-            }
-            snprintf(debug_buffer + offset,
-                     sizeof(debug_buffer) - offset, "]");
-            ESP_LOGV(TAG, "%s", debug_buffer);
-            #endif
-
-            if (retval.parse(counts, bit_idx)) {
-                rx_state |= FLAG_DATA_READY;
-            }
+            reset_state(); // clear counters + disable alarms; FLAG_DATA_READY survives
         }
     }
 
+    // -------------------------------------------------------------------------
+    // read — return parsed frame data if available
+    // -------------------------------------------------------------------------
     GDOOR_DATA* read() {
         if (rx_state & FLAG_DATA_READY) {
             rx_state &= (uint16_t)~FLAG_DATA_READY;
             return &retval;
         }
-        return NULL;
+        return nullptr;
     }
-}
+
+} // namespace GDOOR_RX

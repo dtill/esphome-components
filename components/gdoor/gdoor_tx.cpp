@@ -1,4 +1,4 @@
-/* 
+/*
  * This file is part of the GDoor distribution (https://github.com/gdoor-org).
  * Copyright (c) 2024 GDoor authors.
  *
@@ -15,157 +15,273 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+/*
+ * TX implementation for ESPHome >= v2025.6.3 (ESP-IDF / Arduino-ESP32 v3).
+ *
+ * Strategy: mirrors gdoor-alt exactly, only the hardware API wrappers change:
+ *   - hw_timer_t  → ESP-IDF GPTIMER (driver/gptimer.h)
+ *   - ledcWrite(channel, duty) → ledc_set_duty / ledc_update_duty (IDF, ISR-safe)
+ *   - timerStart/timerStop from ISR → "always-running timer + tx_active flag" pattern
+ *   - GDOOR_RX::enable() deferred from ISR to loop() (attachInterrupt not ISR-safe)
+ */
+
 #include "defines.h"
 #include "gdoor_tx.h"
 #include "gdoor_rx.h"
 #include "gdoor_utils.h"
 #include "esphome/core/log.h"
-#include <esp32-hal-ledc.h>
 
 static const char *TAG = "gdoor_esphome.gdoor_tx";
 
-// ---------------------------------------------------------------------------
-// configurable timing constants (58 kHz carrier)
-// ---------------------------------------------------------------------------
-constexpr uint32_t CARRIER_HZ   = 58000;                    // target carrier
-constexpr uint8_t  LEDC_BITS    =  8;                       // 1–14 bit PWM
-constexpr uint32_t HALF_WAVE_US = 1000000UL / CARRIER_HZ;   // ≈17.24 µs
-constexpr uint16_t START_PULSES = 60;                       // ≈1 ms start burst
-constexpr uint16_t ONE_PULSES   = 12;                       // ≈0.21 ms (“1” bit)
-constexpr uint16_t ZERO_PULSES  = 32;                       // ≈0.55 ms (“0” bit)
-constexpr uint32_t PAUSE_US     = 10 * HALF_WAVE_US;        // ≈0.17 ms gap
-
 namespace GDOOR_TX {
 
-  enum TX_STATE : uint8_t { IDLE = 0, PULSE, GAP };
+    // -------------------------------------------------------------------------
+    // State (mirrors gdoor-alt)
+    // -------------------------------------------------------------------------
+    static volatile uint16_t tx_state    = 0;
+    static volatile uint16_t tx_words[MAX_WORDLEN];
+    static volatile uint16_t bits_len    = 0;
+    static volatile uint16_t bits_ptr    = 0;
+    static volatile uint16_t pulse_cnt   = 0;
+    static volatile uint8_t  startbit_send = 0;
+    static volatile uint8_t  timer_oc_state = 0;
 
-  struct TxContext {
-    uint16_t bit_table[MAX_WORDLEN * 9 + 1];
-    uint16_t total_bits = 0;
-    uint16_t index      = 0;
-    uint32_t deadline_us= 0;
-    TX_STATE state      = IDLE;
-  } ctx;
+    // GPTIMER design: timer runs always; ISR is gated by tx_active flag.
+    // tx_just_done signals loop() to call GDOOR_RX::enable() in main context.
+    static volatile bool tx_active    = false;
+    static volatile bool tx_just_done = false;
 
-  static uint8_t tx_pin_hw = 0;  // GPIO driving the PWM carrier
-  static uint8_t tx_en_hw  = 0;  // GPIO to enable the external driver
+    static gptimer_handle_t timer_60khz = nullptr;
+    static ledc_channel_t   ledc_ch     = LEDC_CHANNEL_0; // cached at setup
 
-  // helper to convert one bit → pulse count
-  static inline uint16_t bit2pulses(bool bit) {
-    return bit ? ONE_PULSES : ZERO_PULSES;
-  }
-  // helper to pack one byte + odd-parity into a 9-bit word
-  static inline uint16_t byte2word(uint8_t b) {
-    uint16_t w = b;
-    if (GDOOR_UTILS::parity_odd(b)) w |= 0x100;
-    return w;
-  }
+    static uint8_t pin_tx    = 0;
+    static uint8_t pin_tx_en = 0;
 
-  // must be called from your main loop()
-  void loop() {
-    if (ctx.state == IDLE) return;
-    // wait until the current phase (pulse or gap) is over
-    if ((int32_t)(micros() - ctx.deadline_us) < 0) return;
+    static const String hexChars = F("0123456789ABCDEF");
 
-    if (ctx.state == PULSE) {
-      // just finished sending the carrier burst
-      ledcWrite(tx_pin_hw, 0);
-      ctx.state       = GAP;
-      ctx.deadline_us = micros() + PAUSE_US;
-      return;
+    // -------------------------------------------------------------------------
+    // Helpers (identical to gdoor-alt)
+    // -------------------------------------------------------------------------
+    static inline uint16_t byte2word(uint8_t byte) {
+        uint16_t value = byte & 0x00FF;
+        if (GDOOR_UTILS::parity_odd(byte)) {
+            value |= 0x100;
+        }
+        return value;
     }
 
-    // GAP state
-    if (ctx.index >= ctx.total_bits) {
-      // entire frame done
-      digitalWrite(tx_en_hw, LOW);     // disable driver
-      ctx.state = IDLE;
-      GDOOR_RX::enable();              // re-enable RX
-      ESP_LOGV(TAG, "TX finished");
-      return;
+    // -------------------------------------------------------------------------
+    // start_timer — called from main context only
+    // -------------------------------------------------------------------------
+    static inline void start_timer() {
+        tx_state |= STATE_SENDING;
+        bits_ptr      = 0;
+        pulse_cnt     = 0;
+        timer_oc_state = 0;
+        startbit_send  = 0;
+
+        GDOOR_RX::disable();                              // 1. detach RX interrupt FIRST
+        gpio_set_level((gpio_num_t)pin_tx_en, 1);         // 2. enable bus driver
+        tx_active = true;                                  // 3. open ISR gate
     }
 
-    // start next carrier burst
-    uint16_t pulses = ctx.bit_table[ctx.index++];
-    ledcWrite(tx_pin_hw, 1 << (LEDC_BITS - 1));  // 50% duty
-    ctx.deadline_us = micros() + pulses * HALF_WAVE_US;
-    ctx.state       = PULSE;
-  }
+    // -------------------------------------------------------------------------
+    // stop_timer_from_isr — called from ISR context only
+    // All operations must be ISR-safe (register writes only, no RTOS calls).
+    // -------------------------------------------------------------------------
+    static inline void IRAM_ATTR stop_timer_from_isr() {
+        // Carrier OFF — pure IDF register writes, ISR-safe
+        ledc_set_duty(LEDC_LOW_SPEED_MODE, ledc_ch, 0);
+        ledc_update_duty(LEDC_LOW_SPEED_MODE, ledc_ch);
 
-  // ----------------------------------------------------------------------------
-  // Initialize TX: must be called once in setup()
-  // ----------------------------------------------------------------------------
-  void setup(uint8_t txpin, uint8_t txenpin) {
-    tx_pin_hw = txpin;
-    tx_en_hw  = txenpin;
+        // TX_EN LOW — IDF gpio_set_level is ISR-safe (hw register write)
+        gpio_set_level((gpio_num_t)pin_tx_en, 0);
 
-    pinMode(tx_en_hw, OUTPUT);
-    digitalWrite(tx_en_hw, LOW);
-
-    // single-call LEDC: picks a free channel, sets freq & resolution, attaches to pin
-    bool attached = ledcAttach(tx_pin_hw, CARRIER_HZ, LEDC_BITS);
-    ledcWrite(tx_pin_hw, 0);  // ensure PWM is off
-
-    ESP_LOGCONFIG(TAG, "  TX PWM pin      : GPIO %u", tx_pin_hw);
-    ESP_LOGCONFIG(TAG, "  TX EN pin       : GPIO %u", tx_en_hw);
-    ESP_LOGCONFIG(TAG, "  Carrier freq    : %u Hz", CARRIER_HZ);
-    ESP_LOGCONFIG(TAG, "  Resolution      : %u bits", LEDC_BITS);
-    ESP_LOGCONFIG(TAG, "  LEDC attached   : %s", attached ? "yes" : "no");
-
-    ctx.state = IDLE;
-  }
-
-  // ----------------------------------------------------------------------------
-  // Send exactly the bytes you pass (including CRC), LSB-first + parity
-  // ----------------------------------------------------------------------------
-  void send(uint8_t *data, uint16_t len) {
-    if (ctx.state != IDLE || len >= MAX_WORDLEN) return;
-
-    // build the flat pulse-count table: [start] [bits of data[0]] … [bits of data[len-1]]
-    ctx.index      = 0;
-    ctx.total_bits = 0;
-    ctx.bit_table[ctx.total_bits++] = START_PULSES;
-    for (uint16_t i = 0; i < len; ++i) {
-      uint16_t word = byte2word(data[i]);
-      for (uint8_t b = 0; b < 9; ++b)
-        ctx.bit_table[ctx.total_bits++] = bit2pulses(word & (1 << b));
+        // Update state
+        tx_state  &= (uint16_t)~STATE_SENDING;
+        tx_active  = false;
+        tx_just_done = true;   // signal loop() to re-enable RX
+        // NOTE: GDOOR_RX::enable() is intentionally NOT called here;
+        // attachInterrupt() is not ISR-safe and is deferred to loop().
     }
 
-    // optional verbose dump of the table
-    #if ESPHOME_LOG_LEVEL >= ESPHOME_LOG_LEVEL_VERBOSE
+    // -------------------------------------------------------------------------
+    // ISR — fires every 16.67 µs (60 kHz), logic is 1:1 from gdoor-alt
+    // -------------------------------------------------------------------------
+    static bool IRAM_ATTR isr_timer_60khz(
+        gptimer_handle_t /*timer*/,
+        const gptimer_alarm_event_data_t * /*edata*/,
+        void * /*user_ctx*/)
     {
-      char buf[256];
-      int off = snprintf(buf, sizeof(buf), "Burst table (cnt=%u): [", ctx.total_bits);
-      for (uint16_t i = 0; i < ctx.total_bits && off + 8 < (int)sizeof(buf); ++i)
-        off += snprintf(buf + off, sizeof(buf) - off, "%u,", ctx.bit_table[i]);
-      snprintf(buf + off, sizeof(buf) - off, "]");
-      ESP_LOGV(TAG, "%s", buf);
+        if (!tx_active) return false; // gate: instant exit when idle
+
+        if (pulse_cnt == 0) {
+            // Current phase (burst or pause) is finished — decide what comes next.
+
+            if (bits_ptr >= bits_len || bits_ptr >= (uint16_t)(MAX_WORDLEN * 9)) {
+                // All bits sent — stop.
+                stop_timer_from_isr();
+                return false;
+            }
+
+            if (timer_oc_state == 1) {
+                // Just finished a carrier burst → now send inter-bit pause (silence).
+                timer_oc_state = 0;
+                pulse_cnt = PAUSE_PULSENUM;
+                ledc_set_duty(LEDC_LOW_SPEED_MODE, ledc_ch, 0);  // carrier OFF
+                ledc_update_duty(LEDC_LOW_SPEED_MODE, ledc_ch);
+            } else {
+                // Just finished a pause → now send next carrier burst.
+                if (!startbit_send) {
+                    // First burst is the start bit (fixed length, not in tx_words).
+                    pulse_cnt     = STARTBIT_PULSENUM;
+                    startbit_send = 1;
+                } else {
+                    // Load the next data bit (LSB-first, 9 bits per word).
+                    uint8_t wordindex = (uint8_t)(bits_ptr / 9);
+                    uint8_t bitindex  = (uint8_t)(bits_ptr % 9);
+                    pulse_cnt = (tx_words[wordindex] & (uint16_t)(1u << bitindex))
+                                    ? ONE_PULSENUM : ZERO_PULSENUM;
+                    bits_ptr++;
+                }
+                timer_oc_state = 1;                              // next phase: pause
+                ledc_set_duty(LEDC_LOW_SPEED_MODE, ledc_ch, 127); // carrier ON (50% duty)
+                ledc_update_duty(LEDC_LOW_SPEED_MODE, ledc_ch);
+            }
+        } else {
+            pulse_cnt--;
+        }
+
+        return false; // no high-priority task woken
     }
-    #endif
 
-    // fire the first burst
-    GDOOR_RX::disable();              // mute Rx while we TX
-    digitalWrite(tx_en_hw, HIGH);     // enable external driver
-    ledcWrite(tx_pin_hw, 1 << (LEDC_BITS - 1));  // carrier ON
-    ctx.deadline_us = micros() + START_PULSES * HALF_WAVE_US;
-    ctx.state       = PULSE;
+    // -------------------------------------------------------------------------
+    // setup — called once from GdoorComponent::setup()
+    // -------------------------------------------------------------------------
+    void setup(uint8_t txpin, uint8_t txenpin) {
+        pin_tx    = txpin;
+        pin_tx_en = txenpin;
 
-    ESP_LOGV(TAG, "TX started, %u bits", ctx.total_bits - 1);
-  }
+        // --- GPIO outputs ---
+        pinMode(pin_tx_en, OUTPUT);
+        gpio_set_level((gpio_num_t)pin_tx_en, 0);
+        pinMode(pin_tx, OUTPUT);
+        gpio_set_level((gpio_num_t)pin_tx, 0);
 
-  void send(String hex) {
-    hex.toUpperCase();
-    uint8_t buf[MAX_WORDLEN];
-    uint16_t n = 0;
-    for (uint16_t i = 0; i + 1 < hex.length() && n < MAX_WORDLEN; i += 2) {
-      int hi = strchr("0123456789ABCDEF", hex[i])  - "0123456789ABCDEF";
-      int lo = strchr("0123456789ABCDEF", hex[i+1]) - "0123456789ABCDEF";
-      if (hi < 0 || lo < 0) break;
-      buf[n++] = (hi << 4) | lo;
+        // --- LEDC carrier: 52 kHz, 8-bit resolution (same frequency as gdoor-alt) ---
+        ledcAttach(pin_tx, 52000, 8);
+        ledcWrite(pin_tx, 0);
+        ledc_ch = (ledc_channel_t)ledcGetChannel(pin_tx); // cache for ISR use
+
+        // --- GPTIMER: 60 kHz resolution → fires ISR every 16.67 µs ---
+        gptimer_config_t timer_config = {};
+        timer_config.clk_src     = GPTIMER_CLK_SRC_DEFAULT;
+        timer_config.direction   = GPTIMER_COUNT_UP;
+        timer_config.resolution_hz = 60000; // 60 kHz
+        gptimer_new_timer(&timer_config, &timer_60khz);
+
+        gptimer_event_callbacks_t cbs = {};
+        cbs.on_alarm = isr_timer_60khz;
+        gptimer_register_event_callbacks(timer_60khz, &cbs, nullptr);
+
+        gptimer_alarm_config_t alarm_config = {};
+        alarm_config.alarm_count  = 1;   // alarm every 1 tick = every 16.67 µs
+        alarm_config.reload_count = 0;
+        alarm_config.flags.auto_reload_on_alarm = true;
+        gptimer_set_alarm_action(timer_60khz, &alarm_config);
+
+        // Enable and start — timer runs always; ISR returns immediately when
+        // tx_active == false, keeping idle overhead negligible (~3 µs/ms).
+        gptimer_enable(timer_60khz);
+        gptimer_start(timer_60khz);
+
+        // Initial state
+        tx_active    = false;
+        tx_just_done = false;
+        tx_state     = 0;
+        bits_len     = 0;
+
+        ESP_LOGCONFIG(TAG, "GDoor TX setup:");
+        ESP_LOGCONFIG(TAG, "  TX pin      : GPIO %u", pin_tx);
+        ESP_LOGCONFIG(TAG, "  TX EN pin   : GPIO %u", pin_tx_en);
+        ESP_LOGCONFIG(TAG, "  Carrier     : 52000 Hz");
+        ESP_LOGCONFIG(TAG, "  Timer       : 60000 Hz (GPTIMER)");
+        ESP_LOGCONFIG(TAG, "  LEDC ch     : %u", (uint8_t)ledc_ch);
     }
-    if (n) send(buf, n);
-  }
 
-  bool busy() { return ctx.state != IDLE; }
+    // -------------------------------------------------------------------------
+    // send (byte buffer) — called from main context
+    // -------------------------------------------------------------------------
+    void send(uint8_t *data, uint16_t len) {
+        if ((tx_state & STATE_SENDING) || len >= MAX_WORDLEN) return;
 
-}  // namespace GDOOR_TX
+        bits_ptr  = 0;
+        pulse_cnt = 0;
+
+        // Build 9-bit words (8 data + 1 odd-parity), LSB-first
+        for (uint16_t i = 0; i < len; i++) {
+            tx_words[i] = byte2word(data[i]);
+        }
+        // Append CRC (sum of all data bytes) as the final word
+        uint8_t crc = GDOOR_UTILS::crc(data, len);
+        tx_words[len] = byte2word(crc);
+
+        // bits_len = data words + CRC word, each 9 bits.
+        // The start bit is NOT counted here; the ISR handles it separately
+        // via startbit_send, matching the original gdoor-alt design.
+        bits_len = (uint16_t)((len + 1) * 9);
+
+        ESP_LOGD(TAG, "TX send: %u bytes + CRC, bits_len=%u", len, bits_len);
+        start_timer();
+    }
+
+    // -------------------------------------------------------------------------
+    // send (hex string) — identical to gdoor-alt
+    // -------------------------------------------------------------------------
+    static uint8_t tx_strbuffer[MAX_WORDLEN * 2]; // module-level parse buffer
+
+    void send(String str) {
+        uint16_t index = 0;
+        str.toUpperCase();
+        if (str != "" && str.length() < (uint16_t)(MAX_WORDLEN * 2)) {
+            for (uint16_t i = 0; i < str.length(); i += 2) {
+                if (i < str.length() - 1) {
+                    int high = hexChars.indexOf(str[i]);
+                    int low  = hexChars.indexOf(str[i + 1]);
+                    if (high >= 0 && low >= 0) {
+                        tx_strbuffer[index] = (uint8_t)((high << 4) | low);
+                        index++;
+                    } else {
+                        index = 0;
+                        break;
+                    }
+                }
+            }
+            if (index > 0) {
+                send(tx_strbuffer, index);
+            }
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // loop — must be called from GdoorComponent::loop() / GDOOR::loop()
+    // Deferred RX re-enable after TX completes (attachInterrupt not ISR-safe).
+    // -------------------------------------------------------------------------
+    void loop() {
+        if (tx_just_done) {
+            tx_just_done = false;
+            // enable() clears state + disables pending timer alarms + re-attaches interrupt.
+            // Discards any stale RX data that was captured from our own TX signal.
+            GDOOR_RX::enable();
+            ESP_LOGD(TAG, "TX done, RX re-enabled");
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // busy — replaces tx_state extern used in gdoor-alt's active() check
+    // -------------------------------------------------------------------------
+    bool busy() {
+        return (tx_state & STATE_SENDING) != 0;
+    }
+
+} // namespace GDOOR_TX

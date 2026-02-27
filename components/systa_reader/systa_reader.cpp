@@ -120,18 +120,18 @@ void SystaReader::loop() {
         // route valid/invalid alike (your decoders can ignore if header not
         // matching)
         route_fc_frame_to_device_(cur_, payload, hex);
-#if ESPHOME_LOG_LEVEL >= ESPHOME_LOG_LEVEL_VERBOSE
-        ESP_LOGV(TAG, "FC HEX: %s", hex.c_str());
-#endif
+        #if ESPHOME_LOG_LEVEL >= ESPHOME_LOG_LEVEL_VERBOSE
+            ESP_LOGV(TAG, "FC HEX: %s", hex.c_str());
+        #endif
       } else { // 0x0F display
         // broadcast raw ALL
         publish_hex_all(hex);
         // payload is 32 bytes between 0F 22 04 00 and checksum
         std::vector<uint8_t> payload(cur_.begin() + 4, cur_.end() - 1);
         route_display_frame_to_device_(cur_, payload, hex);
-#if ESPHOME_LOG_LEVEL >= ESPHOME_LOG_LEVEL_VERBOSE
-        ESP_LOGV(TAG, "Display HEX: %s", hex.c_str());
-#endif
+        #if ESPHOME_LOG_LEVEL >= ESPHOME_LOG_LEVEL_VERBOSE
+                ESP_LOGV(TAG, "Display HEX: %s", hex.c_str());
+        #endif
       }
       // 4) reset for next frame (there may already be more bytes pending)
       cur_.clear();
@@ -253,9 +253,9 @@ bool SystaReader::try_parse_fc_frame_() {
     for (auto *s : sinks_)
       s->publish_frame_hex(hex);
   }
-#if ESPHOME_LOG_LEVEL >= ESPHOME_LOG_LEVEL_VERBOSE
-  ESP_LOGV(TAG, "FC HEX f2=%02X f3=%02X len=%u", f2, f3, len);
-#endif
+  #if ESPHOME_LOG_LEVEL >= ESPHOME_LOG_LEVEL_VERBOSE
+        ESP_LOGV(TAG, "FC HEX f2=%02X f3=%02X len=%u", f2, f3, len);
+  #endif
   this->route_fc_frame_to_device_(frame, payload, hex);
 
   return true;
@@ -433,7 +433,7 @@ void SystaReader::inject_test_frames_() {
     // 3) HEX-String in Standardform (zwecks Logging & Sinks)
     const std::string hex = to_hex_(frame);
 
-    // 🔹 HIER: Testdaten auch an alle Text-Sinks pushen
+    // HIER: Testdaten auch an alle Text-Sinks pushen
     for (auto *s : sinks_)
       s->publish_frame_hex(hex);
     // und an die "ALL"-Sinks (falls du die nutzt)
