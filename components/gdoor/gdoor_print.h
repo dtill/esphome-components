@@ -1,13 +1,26 @@
 /*
  * Minimal Arduino-compatible Print / Printable replacement for pure ESP-IDF builds.
  *
- * Arduino.h is not available when ESPHome is built without the Arduino framework.
- * This header provides the subset of Print / Printable that this component uses,
- * implemented with standard C++ and no Arduino dependencies.
+ * When ESPHome is built WITH the Arduino framework, Arduino.h is already included
+ * transitively (via esphome/core/macros.h) and Arduino's own Print/Printable are
+ * available — this file becomes a no-op.
  *
- * Drop-in: include this instead of Arduino.h wherever Print / Printable are needed.
+ * When ESPHome is built WITHOUT the Arduino framework (pure ESP-IDF), Arduino.h
+ * is absent. This file provides the subset of Print/Printable that this component
+ * uses, implemented in standard C++ with no Arduino dependencies.
+ *
+ * Drop-in: include this instead of Arduino.h wherever Print/Printable are needed.
  */
 #pragma once
+
+#ifdef ARDUINO
+
+// Arduino framework is present — Print/Printable already defined in Arduino.h.
+// Pull in Arduino.h so HEX/DEC and all integer types are available.
+#include <Arduino.h>
+
+#else  // pure ESP-IDF build
+
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>   // strlen
@@ -22,7 +35,7 @@
 
 // ---------------------------------------------------------------------------
 // Print — abstract base class; subclasses implement write(uint8_t).
-// Provides print() overloads for strings and all integer types.
+// Provides print() overloads for strings and integer types.
 // ---------------------------------------------------------------------------
 class Print {
 public:
@@ -41,8 +54,8 @@ public:
     size_t print(const char *s) { return write(s); }
 
     // --- integer helpers ---
-    size_t print(uint8_t  v, int base = DEC) { return _num((unsigned long)v, base); }
-    size_t print(uint16_t v, int base = DEC) { return _num((unsigned long)v, base); }
+    size_t print(uint8_t  v, int base = DEC) { return _num((uint32_t)v, base); }
+    size_t print(uint16_t v, int base = DEC) { return _num((uint32_t)v, base); }
     size_t print(uint32_t v, int base = DEC) { return _num((uint32_t)v, base); }
     size_t print(int      v, int base = DEC) {
         if (base == DEC && v < 0) {
@@ -81,3 +94,5 @@ public:
     virtual ~Printable() = default;
     virtual size_t printTo(Print &p) const = 0;
 };
+
+#endif  // ARDUINO
