@@ -16,7 +16,7 @@
  */
 #ifndef GDOOR_UTILS_H
 #define GDOOR_UTILS_H
-#include <Arduino.h>
+#include "gdoor_print.h"
 
 namespace GDOOR_UTILS {
     uint8_t crc(uint8_t *words, uint16_t len);

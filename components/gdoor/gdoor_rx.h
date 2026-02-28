@@ -18,8 +18,9 @@
 #ifndef GDOOR_RX_H
 
 #define GDOOR_RX_H
-#include <Arduino.h>
+#include "gdoor_print.h"
 #include "driver/gptimer.h"
+#include "driver/gpio.h"
 #include "gdoor_data.h"
 
 namespace GDOOR_RX { //Namespace as we can only use it once

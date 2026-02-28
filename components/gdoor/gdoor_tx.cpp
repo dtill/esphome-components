@@ -57,7 +57,13 @@ namespace GDOOR_TX {
     static uint8_t pin_tx    = 0;
     static uint8_t pin_tx_en = 0;
 
-    static const String hexChars = F("0123456789ABCDEF");
+    // Hex digit lookup — replaces Arduino String hexChars
+    static inline int hex_digit(char c) {
+        if (c >= '0' && c <= '9') return c - '0';
+        if (c >= 'a' && c <= 'f') return c - 'a' + 10;
+        if (c >= 'A' && c <= 'F') return c - 'A' + 10;
+        return -1;
+    }
 
     // -------------------------------------------------------------------------
     // Helpers (identical to gdoor-alt)
@@ -163,15 +169,31 @@ namespace GDOOR_TX {
         pin_tx_en = txenpin;
 
         // --- GPIO outputs ---
-        pinMode(pin_tx_en, OUTPUT);
+        gpio_set_direction((gpio_num_t)pin_tx_en, GPIO_MODE_OUTPUT);
         gpio_set_level((gpio_num_t)pin_tx_en, 0);
-        pinMode(pin_tx, OUTPUT);
-        gpio_set_level((gpio_num_t)pin_tx, 0);
+        // pin_tx direction is set by LEDC channel config below
 
         // --- LEDC carrier: 52 kHz, 8-bit resolution (same frequency as gdoor-alt) ---
-        ledcAttach(pin_tx, 52000, 8);
-        ledcWrite(pin_tx, 0);
-        ledc_ch = (ledc_channel_t)ledcGetChannel(pin_tx); // cache for ISR use
+        // Timer config — use LEDC_TIMER_1 (LEDC_TIMER_0 reserved for other use)
+        ledc_timer_config_t ledc_timer_cfg = {};
+        ledc_timer_cfg.speed_mode      = LEDC_LOW_SPEED_MODE;
+        ledc_timer_cfg.timer_num       = LEDC_TIMER_1;
+        ledc_timer_cfg.duty_resolution = LEDC_TIMER_8_BIT;
+        ledc_timer_cfg.freq_hz         = 52000;
+        ledc_timer_cfg.clk_cfg         = LEDC_AUTO_CLK;
+        ledc_timer_config(&ledc_timer_cfg);
+
+        // Channel config — use LEDC_CHANNEL_0, duty=0 (carrier off initially)
+        ledc_ch = LEDC_CHANNEL_0;
+        ledc_channel_config_t ledc_ch_cfg = {};
+        ledc_ch_cfg.speed_mode = LEDC_LOW_SPEED_MODE;
+        ledc_ch_cfg.channel    = ledc_ch;
+        ledc_ch_cfg.timer_sel  = LEDC_TIMER_1;
+        ledc_ch_cfg.intr_type  = LEDC_INTR_DISABLE;
+        ledc_ch_cfg.gpio_num   = (int)pin_tx;
+        ledc_ch_cfg.duty       = 0;
+        ledc_ch_cfg.hpoint     = 0;
+        ledc_channel_config(&ledc_ch_cfg);
 
         // --- GPTIMER: 60 kHz resolution → fires ISR every 16.67 µs ---
         gptimer_config_t timer_config = {};
@@ -236,30 +258,27 @@ namespace GDOOR_TX {
     }
 
     // -------------------------------------------------------------------------
-    // send (hex string) — identical to gdoor-alt
+    // send (hex string) — accepts a C string of hex pairs (e.g. "A1B2C3")
     // -------------------------------------------------------------------------
     static uint8_t tx_strbuffer[MAX_WORDLEN * 2]; // module-level parse buffer
 
-    void send(String str) {
+    void send(const char *str) {
+        if (!str || *str == '\0') return;
+        size_t slen = strlen(str);
+        if (slen >= (size_t)(MAX_WORDLEN * 2)) return;
+
         uint16_t index = 0;
-        str.toUpperCase();
-        if (str != "" && str.length() < (uint16_t)(MAX_WORDLEN * 2)) {
-            for (uint16_t i = 0; i < str.length(); i += 2) {
-                if (i < str.length() - 1) {
-                    int high = hexChars.indexOf(str[i]);
-                    int low  = hexChars.indexOf(str[i + 1]);
-                    if (high >= 0 && low >= 0) {
-                        tx_strbuffer[index] = (uint8_t)((high << 4) | low);
-                        index++;
-                    } else {
-                        index = 0;
-                        break;
-                    }
-                }
+        for (size_t i = 0; i + 1 < slen; i += 2) {
+            int high = hex_digit(str[i]);
+            int low  = hex_digit(str[i + 1]);
+            if (high < 0 || low < 0) {
+                index = 0;
+                break;
             }
-            if (index > 0) {
-                send(tx_strbuffer, index);
-            }
+            tx_strbuffer[index++] = (uint8_t)((high << 4) | low);
+        }
+        if (index > 0) {
+            send(tx_strbuffer, index);
         }
     }
 

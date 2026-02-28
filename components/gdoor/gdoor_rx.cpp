@@ -94,7 +94,7 @@ namespace GDOOR_RX {
     // Both gptimer_get_raw_count() and gptimer_set_alarm_action() are ISR-safe
     // (they use portENTER_CRITICAL spinlocks internally — pure register ops).
     // -------------------------------------------------------------------------
-    void ARDUINO_ISR_ATTR isr_extint_rx() {
+    static void IRAM_ATTR isr_extint_rx(void * /*arg*/) {
         rx_state |= (uint16_t)FLAG_RX_ACTIVE;
         isr_cnt++;
 
@@ -157,11 +157,11 @@ namespace GDOOR_RX {
     void enable() {
         rx_state = 0;      // clear all flags including any stale state
         reset_state();     // clear counters, disable pending timer alarms
-        attachInterrupt(pin_rx, isr_extint_rx, FALLING);
+        gpio_isr_handler_add((gpio_num_t)pin_rx, isr_extint_rx, nullptr);
     }
 
     void disable() {
-        detachInterrupt(pin_rx);  // stop new edges first
+        gpio_isr_handler_remove((gpio_num_t)pin_rx);  // stop new edges first
         rx_state = 0;
         reset_state();
     }
@@ -171,7 +171,21 @@ namespace GDOOR_RX {
     // -------------------------------------------------------------------------
     void setup(uint8_t rxpin) {
         pin_rx = rxpin;
-        pinMode(pin_rx, INPUT); // INPUT — the onboard comparator drives the pin actively
+        // Configure as plain input — active comparator output; no pullup (INPUT_PULLUP
+        // would load the comparator at 45kΩ and distort the threshold).
+        gpio_config_t io_conf = {};
+        io_conf.intr_type    = GPIO_INTR_NEGEDGE;  // FALLING edge trigger
+        io_conf.mode         = GPIO_MODE_INPUT;
+        io_conf.pin_bit_mask = (1ULL << pin_rx);
+        io_conf.pull_up_en   = GPIO_PULLUP_DISABLE;
+        io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
+        gpio_config(&io_conf);
+
+        // Install per-GPIO ISR service; ESP_ERR_INVALID_STATE means already installed.
+        esp_err_t err = gpio_install_isr_service(0);
+        if (err != ESP_OK && err != ESP_ERR_INVALID_STATE) {
+            ESP_LOGE(TAG, "gpio_install_isr_service failed: %d", err);
+        }
 
         retval.len   = 0;
         retval.valid = 0;

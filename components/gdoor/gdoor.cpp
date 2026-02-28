@@ -16,6 +16,7 @@
  */
 #include "gdoor.h"
 #include "esphome/core/log.h"
+#include "driver/dac.h"
 
 using esphome::esp_log_printf_;
 
@@ -63,9 +64,8 @@ namespace GDOOR {
     * Send out data.
     * @param hex string data without 0x prefix
     */
-    void send(String str) {
+    void send(const char *str) {
         GDOOR_TX::send(str);
-
     }
 
     /*
@@ -80,7 +80,10 @@ namespace GDOOR {
      * only working for IO22 rx input on v3.1 hardware
     */
    void setRxThreshold(uint8_t pin, float sensitivity) {
-        uint8_t value =  (uint8_t)((sensitivity/3.3)*255);
-        dacWrite(pin, value);
+        uint8_t value = (uint8_t)((sensitivity / 3.3f) * 255);
+        // GPIO25 = DAC_CHANNEL_1, GPIO26 = DAC_CHANNEL_2 (ESP-IDF DAC API)
+        dac_channel_t channel = (pin == 25) ? DAC_CHANNEL_1 : DAC_CHANNEL_2;
+        dac_output_enable(channel);
+        dac_output_voltage(channel, value);
    }
 }
