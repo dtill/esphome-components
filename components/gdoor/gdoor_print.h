@@ -43,19 +43,19 @@ public:
     // --- integer helpers ---
     size_t print(uint8_t  v, int base = DEC) { return _num((unsigned long)v, base); }
     size_t print(uint16_t v, int base = DEC) { return _num((unsigned long)v, base); }
-    size_t print(uint32_t v, int base = DEC) { return _num((unsigned long)v, base); }
+    size_t print(uint32_t v, int base = DEC) { return _num((uint32_t)v, base); }
     size_t print(int      v, int base = DEC) {
         if (base == DEC && v < 0) {
             size_t n = write((uint8_t)'-');
-            return n + _num((unsigned long)(-v), base);
+            return n + _num((uint32_t)(-v), base);
         }
-        return _num((unsigned long)v, base);
+        return _num((uint32_t)v, base);
     }
-    size_t print(unsigned long v, int base = DEC) { return _num(v, base); }
-    size_t print(long          v, int base = DEC) { return print((int)v, base); }
+    // Note: on ESP32, unsigned long == uint32_t and long == int (both 32-bit).
+    // Separate overloads would be duplicate declarations and are therefore omitted.
 
 private:
-    size_t _num(unsigned long value, int base) {
+    size_t _num(uint32_t value, int base) {
         // Build digits right-to-left in a local buffer.
         char buf[33];
         char *p = buf + sizeof(buf) - 1;
@@ -64,9 +64,9 @@ private:
             *--p = '0';
         } else {
             while (value > 0) {
-                int d = (int)(value % (unsigned long)base);
+                int d = (int)(value % (uint32_t)base);
                 *--p = (char)(d < 10 ? ('0' + d) : ('a' + d - 10));
-                value /= (unsigned long)base;
+                value /= (uint32_t)base;
             }
         }
         return write(p);

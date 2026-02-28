@@ -16,7 +16,7 @@
  */
 #include "gdoor.h"
 #include "esphome/core/log.h"
-#include "driver/dac.h"
+#include "driver/dac_oneshot.h"
 
 using esphome::esp_log_printf_;
 
@@ -81,9 +81,12 @@ namespace GDOOR {
     */
    void setRxThreshold(uint8_t pin, float sensitivity) {
         uint8_t value = (uint8_t)((sensitivity / 3.3f) * 255);
-        // GPIO25 = DAC_CHANNEL_1, GPIO26 = DAC_CHANNEL_2 (ESP-IDF DAC API)
-        dac_channel_t channel = (pin == 25) ? DAC_CHANNEL_1 : DAC_CHANNEL_2;
-        dac_output_enable(channel);
-        dac_output_voltage(channel, value);
+        // GPIO25 = DAC_CHAN_0, GPIO26 = DAC_CHAN_1 (IDF v5 dac_oneshot API)
+        dac_channel_t chan = (pin == 25) ? DAC_CHAN_0 : DAC_CHAN_1;
+        dac_oneshot_handle_t handle;
+        dac_oneshot_config_t cfg = { .chan_id = chan };
+        dac_oneshot_new_channel(&cfg, &handle);
+        dac_oneshot_output_voltage(handle, value);
+        // handle intentionally not deleted — DAC output must remain active
    }
 }
