@@ -78,7 +78,7 @@ private:
         } else {
             while (value > 0) {
                 int d = (int)(value % (uint32_t)base);
-                *--p = (char)(d < 10 ? ('0' + d) : ('a' + d - 10));
+                *--p = (char)(d < 10 ? ('0' + d) : ('A' + d - 10));
                 value /= (uint32_t)base;
             }
         }
