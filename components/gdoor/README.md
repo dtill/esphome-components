@@ -67,7 +67,6 @@ output:
     id: gdoor_outdoor_opener
     name: "GDoor Outdoor Opener"
     gdoor_id: my_gdoor
-    # Attention: CRC check will be performed on hex-string during config validation. Only valid payloads are allowed.
     payload: "0200311234560000A165432139"    # example of DOOR_OPEN to open a OUTDOOR .
 
 button:
