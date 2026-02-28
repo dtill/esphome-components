@@ -11,6 +11,8 @@ Tested hardware combination: Gira Wohnungsstation AP (1250 015) + gdoor Adapter 
 ```yaml
 esp32:
   board: esp32dev
+  framework:
+    type: esp-idf
 
 external_components:
   - source:
@@ -22,7 +24,7 @@ external_components:
 # Enable Home Assistant API
 api:
   reboot_timeout: 0s
-encryption:
+  encryption:
     key: !secret my_own_secret_api_key # api-key generator found here: https://esphome.io/components/api.html#configuration-variables
 
 gdoor:
