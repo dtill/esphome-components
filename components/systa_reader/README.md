@@ -92,7 +92,7 @@ sensor:
   - platform: systa_reader
     systa_reader_id: systa_bus_01
     kind: aqua_var1
-    name: "AQUA VAR1" # Not shure what dis value does, but it might be a kind of status as well.
+    name: "AQUA VAR1" # VAR1: 3 = Betrieb 8 = Aus/Standby 0 = Abschalten wegen T-Max
     accuracy_decimals: 0
     state_class: measurement
   - platform: systa_reader
