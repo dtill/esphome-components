@@ -63,7 +63,9 @@ void SystaReader::loop() {
       while (this->available()) {
         if (!this->read_byte(&b))
           break;
-        if (b == 0xFC || b == 0x0F) {
+        if (b == 0xFC || b == 0x0F || b == 0xFD || b == 0x0A || b == 0x0B ||
+            b == 0x0C) {
+          flush_skipped_("pre-sync");
           cur_.clear();
           cur_.push_back(b);
           need_total_ = 0;
@@ -71,6 +73,9 @@ void SystaReader::loop() {
           synced = true;
           break;
         }
+        skipped_.push_back(b);
+        if (skipped_.size() >= kSkippedFlushCap)
+          flush_skipped_("cap");
       }
       if (!synced)
         break; // no sync yet → wait for more UART data
@@ -88,7 +93,13 @@ void SystaReader::loop() {
         if (need_total_ == 0) {
           const size_t expect = expect_total_if_known_(cur_);
           if (expect == SIZE_MAX) {
-            // hard desync: drop first byte and go back to seeking
+            // hard desync: log the rejected partial, then resync
+            ESP_LOGV(TAG, "REJECT HEX: %s", to_hex_(cur_).c_str());
+            // push the bytes back into skipped_ minus the first (sync byte
+            // that didn't pan out) so a fresh sync inside them can still
+            // surface in the log
+            for (size_t i = 1; i < cur_.size(); i++)
+              skipped_.push_back(cur_[i]);
             cur_.clear();
             rx_state_ = RxState::SEEK;
             need_total_ = 0;
@@ -101,37 +112,141 @@ void SystaReader::loop() {
       // if we still don't have a full frame, give UART time to refill
       if (need_total_ == 0 || cur_.size() < need_total_)
         break;
-      // 3) we have a whole frame in cur_ → verify & route
+      // 3) we have a whole frame in cur_ → dump raw, verify & route
+      const std::string hex = to_hex_(cur_);
+      const bool is_cmd = (cur_[0] == 0x0A || cur_[0] == 0x0B || cur_[0] == 0x0C);
+      const bool is_std_display = (cur_[0] == 0x0F && cur_.size() == 37 &&
+                                   cur_[1] == 0x22 && cur_[2] == 0x04 &&
+                                   cur_[3] == 0x00);
+      // Short 0F variants (e.g. 0F 02 05 80 6A, 5 bytes) appear to carry UI
+      // setting state; longer variants (e.g. 0F 1A 81 28 …) carry extra
+      // payload. Both verify with the standard two's-complement checksum.
+      const bool is_short_display =
+          (cur_[0] == 0x0F && !is_std_display && cur_.size() < 8);
+      // 4 bytes is the minimum possible valid frame: <sync><len=1><cmd><chk>
+      // (e.g. 0A 01 14 E1 = START_MONITORING). Include them in the dump.
+      if (cur_.size() >= 4) {
+        const char *label = "?";
+        switch (cur_[0]) {
+          case 0xFC: label = "FC"; break;
+          case 0xFD: label = "FD"; break;
+          case 0x0F:
+            label = is_std_display ? "Display"
+                                   : (is_short_display ? "Display Setting"
+                                                       : "Display Extra");
+            break;
+          case 0x0A: label = "Cmd"; break;
+          case 0x0B: label = "Cmd"; break;
+          case 0x0C: label = "Cmd"; break;
+        }
+        ESP_LOGV(TAG, "%s HEX: %s", label, hex.c_str());
+#if ESPHOME_LOG_LEVEL >= ESPHOME_LOG_LEVEL_VERBOSE
+        publish_hex_all(hex);
+#endif
+      }
       const uint8_t calc = checksum_twos_complement_(
           std::vector<uint8_t>(cur_.begin(), cur_.end() - 1));
       const uint8_t got = cur_.back();
-#if ESPHOME_LOG_LEVEL >= ESPHOME_LOG_LEVEL_VERBOSE
       if (calc != got && this->log_invalid_) {
-        ESP_LOGW(TAG, "Checksum invalid (got %02X, expected %02X)", got, calc);
+        ESP_LOGE(TAG, "Checksum invalid (got %02X, expected %02X)", got, calc);
       }
-#endif
-      const std::string hex = to_hex_(cur_);
+      // COMMAND line: decode 0x0A / 0x0B / 0x0C frames (if checksum valid)
+      if (is_cmd && calc == got) {
+        char type[8] = "???";
+        bool found = false;
+        size_t label_off = 0;
+        if (cur_.size() >= 6) {
+          for (size_t i = 2; i + 3 <= cur_.size() - 1; i++) {
+            const uint8_t a = cur_[i], b = cur_[i + 1], c = cur_[i + 2];
+            if (a >= 'A' && a <= 'Z' && b >= 'A' && b <= 'Z' &&
+                c >= 'A' && c <= 'Z') {
+              type[0] = (char) a;
+              type[1] = (char) b;
+              type[2] = (char) c;
+              type[3] = '\0';
+              label_off = i;
+              found = true;
+              break;
+            }
+          }
+        }
+        if (!found && cur_.size() >= 4) {
+          // Known short-command codes (per SystaBridge sources):
+          //   0x02 = GET  0x14 = MON (start monitoring)
+          //   0x15 = STP (stop monitoring)  0x16 = VER (get version)
+          switch (cur_[2]) {
+            case 0x02: strcpy(type, "GET"); break;
+            case 0x14: strcpy(type, "MON"); break;
+            case 0x15: strcpy(type, "STP"); break;
+            case 0x16: strcpy(type, "VER"); break;
+            default:   snprintf(type, sizeof(type), "%02X", cur_[2]); break;
+          }
+        }
+
+        char content[32] = "";
+        if (found && type[0] == 'U' && type[1] == 'H' && type[2] == 'R') {
+          // 0x0B keypad: 5 BCD-style bytes after UHR: HH MM DD MM SS
+          // 0x0C keypad: 2 big-endian uint16s: minutes-since-midnight, days-since-2000
+          if (cur_[0] == 0x0B && label_off + 6 < cur_.size() - 1) {
+            snprintf(content, sizeof(content), "%02X:%02X %02X.%02X",
+                     cur_[label_off + 3], cur_[label_off + 4],
+                     cur_[label_off + 5], cur_[label_off + 6]);
+          } else if (cur_[0] == 0x0C && label_off + 6 < cur_.size() - 1) {
+            const uint16_t mins = (uint16_t(cur_[label_off + 3]) << 8) |
+                                  cur_[label_off + 4];
+            uint16_t days = (uint16_t(cur_[label_off + 5]) << 8) |
+                            cur_[label_off + 6];
+            int yy = 2000;
+            while (true) {
+              bool leap = (yy % 4 == 0 && (yy % 100 != 0 || yy % 400 == 0));
+              int yd = leap ? 366 : 365;
+              if ((int) days < yd) break;
+              days -= yd;
+              yy++;
+            }
+            int md[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+            if (yy % 4 == 0 && (yy % 100 != 0 || yy % 400 == 0))
+              md[1] = 29;
+            int mo = 0;
+            while (mo < 12 && (int) days >= md[mo]) {
+              days -= md[mo];
+              mo++;
+            }
+            snprintf(content, sizeof(content), "%02u:%02u %02u.%02u.%04d",
+                     unsigned(mins / 60), unsigned(mins % 60),
+                     unsigned(days + 1), unsigned(mo + 1), yy);
+          }
+        }
+
+        if (content[0] != '\0') {
+          ESP_LOGD(TAG, "COMMAND: type: %s content: [%s] hex: [%s]", type,
+                   content, hex.c_str());
+        } else {
+          ESP_LOGD(TAG, "COMMAND: type: %s hex: [%s]", type, hex.c_str());
+        }
+      }
       if (cur_[0] == 0xFC) {
         // payload for device decoders
         std::vector<uint8_t> payload(cur_.begin() + 4, cur_.end() - 1);
         // broadcast raw HEX (if you have sinks_)
         for (auto *s : sinks_)
           s->publish_frame_hex(hex);
-        // route valid/invalid alike (your decoders can ignore if header not
-        // matching)
         route_fc_frame_to_device_(cur_, payload, hex);
-        #if ESPHOME_LOG_LEVEL >= ESPHOME_LOG_LEVEL_VERBOSE
-            ESP_LOGV(TAG, "FC HEX: %s", hex.c_str());
-        #endif
-      } else { // 0x0F display
-        // broadcast raw ALL
-        publish_hex_all(hex);
-        // payload is 32 bytes between 0F 22 04 00 and checksum
+      } else if (cur_[0] == 0x0F) { // display
         std::vector<uint8_t> payload(cur_.begin() + 4, cur_.end() - 1);
         route_display_frame_to_device_(cur_, payload, hex);
-        #if ESPHOME_LOG_LEVEL >= ESPHOME_LOG_LEVEL_VERBOSE
-                ESP_LOGV(TAG, "Display HEX: %s", hex.c_str());
-        #endif
+      } else if (cur_[0] == 0xFD && cur_.size() == 8 && cur_[1] == 0x05 &&
+                 cur_[2] == 0xAA) {
+        // Firmware-version announce: FD 05 AA <addr> <major> <minor> <patch> <chk>
+        // 0x0B = Aqua/Solar, 0x0C = Comfort (per SystaBridge).
+        // Routed to the per-device decoder so the version-parsing logic
+        // lives next to the rest of that device's code.
+        const uint8_t addr = cur_[3];
+        if (addr == 0x0B && (enabled_mask_ & DEV_AQUA) && aqua_) {
+          aqua_->on_fd_version_frame(cur_[4], cur_[5], cur_[6]);
+        } else if (addr == 0x0C && (enabled_mask_ & DEV_COMFORT) && comfort_) {
+          comfort_->on_fd_version_frame(cur_[4], cur_[5], cur_[6]);
+        }
       }
       // 4) reset for next frame (there may already be more bytes pending)
       cur_.clear();
@@ -244,7 +359,7 @@ bool SystaReader::try_parse_fc_frame_() {
 
   if (!checksum_ok) {
     if (log_invalid_)
-      ESP_LOGW(TAG, "FC checksum invalid (got %02X, expected %02X)", got, calc);
+      ESP_LOGE(TAG, "FC checksum invalid (got %02X, expected %02X)", got, calc);
     return true;
   }
   std::string hex;
@@ -281,7 +396,7 @@ bool SystaReader::try_parse_display_frame_() {
   const uint8_t got = frame.back();
   if (calc != got) {
     if (log_invalid_)
-      ESP_LOGW(TAG, "Display checksum invalid (got %02X, expected %02X)", got,
+      ESP_LOGE(TAG, "Display checksum invalid (got %02X, expected %02X)", got,
                calc);
     // trotzdem Bytes verwerfen, um nicht zu hängen
     for (size_t i = 0; i < total; i++)
@@ -362,6 +477,14 @@ void SystaReader::route_display_frame_to_device_(
   // hex);
 }
 
+void SystaReader::flush_skipped_(const char *reason) {
+  if (skipped_.empty())
+    return;
+  ESP_LOGV(TAG, "SKIP HEX (%s, %u bytes): %s", reason,
+           (unsigned) skipped_.size(), to_hex_(skipped_).c_str());
+  skipped_.clear();
+}
+
 uint8_t SystaReader::checksum_twos_complement_(const std::vector<uint8_t> &v) {
   uint32_t sum = 0;
   for (auto b : v)
@@ -425,7 +548,7 @@ void SystaReader::inject_test_frames_() {
     const uint8_t got = frame.back();
     if (calc != got) {
       if (log_invalid_)
-        ESP_LOGW(TAG, "Test frame checksum invalid (got %02X, expected %02X)",
+        ESP_LOGE(TAG, "Test frame checksum invalid (got %02X, expected %02X)",
                  got, calc);
       continue;
     }
@@ -473,15 +596,52 @@ SystaReader::expect_total_if_known_(const std::vector<uint8_t> &v) const {
     return size_t(2) + len + 1; // FC, len, payload[len], checksum
   }
 
-  if (v[0] == 0x0F) {
-    // need 4 bytes to decide if it's the known display frame
-    if (v.size() < 4)
+  if (v[0] == 0xFD) {
+    // FD <len> <data[len]> <checksum>. SystaBridge confirms subtypes up to
+    // len=0x2F (heating-curve dumps), so cap generously rather than at 32.
+    if (v.size() < 2)
       return 0;
-    if (v[1] == 0x22 && v[2] == 0x04 && v[3] == 0x00) {
-      return 37; // fixed size for this display signature
+    const uint8_t len = v[1];
+    static constexpr size_t kFdMaxLen = 64;
+    if (len < 1 || len > kFdMaxLen) {
+      return SIZE_MAX;
     }
-    // unknown 0x0F... header → desync
-    return SIZE_MAX;
+    return size_t(2) + len + 1;
+  }
+
+  if (v[0] == 0x0A || v[0] == 0x0B || v[0] == 0x0C) {
+    // Command frames from clients on the bus.
+    //  0x0A = SystaBridge / SystaWeb client (cf. SystaBridge sources)
+    //  0x0B = SystaInterface (Aqua/Solar keypad)
+    //  0x0C = SystaComfort keypad
+    // All share: <sync> <len> <data[len]> <chk>.
+    // 0x0A: on this bus only the 4-byte len=0x01 form is legitimate
+    //       (any longer "0A" sequence has historically been mid-stream
+    //       noise). Reject anything else to keep the log clean.
+    if (v.size() < 2)
+      return 0;
+    const uint8_t len = v[1];
+    if (v[0] == 0x0A && len != 0x01)
+      return SIZE_MAX;
+    static constexpr size_t kCmdMaxLen = 0x80;
+    if (len < 1 || len > kCmdMaxLen)
+      return SIZE_MAX;
+    return size_t(2) + len + 1;
+  }
+
+  if (v[0] == 0x0F) {
+    // Two flavours share the 0x0F sync:
+    //   * Standard 32-char display: 0F 22 04 00 <32 ASCII> <chk>  (37 bytes)
+    //   * Legacy variants (e.g. 0F 1A 81 28 …): treat as generic
+    //     <sync><len><data><chk> and collect the full length. Their
+    //     checksum byte is read but ignored downstream.
+    if (v.size() < 2)
+      return 0;
+    const uint8_t len = v[1];
+    static constexpr size_t kDispMaxLen = 0x40;
+    if (len < 1 || len > kDispMaxLen)
+      return SIZE_MAX;
+    return size_t(2) + len + 1;
   }
 
   // not a sync byte

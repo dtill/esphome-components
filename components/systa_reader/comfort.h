@@ -14,6 +14,9 @@ class ComfortDecoder {
                    const std::vector<uint8_t>& payload,
                    const std::string &hex);
 
+  // Firmware-version announce: FD 05 AA 0C <major> <minor> <patch> <chk>
+  void on_fd_version_frame(uint8_t major, uint8_t minor, uint8_t patch);
+
  private:
   static inline uint16_t read_u16_be(const std::vector<uint8_t> &b, int i) { return uint16_t((b[i]<<8)|b[i+1]); }
   static inline int16_t  read_s16_be(const std::vector<uint8_t> &b, int i) { return int16_t((b[i]<<8)|b[i+1]); }

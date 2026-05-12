@@ -18,12 +18,12 @@ _FILTER_ONE = cv.one_of("all", "aqua", "aqua_ii", "modula", "espresso", "pallett
 FILTER = cv.Any(_FILTER_ONE, cv.All(cv.ensure_list(_FILTER_ONE), cv.Length(min=1)))
 
 FIELD_KIND = cv.one_of(
-    "aqua_status_text", "aqua_timestamp", "aqua_display_text",
+    "aqua_status_text", "aqua_timestamp", "aqua_display_text", "aqua_fw_version",
     "aqua_ii_status_text", "aqua_ii_timestamp",
     "modula_timestamp",
     "espresso_timestamp",
     "palletti_ii_timestamp", "palletti_ii_display_text",
-    "compact_timestamp", "comfort_boiler_err",
+    "compact_timestamp", "comfort_boiler_err", "comfort_fw_version",
     lower=True
 )
 
@@ -72,6 +72,8 @@ async def to_code(config):
             cg.add(parent.set_aqua_timestamp_text_sensor(var))
         elif k == "aqua_display_text":
             cg.add(parent.set_aqua_display_text_sensor(var))
+        elif k == "aqua_fw_version":
+            cg.add(parent.set_aqua_fw_version_text_sensor(var))
         elif k == "aqua_ii_status_text":
             cg.add(parent.set_aqua_ii_status_text_sensor(var))
         elif k == "aqua_ii_timestamp":
@@ -88,4 +90,6 @@ async def to_code(config):
             cg.add(parent.set_compact_timestamp_text_sensor(var))
         elif k == "comfort_boiler_err":
             cg.add(parent.set_comfort_boiler_err_text_sensor(var))
+        elif k == "comfort_fw_version":
+            cg.add(parent.set_comfort_fw_version_text_sensor(var))
 

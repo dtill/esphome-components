@@ -118,5 +118,13 @@ void AquaDecoder::on_display_frame(const std::vector<uint8_t>& /*frame*/,
   last_display_ms_= now;
 }
 
+void AquaDecoder::on_fd_version_frame(uint8_t major, uint8_t minor,
+                                      uint8_t patch) {
+  char buf[16];
+  snprintf(buf, sizeof(buf), "%u.%u.%u", major, minor, patch);
+  ESP_LOGI(TAG_AQUA, "AQUA: Firmware=%s", buf);
+  r_.pub_aqua_fw_version(buf);
+}
+
 } // namespace systa_reader
 } // namespace esphome

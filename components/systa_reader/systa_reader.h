@@ -93,6 +93,9 @@ public:
   // Aqua-Display
   void set_aqua_display_text_sensor(text_sensor::TextSensor *t) {aqua_display_text_ = t;}
   inline void pub_aqua_display_text(const std::string &s) {if (aqua_display_text_)aqua_display_text_->publish_state(s);}
+  // Aqua firmware version (announced periodically via FD 05 AA 0B M m p chk)
+  void set_aqua_fw_version_text_sensor(text_sensor::TextSensor *t) { aqua_fw_version_ = t; }
+  inline void pub_aqua_fw_version(const std::string &s) { if (aqua_fw_version_) aqua_fw_version_->publish_state(s); }
 
   // publish helpers
   inline void pub_aqua_tsa(float v) { if (aqua_tsa_)    aqua_tsa_->publish_state(v);}
@@ -403,6 +406,8 @@ public:
   void set_comfort_phk2_sensor(sensor::Sensor *s) { comfort_phk2_ = s; }
   void set_comfort_pkes_sensor(sensor::Sensor *s) { comfort_pkes_ = s; }
   void set_comfort_boiler_err_text_sensor(text_sensor::TextSensor *t) { comfort_boiler_err_text_sensor_ = t;}
+  void set_comfort_fw_version_text_sensor(text_sensor::TextSensor *t) { comfort_fw_version_ = t; }
+  inline void pub_comfort_fw_version(const std::string &s) { if (comfort_fw_version_) comfort_fw_version_->publish_state(s); }
 
   // COMFORT Status Bits
   void set_comfort_stat_phk_binary_sensor(binary_sensor::BinarySensor *s) { comfort_stat_phk_ = s;}
@@ -485,6 +490,13 @@ private:
   std::vector<uint8_t> cur_;
   size_t need_total_{0}; // 0 => unknown yet
 
+  // bytes consumed in SEEK that didn't match a known sync — flushed via
+  // ESP_LOGV when we either sync up, hit the cap, or get a hard desync from a
+  // rejected partial frame. Lets unknown sender frames show up in the log.
+  std::vector<uint8_t> skipped_;
+  static constexpr size_t kSkippedFlushCap = 256;
+  void flush_skipped_(const char *reason);
+
   // how many frames we’ll cut per loop() call (keeps latency low)
   static constexpr uint8_t kMaxFramesPerLoop = 3;
 
@@ -542,6 +554,7 @@ private:
   text_sensor::TextSensor *aqua_status_text_{nullptr};
   text_sensor::TextSensor *aqua_timestamp_{nullptr};
   text_sensor::TextSensor *aqua_display_text_{nullptr};
+  text_sensor::TextSensor *aqua_fw_version_{nullptr};
 
   // decoder instances
   Aqua2Decoder *aqua_ii_{nullptr};
@@ -656,6 +669,7 @@ private:
   sensor::Sensor *comfort_phk2_{nullptr};
   sensor::Sensor *comfort_pkes_{nullptr};
   text_sensor::TextSensor *comfort_boiler_err_text_sensor_{nullptr};
+  text_sensor::TextSensor *comfort_fw_version_{nullptr};
 
   // COMFORT status bit sensors
   binary_sensor::BinarySensor *comfort_stat_phk_{nullptr};

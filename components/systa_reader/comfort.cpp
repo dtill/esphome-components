@@ -127,5 +127,13 @@ ESP_LOGI(TAG_COMFORT, "COMFORT: TI_S=%.1f  TI2_S=%.1f TV_S=%.1f  TV2_S=%.1f TW_S
 
 }
 
+void ComfortDecoder::on_fd_version_frame(uint8_t major, uint8_t minor,
+                                         uint8_t patch) {
+  char buf[16];
+  snprintf(buf, sizeof(buf), "%u.%u.%u", major, minor, patch);
+  ESP_LOGI(TAG_COMFORT, "COMFORT: Firmware=%s", buf);
+  r_.pub_comfort_fw_version(buf);
+}
+
 } // namespace systa_reader
 } // namespace esphome
