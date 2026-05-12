@@ -497,6 +497,13 @@ private:
   static constexpr size_t kSkippedFlushCap = 256;
   void flush_skipped_(const char *reason);
 
+  // Emit a labeled ESP_LOGV line ("FC HEX:", "Cmd HEX:", "Display HEX:", …)
+  // for any frame >= 4 bytes. Used both for live bus traffic and for
+  // injected test_data, so test frames are visible even when their target
+  // decoder isn't enabled in the YAML.
+  void log_frame_hex_(const std::vector<uint8_t> &frame,
+                      const std::string &hex);
+
   // how many frames we’ll cut per loop() call (keeps latency low)
   static constexpr uint8_t kMaxFramesPerLoop = 3;
 

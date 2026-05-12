@@ -115,35 +115,11 @@ void SystaReader::loop() {
       // 3) we have a whole frame in cur_ → dump raw, verify & route
       const std::string hex = to_hex_(cur_);
       const bool is_cmd = (cur_[0] == 0x0A || cur_[0] == 0x0B || cur_[0] == 0x0C);
-      const bool is_std_display = (cur_[0] == 0x0F && cur_.size() == 37 &&
-                                   cur_[1] == 0x22 && cur_[2] == 0x04 &&
-                                   cur_[3] == 0x00);
-      // Short 0F variants (e.g. 0F 02 05 80 6A, 5 bytes) appear to carry UI
-      // setting state; longer variants (e.g. 0F 1A 81 28 …) carry extra
-      // payload. Both verify with the standard two's-complement checksum.
-      const bool is_short_display =
-          (cur_[0] == 0x0F && !is_std_display && cur_.size() < 8);
-      // 4 bytes is the minimum possible valid frame: <sync><len=1><cmd><chk>
-      // (e.g. 0A 01 14 E1 = START_MONITORING). Include them in the dump.
-      if (cur_.size() >= 4) {
-        const char *label = "?";
-        switch (cur_[0]) {
-          case 0xFC: label = "FC"; break;
-          case 0xFD: label = "FD"; break;
-          case 0x0F:
-            label = is_std_display ? "Display"
-                                   : (is_short_display ? "Display Setting"
-                                                       : "Display Extra");
-            break;
-          case 0x0A: label = "Cmd"; break;
-          case 0x0B: label = "Cmd"; break;
-          case 0x0C: label = "Cmd"; break;
-        }
-        ESP_LOGV(TAG, "%s HEX: %s", label, hex.c_str());
+      log_frame_hex_(cur_, hex);
 #if ESPHOME_LOG_LEVEL >= ESPHOME_LOG_LEVEL_VERBOSE
+      if (cur_.size() >= 4)
         publish_hex_all(hex);
 #endif
-      }
       const uint8_t calc = checksum_twos_complement_(
           std::vector<uint8_t>(cur_.begin(), cur_.end() - 1));
       const uint8_t got = cur_.back();
@@ -477,6 +453,31 @@ void SystaReader::route_display_frame_to_device_(
   // hex);
 }
 
+void SystaReader::log_frame_hex_(const std::vector<uint8_t> &frame,
+                                 const std::string &hex) {
+  if (frame.size() < 4)
+    return;
+  const bool is_std_display = (frame[0] == 0x0F && frame.size() == 37 &&
+                               frame[1] == 0x22 && frame[2] == 0x04 &&
+                               frame[3] == 0x00);
+  const bool is_short_display =
+      (frame[0] == 0x0F && !is_std_display && frame.size() < 8);
+  const char *label = "?";
+  switch (frame[0]) {
+    case 0xFC: label = "FC"; break;
+    case 0xFD: label = "FD"; break;
+    case 0x0F:
+      label = is_std_display ? "Display"
+                             : (is_short_display ? "Display Setting"
+                                                 : "Display Extra");
+      break;
+    case 0x0A: label = "Cmd"; break;
+    case 0x0B: label = "Cmd"; break;
+    case 0x0C: label = "Cmd"; break;
+  }
+  ESP_LOGV(TAG, "%s HEX: %s", label, hex.c_str());
+}
+
 void SystaReader::flush_skipped_(const char *reason) {
   if (skipped_.empty())
     return;
@@ -542,7 +543,13 @@ void SystaReader::inject_test_frames_() {
     if (frame.size() < 3)
       continue;
 
-    // 2) (Optional) Checksumme prüfen (gleich wie bei echten Frames)
+    // 2) HEX form + ESP_LOGV dump — fire BEFORE checksum check so test
+    //    frames are always visible in the console, even when their target
+    //    decoder isn't enabled in the YAML.
+    const std::string hex = to_hex_(frame);
+    log_frame_hex_(frame, hex);
+
+    // 3) Checksumme prüfen (gleich wie bei echten Frames)
     const uint8_t calc = checksum_twos_complement_(
         std::vector<uint8_t>(frame.begin(), frame.end() - 1));
     const uint8_t got = frame.back();
@@ -553,21 +560,16 @@ void SystaReader::inject_test_frames_() {
       continue;
     }
 
-    // 3) HEX-String in Standardform (zwecks Logging & Sinks)
-    const std::string hex = to_hex_(frame);
-
-    // HIER: Testdaten auch an alle Text-Sinks pushen
+    // 4) Testdaten auch an alle Text-Sinks pushen
     for (auto *s : sinks_)
       s->publish_frame_hex(hex);
-    // und an die "ALL"-Sinks (falls du die nutzt)
     publish_hex_all(hex);
 
-    // 4) Payload bilden
+    // 5) Gerätespezifisch routen (wie echte Frames)
     std::vector<uint8_t> payload;
     if (frame[0] == 0xFC) {
       if (frame.size() >= 4)
         payload.assign(frame.begin() + 4, frame.end() - 1);
-      // 5) Gerätespezifisch routen (wie echte Frames)
       route_fc_frame_to_device_(frame, payload, hex);
     } else if (frame.size() == 37 && frame[0] == 0x0F && frame[1] == 0x22 &&
                frame[2] == 0x04 && frame[3] == 0x00) {

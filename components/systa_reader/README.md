@@ -678,7 +678,7 @@ text_sensor:
   - platform: systa_reader
     systa_reader_id: systa_bus_01
     mode: field
-    kind: aqua_fw_version
+    kind: aqua_fw_version            # decoded from FD 05 AA 0B <Maj> <min> <patch>
     name: "AQUA FW Version"
 
   # AQUA-II text sensors:
