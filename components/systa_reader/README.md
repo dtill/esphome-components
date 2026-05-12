@@ -678,7 +678,7 @@ text_sensor:
   - platform: systa_reader
     systa_reader_id: systa_bus_01
     mode: field
-    kind: aqua_fw_version            # decoded from FD 05 AA 0B <Maj> <min> <patch>
+    kind: aqua_fw_version
     name: "AQUA FW Version"
 
   # AQUA-II text sensors:
@@ -725,11 +725,4 @@ text_sensor:
     mode: field
     kind: compact_timestamp
     name: "Compact Zeitstempel"
-
-  # COMFORT text sensors:
-  - platform: systa_reader
-    systa_reader_id: systa_bus_01
-    mode: field
-    kind: comfort_fw_version         # decoded from FD 05 AA 0C <Maj> <min> <patch>
-    name: "COMFORT FW Version"
 ```
