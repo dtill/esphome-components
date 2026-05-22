@@ -327,11 +327,11 @@ sensor:
     device_class: temperature
     state_class: measurement
 
-  # ESPRESSO sensors
+  # EXPRESSO sensors
   - platform: systa_reader
     systa_reader_id: systa_bus_01
     kind: espresso_ta
-    name: "ESPRESSO TA"
+    name: "EXPRESSO TA"
     unit_of_measurement: "°C"
     accuracy_decimals: 1
     device_class: temperature
@@ -339,7 +339,7 @@ sensor:
   - platform: systa_reader
     systa_reader_id: systa_bus_01
     kind: espresso_two
-    name: "ESPRESSO TWO"
+    name: "EXPRESSO TWO"
     unit_of_measurement: "°C"
     accuracy_decimals: 1
     device_class: temperature
@@ -347,7 +347,7 @@ sensor:
   - platform: systa_reader
     systa_reader_id: systa_bus_01
     kind: espresso_fa_tv
-    name: "ESPRESSO FA TV"
+    name: "EXPRESSO FA TV"
     unit_of_measurement: "°C"
     accuracy_decimals: 1
     device_class: temperature
@@ -355,7 +355,7 @@ sensor:
   - platform: systa_reader
     systa_reader_id: systa_bus_01
     kind: espresso_fa_tr
-    name: "ESPRESSO FA TR"
+    name: "EXPRESSO FA TR"
     unit_of_measurement: "°C"
     accuracy_decimals: 1
     device_class: temperature
@@ -363,7 +363,7 @@ sensor:
   - platform: systa_reader
     systa_reader_id: systa_bus_01
     kind: espresso_hk1_ti
-    name: "ESPRESSO HK1 TI"
+    name: "EXPRESSO HK1 TI"
     unit_of_measurement: "°C"
     accuracy_decimals: 1
     device_class: temperature
@@ -371,7 +371,7 @@ sensor:
   - platform: systa_reader
     systa_reader_id: systa_bus_01
     kind: espresso_hk2_ti2
-    name: "ESPRESSO HK2 TI2"
+    name: "EXPRESSO HK2 TI2"
     unit_of_measurement: "°C"
     accuracy_decimals: 1
     device_class: temperature
@@ -379,7 +379,7 @@ sensor:
   - platform: systa_reader
     systa_reader_id: systa_bus_01
     kind: espresso_hk1_tv
-    name: "ESPRESSO HK1 TV"
+    name: "EXPRESSO HK1 TV"
     unit_of_measurement: "°C"
     accuracy_decimals: 1
     device_class: temperature
@@ -387,7 +387,7 @@ sensor:
   - platform: systa_reader
     systa_reader_id: systa_bus_01
     kind: espresso_hk2_tv2
-    name: "ESPRESSO HK2 TV2"
+    name: "EXPRESSO HK2 TV2"
     unit_of_measurement: "°C"
     accuracy_decimals: 1
     device_class: temperature
@@ -395,7 +395,7 @@ sensor:
   - platform: systa_reader
     systa_reader_id: systa_bus_01
     kind: espresso_hk1_tr
-    name: "ESPRESSO HK1 TR"
+    name: "EXPRESSO HK1 TR"
     unit_of_measurement: "°C"
     accuracy_decimals: 1
     device_class: temperature
@@ -403,7 +403,7 @@ sensor:
   - platform: systa_reader
     systa_reader_id: systa_bus_01
     kind: espresso_hk2_tr2
-    name: "ESPRESSO HK2 TR2"
+    name: "EXPRESSO HK2 TR2"
     unit_of_measurement: "°C"
     accuracy_decimals: 1
     device_class: temperature
@@ -411,7 +411,7 @@ sensor:
   - platform: systa_reader
     systa_reader_id: systa_bus_01
     kind: espresso_tpo
-    name: "ESPRESSO TPO"
+    name: "EXPRESSO TPO"
     unit_of_measurement: "°C"
     accuracy_decimals: 1
     device_class: temperature
@@ -419,7 +419,7 @@ sensor:
   - platform: systa_reader
     systa_reader_id: systa_bus_01
     kind: espresso_tpu
-    name: "ESPRESSO TPU"
+    name: "EXPRESSO TPU"
     unit_of_measurement: "°C"
     accuracy_decimals: 1
     device_class: temperature
@@ -427,7 +427,7 @@ sensor:
   - platform: systa_reader
     systa_reader_id: systa_bus_01
     kind: espresso_tzr
-    name: "ESPRESSO TZR"
+    name: "EXPRESSO TZR"
     unit_of_measurement: "°C"
     accuracy_decimals: 1
     device_class: temperature
@@ -435,7 +435,7 @@ sensor:
   - platform: systa_reader
     systa_reader_id: systa_bus_01
     kind: espresso_pk
-    name: "ESPRESSO PK"
+    name: "EXPRESSO PK"
     unit_of_measurement: "%"
     accuracy_decimals: 0
     device_class: power_factor
@@ -443,7 +443,7 @@ sensor:
   - platform: systa_reader
     systa_reader_id: systa_bus_01
     kind: espresso_hk1_phk
-    name: "ESPRESSO HK1 PHK"
+    name: "EXPRESSO HK1 PHK"
     unit_of_measurement: "%"
     accuracy_decimals: 0
     device_class: power_factor
@@ -451,17 +451,17 @@ sensor:
   - platform: systa_reader
     systa_reader_id: systa_bus_01
     kind: espresso_hk2_phk2
-    name: "ESPRESSO HK2 PHK"
+    name: "EXPRESSO HK2 PHK"
     unit_of_measurement: "%"
     accuracy_decimals: 0
     device_class: power_factor
     state_class: measurement
 
-  # PALLETTI-II sensors
+  # PELLETTII-II sensors
   - platform: systa_reader
     systa_reader_id: systa_bus_01
     kind: palletti_ii_ta
-    name: "PALLETTI-II TA"
+    name: "PELLETTII-II TA"
     unit_of_measurement: "°C"
     accuracy_decimals: 1
     device_class: temperature
@@ -469,7 +469,7 @@ sensor:
   - platform: systa_reader
     systa_reader_id: systa_bus_01
     kind: palletti_ii_two
-    name: "PALLETTI-II TWO"
+    name: "PELLETTII-II TWO"
     unit_of_measurement: "°C"
     accuracy_decimals: 1
     device_class: temperature
@@ -477,7 +477,7 @@ sensor:
   - platform: systa_reader
     systa_reader_id: systa_bus_01
     kind: palletti_ii_fa_tv
-    name: "PALLETTI-II FA TV"
+    name: "PELLETTII-II FA TV"
     unit_of_measurement: "°C"
     accuracy_decimals: 1
     device_class: temperature
@@ -485,7 +485,7 @@ sensor:
   - platform: systa_reader
     systa_reader_id: systa_bus_01
     kind: palletti_ii_fa_tr
-    name: "PALLETTI-II FA TR"
+    name: "PELLETTII-II FA TR"
     unit_of_measurement: "°C"
     accuracy_decimals: 1
     device_class: temperature
@@ -493,7 +493,7 @@ sensor:
   - platform: systa_reader
     systa_reader_id: systa_bus_01
     kind: palletti_ii_hk1_ti
-    name: "PALLETTI-II HK1 TI"
+    name: "PELLETTII-II HK1 TI"
     unit_of_measurement: "°C"
     accuracy_decimals: 1
     device_class: temperature
@@ -501,7 +501,7 @@ sensor:
   - platform: systa_reader
     systa_reader_id: systa_bus_01
     kind: palletti_ii_hk2_ti2
-    name: "PALLETTI-II HK2 TI2"
+    name: "PELLETTII-II HK2 TI2"
     unit_of_measurement: "°C"
     accuracy_decimals: 1
     device_class: temperature
@@ -509,7 +509,7 @@ sensor:
   - platform: systa_reader
     systa_reader_id: systa_bus_01
     kind: palletti_ii_hk1_tv
-    name: "PALLETTI-II HK1 TV"
+    name: "PELLETTII-II HK1 TV"
     unit_of_measurement: "°C"
     accuracy_decimals: 1
     device_class: temperature
@@ -517,7 +517,7 @@ sensor:
   - platform: systa_reader
     systa_reader_id: systa_bus_01
     kind: palletti_ii_hk2_tv2
-    name: "PALLETTI-II HK2 TV2"
+    name: "PELLETTII-II HK2 TV2"
     unit_of_measurement: "°C"
     accuracy_decimals: 1
     device_class: temperature
@@ -525,7 +525,7 @@ sensor:
   - platform: systa_reader
     systa_reader_id: systa_bus_01
     kind: palletti_ii_hk1_tr
-    name: "PALLETTI-II HK1 TR"
+    name: "PELLETTII-II HK1 TR"
     unit_of_measurement: "°C"
     accuracy_decimals: 1
     device_class: temperature
@@ -533,7 +533,7 @@ sensor:
   - platform: systa_reader
     systa_reader_id: systa_bus_01
     kind: palletti_ii_hk2_tr2
-    name: "PALLETTI-II HK2 TR2"
+    name: "PELLETTII-II HK2 TR2"
     unit_of_measurement: "°C"
     accuracy_decimals: 1
     device_class: temperature
@@ -541,7 +541,7 @@ sensor:
   - platform: systa_reader
     systa_reader_id: systa_bus_01
     kind: palletti_ii_tpo
-    name: "PALLETTI-II TPO"
+    name: "PELLETTII-II TPO"
     unit_of_measurement: "°C"
     accuracy_decimals: 1
     device_class: temperature
@@ -549,7 +549,7 @@ sensor:
   - platform: systa_reader
     systa_reader_id: systa_bus_01
     kind: palletti_ii_tpu
-    name: "PALLETTI-II TPU"
+    name: "PELLETTII-II TPU"
     unit_of_measurement: "°C"
     accuracy_decimals: 1
     device_class: temperature
@@ -557,7 +557,7 @@ sensor:
   - platform: systa_reader
     systa_reader_id: systa_bus_01
     kind: palletti_ii_tzr
-    name: "PALLETTI-II TZR"
+    name: "PELLETTII-II TZR"
     unit_of_measurement: "°C"
     accuracy_decimals: 1
     device_class: temperature
@@ -565,7 +565,7 @@ sensor:
   - platform: systa_reader
     systa_reader_id: systa_bus_01
     kind: palletti_ii_pk
-    name: "PALLETTI-II PK"
+    name: "PELLETTII-II PK"
     unit_of_measurement: "%"
     accuracy_decimals: 0
     device_class: power_factor
@@ -573,7 +573,7 @@ sensor:
   - platform: systa_reader
     systa_reader_id: systa_bus_01
     kind: palletti_ii_hk1_phk
-    name: "PALLETTI-II HK1 PHK"
+    name: "PELLETTII-II HK1 PHK"
     unit_of_measurement: "%"
     accuracy_decimals: 0
     device_class: power_factor
@@ -581,7 +581,7 @@ sensor:
   - platform: systa_reader
     systa_reader_id: systa_bus_01
     kind: palletti_ii_hk2_phk2
-    name: "PALLETTI-II HK2 PHK"
+    name: "PELLETTII-II HK2 PHK"
     unit_of_measurement: "%"
     accuracy_decimals: 0
     device_class: power_factor
@@ -700,24 +700,24 @@ text_sensor:
     kind: modula_timestamp
     name: "MODULA Zeitstempel"
 
-  # ESPRESSO text sensors:
+  # EXPRESSO text sensors:
   - platform: systa_reader
     systa_reader_id: systa_bus_01
     mode: field
     kind: espresso_timestamp
-    name: "ESPRESSO Zeitstempel"
+    name: "EXPRESSO Zeitstempel"
 
-  # PALLETTI-II text sensors:
+  # PELLETTII-II text sensors:
   - platform: systa_reader
     systa_reader_id: systa_bus_01
     mode: field
     kind: palletti_ii_timestamp
-    name: "PALLETTI-II Zeitstempel"
+    name: "PELLETTII-II Zeitstempel"
   - platform: systa_reader
     systa_reader_id: systa_bus_01
     mode: field
     kind: palletti_ii_display_text
-    name: "PALLETTI-II Displaytext"
+    name: "PELLETTII-II Displaytext"
 
   # COMPACT text sensors:
   - platform: systa_reader
@@ -725,4 +725,9 @@ text_sensor:
     mode: field
     kind: compact_timestamp
     name: "Compact Zeitstempel"
+
+button:
+  - platform: restart
+    id: urgrow_firmware_restart
+    name:  "Neustarten"
 ```
