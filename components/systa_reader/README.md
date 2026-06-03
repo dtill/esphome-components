@@ -13,7 +13,7 @@ Tested Paradigma Systa-hardware:
  - Aqua / Aqua II
  - Modula II
  - Expresso
- - Palletti II
+ - Pelletti II
  - Compact
  - SystaComfort II
  - Bedienteil Display
