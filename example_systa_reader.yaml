@@ -656,6 +656,7 @@ text_sensor:
     systa_reader_id: systa_bus_01
     mode: field
     kind: aqua_fw_version
+    entity_category: diagnostic
     name: "AQUA FW Version"
 
   # AQUA-II text sensors:

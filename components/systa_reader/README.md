@@ -129,6 +129,7 @@ sensor:
     kind: aqua_status_code
     name: "AQUA Status Code"
     accuracy_decimals: 0
+    state_class: measurement
 
     # AQUA-II sensors:
   - platform: systa_reader
@@ -678,6 +679,7 @@ text_sensor:
     systa_reader_id: systa_bus_01
     mode: field
     kind: aqua_fw_version            # decoded from FD 05 AA 0B <Maj> <min> <patch>
+    entity_category: diagnostic
     name: "AQUA FW Version"
 
   # AQUA-II text sensors:
