@@ -214,7 +214,8 @@ void SystaReader::loop() {
       } else if (cur_[0] == 0xFD && cur_.size() == 8 && cur_[1] == 0x05 &&
                  cur_[2] == 0xAA) {
         // Firmware-version announce: FD 05 AA <addr> <major> <minor> <patch> <chk>
-        // 0x0B = Aqua/Solar, 0x0C = Comfort (per SystaBridge).
+        // 0x0B = Aqua/Solar, 0x0C = Comfort (per SystaBridge), 0x24 = Aqua II.
+        // <addr> matches the f2 byte of that device's FC frames.
         // Routed to the per-device decoder so the version-parsing logic
         // lives next to the rest of that device's code.
         const uint8_t addr = cur_[3];
@@ -222,6 +223,8 @@ void SystaReader::loop() {
           aqua_->on_fd_version_frame(cur_[4], cur_[5], cur_[6]);
         } else if (addr == 0x0C && (enabled_mask_ & DEV_COMFORT) && comfort_) {
           comfort_->on_fd_version_frame(cur_[4], cur_[5], cur_[6]);
+        } else if (addr == 0x24 && (enabled_mask_ & DEV_AQUA_II) && aqua_ii_) {
+          aqua_ii_->on_fd_version_frame(cur_[4], cur_[5], cur_[6]);
         }
       }
       // 4) reset for next frame (there may already be more bytes pending)

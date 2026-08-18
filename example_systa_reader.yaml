@@ -670,6 +670,11 @@ text_sensor:
     mode: field
     kind: aqua_ii_timestamp
     name: "AQUA-II Zeitstempel"
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    mode: field
+    kind: aqua_ii_fw_version
+    name: "AQUA-II FW Version"
 
   # MODULA text sensors:
   - platform: systa_reader

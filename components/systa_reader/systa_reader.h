@@ -134,6 +134,9 @@ public:
   // AQUA_II text
   void set_aqua_ii_status_text_sensor(text_sensor::TextSensor *t)       {aqua_ii_status_text_ = t;}
   void set_aqua_ii_timestamp_text_sensor(text_sensor::TextSensor *t)    {aqua_ii_timestamp_ = t;}
+  // Aqua-II firmware version (announced periodically via FD 05 AA 24 M m p chk)
+  void set_aqua_ii_fw_version_text_sensor(text_sensor::TextSensor *t) { aqua_ii_fw_version_ = t; }
+  inline void pub_aqua_ii_fw_version(const std::string &s) { if (aqua_ii_fw_version_) aqua_ii_fw_version_->publish_state(s); }
   // publish helpers
   inline void pub_aqua_ii_tsa(float v) { if (aqua_ii_tsa_)  aqua_ii_tsa_->publish_state(v);}
   inline void pub_aqua_ii_twu(float v) { if (aqua_ii_twu_)  aqua_ii_twu_->publish_state(v);}
@@ -582,6 +585,7 @@ private:
   sensor::Sensor *aqua_ii_status_code_{nullptr};
   text_sensor::TextSensor *aqua_ii_status_text_{nullptr};
   text_sensor::TextSensor *aqua_ii_timestamp_{nullptr};
+  text_sensor::TextSensor *aqua_ii_fw_version_{nullptr};
 
   // decoder instances
   ModulaDecoder *modula_{nullptr};

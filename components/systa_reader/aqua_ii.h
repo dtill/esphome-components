@@ -15,6 +15,9 @@ class Aqua2Decoder {
                    const std::vector<uint8_t> &payload,
                    const std::string &hex);
 
+  // Firmware-version announce: FD 05 AA 24 <major> <minor> <patch> <chk>
+  void on_fd_version_frame(uint8_t major, uint8_t minor, uint8_t patch);
+
  private:
   // Little-Endian helpers (LSB,MSB)
   static inline uint16_t read_u16_le(const std::vector<uint8_t> &b, int i) {

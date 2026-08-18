@@ -118,5 +118,13 @@ void Aqua2Decoder::on_fc_frame(const std::vector<uint8_t> &frame,
            tsa, tsa1, tsa2, tam2, tw, tsv, tam, tse, dfl, pwm, koll_lstg, tag_erg, gesamt, status, d, mo, y, h, m);
 }
 
+void Aqua2Decoder::on_fd_version_frame(uint8_t major, uint8_t minor,
+                                       uint8_t patch) {
+  char buf[16];
+  snprintf(buf, sizeof(buf), "%u.%u.%u", major, minor, patch);
+  ESP_LOGI(TAG_AQUA_II, "AQUA-II: Firmware=%s", buf);
+  r_.pub_aqua_ii_fw_version(buf);
+}
+
 }  // namespace systa_reader
 }  // namespace esphome
