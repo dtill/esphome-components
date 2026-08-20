@@ -14,7 +14,7 @@ CONF_KIND  = "kind"     # field-only
 MODE = cv.one_of("raw", "field", lower=True)
 
 # allow single value or list of values
-_FILTER_ONE = cv.one_of("all", "aqua", "aqua_ii", "modula", "espresso", "palletti_ii", "compact", "comfort", lower=True)
+_FILTER_ONE = cv.one_of("all", "aqua", "aqua_ii", "modula", "espresso", "expresso_ii", "palletti_ii", "compact", "comfort", lower=True)
 FILTER = cv.Any(_FILTER_ONE, cv.All(cv.ensure_list(_FILTER_ONE), cv.Length(min=1)))
 
 FIELD_KIND = cv.one_of(
@@ -22,6 +22,7 @@ FIELD_KIND = cv.one_of(
     "aqua_ii_status_text", "aqua_ii_timestamp", "aqua_ii_fw_version",
     "modula_timestamp",
     "espresso_timestamp",
+    "expresso_ii_timestamp", "expresso_ii_fw_version",
     "palletti_ii_timestamp", "palletti_ii_display_text",
     "compact_timestamp", "comfort_boiler_err", "comfort_fw_version",
     lower=True
@@ -58,6 +59,8 @@ async def to_code(config):
             cg.add(parent.add_sink_aqua(var))
         elif f == "aqua_ii":
             cg.add(parent.add_sink_aqua_ii(var))
+        elif f == "expresso_ii":
+            cg.add(parent.add_sink_expresso_ii(var))
         elif f == "all":
             cg.add(parent.add_sink_all(var))
         else:
@@ -84,6 +87,10 @@ async def to_code(config):
             cg.add(parent.set_modula_timestamp_text_sensor(var))
         elif k == "espresso_timestamp":
             cg.add(parent.set_espresso_timestamp_text_sensor(var))
+        elif k == "expresso_ii_timestamp":
+            cg.add(parent.set_expresso_ii_timestamp_text_sensor(var))
+        elif k == "expresso_ii_fw_version":
+            cg.add(parent.set_expresso_ii_fw_version_text_sensor(var))
         elif k == "palletti_ii_timestamp":
             cg.add(parent.set_palletti_ii_timestamp_text_sensor(var))
         elif k == "palletti_ii_display_text":

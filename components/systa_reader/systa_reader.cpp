@@ -5,6 +5,7 @@
 #include "compact.h"
 #include "esphome/core/log.h"
 #include "espresso.h"
+#include "expresso_ii.h"
 #include "modula.h"
 #include "palletti_ii.h"
 
@@ -37,6 +38,8 @@ void SystaReader::setup() {
     compact_ = new CompactDecoder(*this);
   if ((enabled_mask_ & DEV_COMFORT) && !comfort_)
     comfort_ = new ComfortDecoder(*this);
+  if ((enabled_mask_ & DEV_EXPRESSO_II) && !expresso_ii_)
+    expresso_ii_ = new Expresso2Decoder(*this);
   // future:
   // if ((enabled_mask_ & DEV_SOLAR) && !solar_) solar_ = new
   // SolarDecoder(*this);
@@ -214,7 +217,8 @@ void SystaReader::loop() {
       } else if (cur_[0] == 0xFD && cur_.size() == 8 && cur_[1] == 0x05 &&
                  cur_[2] == 0xAA) {
         // Firmware-version announce: FD 05 AA <addr> <major> <minor> <patch> <chk>
-        // 0x0B = Aqua/Solar, 0x0C = Comfort (per SystaBridge), 0x24 = Aqua II.
+        // 0x0B = Aqua/Solar, 0x0C = Comfort (per SystaBridge), 0x24 = Aqua II,
+        // 0x14 = Expresso II.
         // <addr> matches the f2 byte of that device's FC frames.
         // Routed to the per-device decoder so the version-parsing logic
         // lives next to the rest of that device's code.
@@ -225,6 +229,9 @@ void SystaReader::loop() {
           comfort_->on_fd_version_frame(cur_[4], cur_[5], cur_[6]);
         } else if (addr == 0x24 && (enabled_mask_ & DEV_AQUA_II) && aqua_ii_) {
           aqua_ii_->on_fd_version_frame(cur_[4], cur_[5], cur_[6]);
+        } else if (addr == 0x14 && (enabled_mask_ & DEV_EXPRESSO_II) &&
+                   expresso_ii_) {
+          expresso_ii_->on_fd_version_frame(cur_[4], cur_[5], cur_[6]);
         }
       }
       // 4) reset for next frame (there may already be more bytes pending)
@@ -431,6 +438,11 @@ void SystaReader::route_fc_frame_to_device_(const std::vector<uint8_t> &frame,
   // COMFORT: FC .. 0C 02
   if ((enabled_mask_ & DEV_COMFORT) && f2 == 0x0C && f3 == 0x02 && comfort_) {
     comfort_->on_fc_frame(frame, payload, hex);
+  }
+  // EXPRESSO_II: FC .. 14 01
+  if ((enabled_mask_ & DEV_EXPRESSO_II) && f2 == 0x14 && f3 == 0x01 &&
+      expresso_ii_) {
+    expresso_ii_->on_fc_frame(frame, payload, hex);
   }
   // (future devices: add more blocks like above)
 }

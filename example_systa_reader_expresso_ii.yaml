@@ -1,0 +1,182 @@
+# for updates and code examples + more systa devices supported please check
+# https://github.com/dtill/esphome-components/tree/main/components/systa_reader
+
+external_components:
+  - source:
+      type: git
+      url: https://github.com/dtill/esphome-components
+    components: [systa_reader]
+    refresh: 0s
+
+uart:
+  id: uart_bus
+  tx_pin: GPIO1
+  rx_pin: GPIO13
+  baud_rate: 9600
+  data_bits: 8
+  parity: NONE
+  stop_bits: 1
+
+# Systa Reader Component
+systa_reader:
+  - id: systa_bus_01
+    uart_id: uart_bus
+    systa_device: [expresso_ii]  # Enable Expresso-II device (1401 frames)
+    log_invalid: true        # logs invalid frames for debugging purpose
+
+sensor:
+
+  # COMFORT sensors:
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: expresso_ii_ta
+    name: "EXPRESSO-II TA"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: expresso_ii_two
+    name: "EXPRESSO-II TWO"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: expresso_ii_pk
+    name: "EXPRESSO-II PK"
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: expresso_ii_phk
+    name: "EXPRESSO-II PHK"
+    accuracy_decimals: 0
+    state_class: measurement
+
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: expresso_ii_raw_12
+    name: "EXPRESSO-II raw[12]"
+    accuracy_decimals: 1
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: expresso_ii_raw_14
+    name: "EXPRESSO-II raw[14]"
+    accuracy_decimals: 1
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: expresso_ii_raw_16
+    name: "EXPRESSO-II raw[16]"
+    accuracy_decimals: 1
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: expresso_ii_raw_18
+    name: "EXPRESSO-II raw[18]"
+    accuracy_decimals: 1
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: expresso_ii_raw_20
+    name: "EXPRESSO-II raw[20]"
+    accuracy_decimals: 1
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: expresso_ii_raw_22
+    name: "EXPRESSO-II raw[22]"
+    accuracy_decimals: 1
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: expresso_ii_raw_24
+    name: "EXPRESSO-II raw[24]"
+    accuracy_decimals: 1
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: expresso_ii_raw_26
+    name: "EXPRESSO-II raw[26]"
+    accuracy_decimals: 1
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: expresso_ii_raw_28
+    name: "EXPRESSO-II raw[28]"
+    accuracy_decimals: 1
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: expresso_ii_raw_30
+    name: "EXPRESSO-II raw[30]"
+    accuracy_decimals: 1
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: expresso_ii_raw_32
+    name: "EXPRESSO-II raw[32]"
+    accuracy_decimals: 1
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: expresso_ii_raw_36
+    name: "EXPRESSO-II raw[36]"
+    accuracy_decimals: 1
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: expresso_ii_raw_38
+    name: "EXPRESSO-II raw[38]"
+    accuracy_decimals: 1
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: expresso_ii_raw_40
+    name: "EXPRESSO-II raw[40]"
+    accuracy_decimals: 1
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: expresso_ii_raw_42
+    name: "EXPRESSO-II raw[42]"
+    accuracy_decimals: 1
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: expresso_ii_raw_44
+    name: "EXPRESSO-II raw[44]"
+    accuracy_decimals: 1
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: expresso_ii_raw_46
+    name: "EXPRESSO-II raw[46]"
+    accuracy_decimals: 1
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: expresso_ii_raw_48
+    name: "EXPRESSO-II raw[48]"
+    accuracy_decimals: 1
+    state_class: measurement
+
+
+text_sensor:
+
+  # COMFORT text sensors:
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    mode: field
+    kind: expresso_ii_timestamp
+    name: "EXPRESSO-II Zeitstempel"
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    mode: field
+    kind: expresso_ii_fw_version
+    name: "EXPRESSO-II FW Version"

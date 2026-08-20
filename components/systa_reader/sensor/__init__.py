@@ -6,6 +6,11 @@ from .. import systa_ns, SystaReader
 CONF_PARENT_ID = "systa_reader_id"
 CONF_KIND = "kind"
 
+# EXPRESSO-II: noch nicht zugeordnete Register, benannt nach ihrem Frame-Offset.
+# 34 fehlt bewusst — dort stehen PK/PHK als zwei u8, nicht als u16.
+EXPRESSO_II_RAW_OFFSETS = [o for o in range(12, 49, 2) if o != 34]
+_EXPRESSO_II_RAW_KINDS = [f"expresso_ii_raw_{o}" for o in EXPRESSO_II_RAW_OFFSETS]
+
 KIND = cv.one_of(
     # AQUA
     "aqua_tsa","aqua_tse","aqua_twu","aqua_tw2","aqua_pwm","aqua_sol","aqua_tag","aqua_gesamt","aqua_status_code","aqua_var1","aqua_stat",
@@ -19,6 +24,9 @@ KIND = cv.one_of(
     "espresso_ta","espresso_two","espresso_fa_tv","espresso_fa_tr","espresso_hk1_ti","espresso_hk2_ti2",
     "espresso_hk1_tv","espresso_hk2_tv2","espresso_hk1_tr","espresso_hk2_tr2","espresso_tpo",
     "espresso_tpu","espresso_tzr","espresso_pk","espresso_hk1_phk","espresso_hk2_phk2",
+    # EXPRESSO-II
+    "expresso_ii_ta","expresso_ii_two","expresso_ii_pk","expresso_ii_phk",
+    *_EXPRESSO_II_RAW_KINDS,
     # PALLETTI-II
     "palletti_ii_ta","palletti_ii_two","palletti_ii_fa_tv","palletti_ii_fa_tr","palletti_ii_hk1_ti","palletti_ii_hk2_ti2",
     "palletti_ii_hk1_tv","palletti_ii_hk2_tv2","palletti_ii_hk1_tr","palletti_ii_hk2_tr2","palletti_ii_tpo",
@@ -95,6 +103,12 @@ async def to_code(config):
     elif k == "espresso_pk":        cg.add(parent.set_espresso_pk_sensor(s))
     elif k == "espresso_hk1_phk":   cg.add(parent.set_espresso_hk1_phk_sensor(s))
     elif k == "espresso_hk2_phk2":  cg.add(parent.set_espresso_hk2_phk2_sensor(s))
+    elif k == "expresso_ii_ta":     cg.add(parent.set_expresso_ii_ta_sensor(s))
+    elif k == "expresso_ii_two":    cg.add(parent.set_expresso_ii_two_sensor(s))
+    elif k == "expresso_ii_pk":     cg.add(parent.set_expresso_ii_pk_sensor(s))
+    elif k == "expresso_ii_phk":    cg.add(parent.set_expresso_ii_phk_sensor(s))
+    elif k.startswith("expresso_ii_raw_"):
+        cg.add(parent.set_expresso_ii_raw_sensor(int(k.rsplit("_", 1)[1]), s))
     elif k == "palletti_ii_ta":        cg.add(parent.set_palletti_ii_ta_sensor(s))
     elif k == "palletti_ii_two":       cg.add(parent.set_palletti_ii_two_sensor(s))
     elif k == "palletti_ii_fa_tv":     cg.add(parent.set_palletti_ii_fa_tv_sensor(s))

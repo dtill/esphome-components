@@ -21,6 +21,7 @@ class EspressoDecoder;
 class Palletti2Decoder;
 class CompactDecoder;
 class ComfortDecoder;
+class Expresso2Decoder;
 class SystaReaderTextSink; // forward
 
 class SystaReader : public uart::UARTDevice, public Component {
@@ -34,6 +35,7 @@ public:
   static constexpr uint32_t DEV_COMPACT = (1u << 5);
   static constexpr uint32_t DEV_PALLETTI_II = (1u << 6);
   static constexpr uint32_t DEV_COMFORT = (1u << 7);
+  static constexpr uint32_t DEV_EXPRESSO_II = (1u << 8);
   // reserve more bits for future devices:
   // static constexpr uint32_t DEV_FOO   = (1u << 4);
   // static constexpr uint32_t DEV_BAR   = (1u << 5);
@@ -64,6 +66,7 @@ public:
   void add_sink_aqua_ii(HexSink *s) { sinks_aqua_ii_.push_back(s); }
   void add_sink_palletti_ii(HexSink *s) { sinks_palletti_ii_.push_back(s); }
   void add_sink_comfort(HexSink *s) { sinks_comfort_.push_back(s); }
+  void add_sink_expresso_ii(HexSink *s) { sinks_expresso_ii_.push_back(s); }
 
   friend class ModulaDecoder;
   friend class AquaDecoder;
@@ -72,6 +75,7 @@ public:
   friend class Palletti2Decoder;
   friend class CompactDecoder;
   friend class ComfortDecoder;
+  friend class Expresso2Decoder;
 
   // setters (werden von Subplatforms aufgerufen)
 
@@ -154,6 +158,40 @@ public:
   inline void pub_aqua_ii_status_code(float v) { if (aqua_ii_status_code_) aqua_ii_status_code_->publish_state(v);}
   inline void pub_aqua_ii_status_text(const std::string &s) { if (aqua_ii_status_text_) aqua_ii_status_text_->publish_state(s);}
   inline void pub_aqua_ii_timestamp(const std::string &s) { if (aqua_ii_timestamp_) aqua_ii_timestamp_->publish_state(s);}
+
+  // EXPRESSO-II: Frame-Offsets der noch nicht zugeordneten Register.
+  // Roh-Slots liegen als BE-u16 auf den geraden Offsets kExpresso2RawFirst..
+  // kExpresso2RawLast; 34/35 sind ausgenommen (dort stehen PK/PHK als u8).
+  static constexpr int kExpresso2RawFirst = 12;
+  static constexpr int kExpresso2RawLast = 48;
+  static constexpr int kExpresso2RawCount =
+      (kExpresso2RawLast - kExpresso2RawFirst) / 2 + 1;
+
+  // EXPRESSO-II numeric
+  void set_expresso_ii_ta_sensor(sensor::Sensor *s) { expresso_ii_ta_ = s; }
+  void set_expresso_ii_two_sensor(sensor::Sensor *s) { expresso_ii_two_ = s; }
+  void set_expresso_ii_pk_sensor(sensor::Sensor *s) { expresso_ii_pk_ = s; }
+  void set_expresso_ii_phk_sensor(sensor::Sensor *s) { expresso_ii_phk_ = s; }
+  void set_expresso_ii_raw_sensor(int off, sensor::Sensor *s) {
+    const int i = (off - kExpresso2RawFirst) / 2;
+    if (i >= 0 && i < kExpresso2RawCount)
+      expresso_ii_raw_[i] = s;
+  }
+  // EXPRESSO-II text
+  void set_expresso_ii_timestamp_text_sensor(text_sensor::TextSensor *t) { expresso_ii_timestamp_ = t; }
+  void set_expresso_ii_fw_version_text_sensor(text_sensor::TextSensor *t) { expresso_ii_fw_version_ = t; }
+
+  inline void pub_expresso_ii_ta(float v) { if (expresso_ii_ta_) expresso_ii_ta_->publish_state(v);}
+  inline void pub_expresso_ii_two(float v) { if (expresso_ii_two_) expresso_ii_two_->publish_state(v);}
+  inline void pub_expresso_ii_pk(float v) { if (expresso_ii_pk_) expresso_ii_pk_->publish_state(v);}
+  inline void pub_expresso_ii_phk(float v) { if (expresso_ii_phk_) expresso_ii_phk_->publish_state(v);}
+  inline void pub_expresso_ii_raw(int off, float v) {
+    const int i = (off - kExpresso2RawFirst) / 2;
+    if (i >= 0 && i < kExpresso2RawCount && expresso_ii_raw_[i])
+      expresso_ii_raw_[i]->publish_state(v);
+  }
+  inline void pub_expresso_ii_timestamp(const std::string &s) { if (expresso_ii_timestamp_) expresso_ii_timestamp_->publish_state(s);}
+  inline void pub_expresso_ii_fw_version(const std::string &s) { if (expresso_ii_fw_version_) expresso_ii_fw_version_->publish_state(s);}
 
   // MODULA setters
   void set_modula_ta_sensor(sensor::Sensor *s) { modula_ta_ = s; }
@@ -483,6 +521,10 @@ public:
     for (auto *s : sinks_comfort_)
       s->publish_frame_hex(hex);
   }
+  void publish_hex_expresso_ii(const std::string &hex) {
+    for (auto *s : sinks_expresso_ii_)
+      s->publish_frame_hex(hex);
+  }
 
 private:
   uint32_t enabled_mask_{0};
@@ -544,6 +586,7 @@ private:
   std::vector<HexSink *> sinks_aqua_ii_;
   std::vector<HexSink *> sinks_palletti_ii_;
   std::vector<HexSink *> sinks_comfort_;
+  std::vector<HexSink *> sinks_expresso_ii_;
   std::vector<SystaReaderTextSink *> sinks_{};
   bool log_invalid_{true};
 
@@ -586,6 +629,17 @@ private:
   text_sensor::TextSensor *aqua_ii_status_text_{nullptr};
   text_sensor::TextSensor *aqua_ii_timestamp_{nullptr};
   text_sensor::TextSensor *aqua_ii_fw_version_{nullptr};
+
+  // decoder instance
+  Expresso2Decoder *expresso_ii_{nullptr};
+  // EXPRESSO-II sensors
+  sensor::Sensor *expresso_ii_ta_{nullptr};
+  sensor::Sensor *expresso_ii_two_{nullptr};
+  sensor::Sensor *expresso_ii_pk_{nullptr};
+  sensor::Sensor *expresso_ii_phk_{nullptr};
+  sensor::Sensor *expresso_ii_raw_[kExpresso2RawCount]{nullptr};
+  text_sensor::TextSensor *expresso_ii_timestamp_{nullptr};
+  text_sensor::TextSensor *expresso_ii_fw_version_{nullptr};
 
   // decoder instances
   ModulaDecoder *modula_{nullptr};
