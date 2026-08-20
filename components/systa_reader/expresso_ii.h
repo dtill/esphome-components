@@ -19,7 +19,7 @@ class Expresso2Decoder {
   void on_fd_version_frame(uint8_t major, uint8_t minor, uint8_t patch);
 
  private:
-  // Big-Endian helpers (MSB,LSB) — wie bei Espresso/Comfort
+  // Big-endian helpers (MSB,LSB), same as Espresso/Comfort
   static inline uint8_t read_u8(const std::vector<uint8_t> &b, int i) {
     return (i >= 0 && (size_t) i < b.size()) ? b[i] : 0;
   }

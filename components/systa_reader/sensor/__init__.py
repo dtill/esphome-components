@@ -6,9 +6,10 @@ from .. import systa_ns, SystaReader
 CONF_PARENT_ID = "systa_reader_id"
 CONF_KIND = "kind"
 
-# EXPRESSO-II: noch nicht zugeordnete Register, benannt nach ihrem Frame-Offset.
-# 34 fehlt bewusst — dort stehen PK/PHK als zwei u8, nicht als u16.
-EXPRESSO_II_RAW_OFFSETS = [o for o in range(12, 49, 2) if o != 34]
+# EXPRESSO-II: registers that are not identified yet, named after their frame
+# offset. Deliberately unit-less. Offset 32 is read as s16, the rest as u16;
+# all scaled by 1/10.
+EXPRESSO_II_RAW_OFFSETS = [18, 28, 30, 32, 36, 38, 42, 44, 46, 48]
 _EXPRESSO_II_RAW_KINDS = [f"expresso_ii_raw_{o}" for o in EXPRESSO_II_RAW_OFFSETS]
 
 KIND = cv.one_of(
@@ -25,7 +26,10 @@ KIND = cv.one_of(
     "espresso_hk1_tv","espresso_hk2_tv2","espresso_hk1_tr","espresso_hk2_tr2","espresso_tpo",
     "espresso_tpu","espresso_tzr","espresso_pk","espresso_hk1_phk","espresso_hk2_phk2",
     # EXPRESSO-II
-    "expresso_ii_ta","expresso_ii_two","expresso_ii_pk","expresso_ii_phk",
+    "expresso_ii_ta","expresso_ii_two","expresso_ii_tkw","expresso_ii_tsp",
+    "expresso_ii_two_s","expresso_ii_tsp_s","expresso_ii_dfl_tw",
+    "expresso_ii_dfl_hz1","expresso_ii_dfl_hz2",
+    "expresso_ii_pk","expresso_ii_phk","expresso_ii_p_sp",
     *_EXPRESSO_II_RAW_KINDS,
     # PALLETTI-II
     "palletti_ii_ta","palletti_ii_two","palletti_ii_fa_tv","palletti_ii_fa_tr","palletti_ii_hk1_ti","palletti_ii_hk2_ti2",
@@ -107,6 +111,14 @@ async def to_code(config):
     elif k == "expresso_ii_two":    cg.add(parent.set_expresso_ii_two_sensor(s))
     elif k == "expresso_ii_pk":     cg.add(parent.set_expresso_ii_pk_sensor(s))
     elif k == "expresso_ii_phk":    cg.add(parent.set_expresso_ii_phk_sensor(s))
+    elif k == "expresso_ii_tkw":    cg.add(parent.set_expresso_ii_tkw_sensor(s))
+    elif k == "expresso_ii_tsp":    cg.add(parent.set_expresso_ii_tsp_sensor(s))
+    elif k == "expresso_ii_two_s":  cg.add(parent.set_expresso_ii_two_s_sensor(s))
+    elif k == "expresso_ii_tsp_s":  cg.add(parent.set_expresso_ii_tsp_s_sensor(s))
+    elif k == "expresso_ii_dfl_tw": cg.add(parent.set_expresso_ii_dfl_tw_sensor(s))
+    elif k == "expresso_ii_dfl_hz1":cg.add(parent.set_expresso_ii_dfl_hz1_sensor(s))
+    elif k == "expresso_ii_dfl_hz2":cg.add(parent.set_expresso_ii_dfl_hz2_sensor(s))
+    elif k == "expresso_ii_p_sp":   cg.add(parent.set_expresso_ii_p_sp_sensor(s))
     elif k.startswith("expresso_ii_raw_"):
         cg.add(parent.set_expresso_ii_raw_sensor(int(k.rsplit("_", 1)[1]), s))
     elif k == "palletti_ii_ta":        cg.add(parent.set_palletti_ii_ta_sensor(s))

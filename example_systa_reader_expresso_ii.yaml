@@ -25,12 +25,11 @@ systa_reader:
     log_invalid: true        # logs invalid frames for debugging purpose
 
 sensor:
-
-  # COMFORT sensors:
+    # EXPRESSO-II sensors (identified):
   - platform: systa_reader
     systa_reader_id: systa_bus_01
     kind: expresso_ii_ta
-    name: "EXPRESSO-II TA"
+    name: "EXPRESSO-II TA (outside, damped)"
     unit_of_measurement: "°C"
     accuracy_decimals: 1
     device_class: temperature
@@ -38,145 +37,170 @@ sensor:
   - platform: systa_reader
     systa_reader_id: systa_bus_01
     kind: expresso_ii_two
-    name: "EXPRESSO-II TWO"
+    name: "EXPRESSO-II TWO (domestic hot water)"
     unit_of_measurement: "°C"
     accuracy_decimals: 1
     device_class: temperature
     state_class: measurement
   - platform: systa_reader
     systa_reader_id: systa_bus_01
+    kind: expresso_ii_tkw
+    name: "EXPRESSO-II TKW (cold water)"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: expresso_ii_tsp
+    name: "EXPRESSO-II TSP (storage tank)"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: expresso_ii_two_s
+    name: "EXPRESSO-II TWO setpoint"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: expresso_ii_tsp_s
+    name: "EXPRESSO-II TSP setpoint"
+    unit_of_measurement: "°C"
+    accuracy_decimals: 1
+    device_class: temperature
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: expresso_ii_dfl_tw
+    name: "EXPRESSO-II DFL TW (drinking water)"
+    unit_of_measurement: "l/min"
+    accuracy_decimals: 1
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: expresso_ii_dfl_hz1
+    name: "EXPRESSO-II DFL HZ1 (heating water)"
+    unit_of_measurement: "l/min"
+    accuracy_decimals: 1
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: expresso_ii_dfl_hz2
+    name: "EXPRESSO-II DFL HZ2 (heating water)"
+    unit_of_measurement: "l/min"
+    accuracy_decimals: 1
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
     kind: expresso_ii_pk
-    name: "EXPRESSO-II PK"
+    name: "EXPRESSO-II PK (boiler load)"
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: expresso_ii_p_sp
+    name: "EXPRESSO-II P SP (storage pump)"
     unit_of_measurement: "%"
     accuracy_decimals: 0
     state_class: measurement
   - platform: systa_reader
     systa_reader_id: systa_bus_01
     kind: expresso_ii_phk
-    name: "EXPRESSO-II PHK"
+    name: "EXPRESSO-II PHK (heating circuit pump)"
     accuracy_decimals: 0
     state_class: measurement
 
-  - platform: systa_reader
-    systa_reader_id: systa_bus_01
-    kind: expresso_ii_raw_12
-    name: "EXPRESSO-II raw[12]"
-    accuracy_decimals: 1
-    state_class: measurement
-  - platform: systa_reader
-    systa_reader_id: systa_bus_01
-    kind: expresso_ii_raw_14
-    name: "EXPRESSO-II raw[14]"
-    accuracy_decimals: 1
-    state_class: measurement
-  - platform: systa_reader
-    systa_reader_id: systa_bus_01
-    kind: expresso_ii_raw_16
-    name: "EXPRESSO-II raw[16]"
-    accuracy_decimals: 1
-    state_class: measurement
+    # EXPRESSO-II raw registers (not identified yet).
+    # Deliberately without a unit. Use the timestamp text sensor as the time
+    # reference when comparing against the controller display - the
+    # controller clock can be well behind wall clock time.
   - platform: systa_reader
     systa_reader_id: systa_bus_01
     kind: expresso_ii_raw_18
-    name: "EXPRESSO-II raw[18]"
+    name: "EXPRESSO-II raw[18]"       # seen 0 .. 24.4, zero most of the time
     accuracy_decimals: 1
-    state_class: measurement
-  - platform: systa_reader
-    systa_reader_id: systa_bus_01
-    kind: expresso_ii_raw_20
-    name: "EXPRESSO-II raw[20]"
-    accuracy_decimals: 1
-    state_class: measurement
-  - platform: systa_reader
-    systa_reader_id: systa_bus_01
-    kind: expresso_ii_raw_22
-    name: "EXPRESSO-II raw[22]"
-    accuracy_decimals: 1
-    state_class: measurement
-  - platform: systa_reader
-    systa_reader_id: systa_bus_01
-    kind: expresso_ii_raw_24
-    name: "EXPRESSO-II raw[24]"
-    accuracy_decimals: 1
-    state_class: measurement
-  - platform: systa_reader
-    systa_reader_id: systa_bus_01
-    kind: expresso_ii_raw_26
-    name: "EXPRESSO-II raw[26]"
-    accuracy_decimals: 1
+    entity_category: diagnostic
     state_class: measurement
   - platform: systa_reader
     systa_reader_id: systa_bus_01
     kind: expresso_ii_raw_28
-    name: "EXPRESSO-II raw[28]"
+    name: "EXPRESSO-II raw[28]"       # constant 22.6
     accuracy_decimals: 1
+    entity_category: diagnostic
     state_class: measurement
   - platform: systa_reader
     systa_reader_id: systa_bus_01
     kind: expresso_ii_raw_30
-    name: "EXPRESSO-II raw[30]"
+    name: "EXPRESSO-II raw[30]"       # constant 2.5
     accuracy_decimals: 1
+    entity_category: diagnostic
     state_class: measurement
   - platform: systa_reader
     systa_reader_id: systa_bus_01
     kind: expresso_ii_raw_32
-    name: "EXPRESSO-II raw[32]"
+    name: "EXPRESSO-II raw[32]"       # signed; seen -46.1 .. +136.9
     accuracy_decimals: 1
+    entity_category: diagnostic
     state_class: measurement
   - platform: systa_reader
     systa_reader_id: systa_bus_01
     kind: expresso_ii_raw_36
-    name: "EXPRESSO-II raw[36]"
+    name: "EXPRESSO-II raw[36]"       # almost always 0
     accuracy_decimals: 1
+    entity_category: diagnostic
     state_class: measurement
   - platform: systa_reader
     systa_reader_id: systa_bus_01
     kind: expresso_ii_raw_38
-    name: "EXPRESSO-II raw[38]"
+    name: "EXPRESSO-II raw[38]"       # roughly inverse to DFL TW, 50.2 while idle
     accuracy_decimals: 1
-    state_class: measurement
-  - platform: systa_reader
-    systa_reader_id: systa_bus_01
-    kind: expresso_ii_raw_40
-    name: "EXPRESSO-II raw[40]"
-    accuracy_decimals: 1
+    entity_category: diagnostic
     state_class: measurement
   - platform: systa_reader
     systa_reader_id: systa_bus_01
     kind: expresso_ii_raw_42
-    name: "EXPRESSO-II raw[42]"
+    name: "EXPRESSO-II raw[42]"       # constant 25.4
     accuracy_decimals: 1
+    entity_category: diagnostic
     state_class: measurement
   - platform: systa_reader
     systa_reader_id: systa_bus_01
     kind: expresso_ii_raw_44
-    name: "EXPRESSO-II raw[44]"
+    name: "EXPRESSO-II raw[44]"       # constant 30.0
     accuracy_decimals: 1
+    entity_category: diagnostic
     state_class: measurement
   - platform: systa_reader
     systa_reader_id: systa_bus_01
     kind: expresso_ii_raw_46
-    name: "EXPRESSO-II raw[46]"
+    name: "EXPRESSO-II raw[46]"       # constant 22.6
     accuracy_decimals: 1
+    entity_category: diagnostic
     state_class: measurement
   - platform: systa_reader
     systa_reader_id: systa_bus_01
     kind: expresso_ii_raw_48
-    name: "EXPRESSO-II raw[48]"
+    name: "EXPRESSO-II raw[48]"       # few discrete steps, tracks peak DHW flow
     accuracy_decimals: 1
+    entity_category: diagnostic
     state_class: measurement
 
-
 text_sensor:
-
-  # COMFORT text sensors:
+    # EXPRESSO-II text sensors:
   - platform: systa_reader
     systa_reader_id: systa_bus_01
     mode: field
     kind: expresso_ii_timestamp
-    name: "EXPRESSO-II Zeitstempel"
+    name: "EXPRESSO-II timestamp"
   - platform: systa_reader
     systa_reader_id: systa_bus_01
     mode: field
-    kind: expresso_ii_fw_version
-    name: "EXPRESSO-II FW Version"
+    kind: expresso_ii_fw_version      # decoded from FD 05 AA 14 <Maj> <min> <patch>
+    entity_category: diagnostic
+    name: "EXPRESSO-II FW version"

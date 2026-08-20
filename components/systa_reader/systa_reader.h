@@ -169,6 +169,14 @@ public:
 
   // EXPRESSO-II numeric
   void set_expresso_ii_ta_sensor(sensor::Sensor *s) { expresso_ii_ta_ = s; }
+  void set_expresso_ii_tkw_sensor(sensor::Sensor *s) { expresso_ii_tkw_ = s; }
+  void set_expresso_ii_tsp_sensor(sensor::Sensor *s) { expresso_ii_tsp_ = s; }
+  void set_expresso_ii_tsp_s_sensor(sensor::Sensor *s) { expresso_ii_tsp_s_ = s; }
+  void set_expresso_ii_two_s_sensor(sensor::Sensor *s) { expresso_ii_two_s_ = s; }
+  void set_expresso_ii_dfl_tw_sensor(sensor::Sensor *s) { expresso_ii_dfl_tw_ = s; }
+  void set_expresso_ii_dfl_hz1_sensor(sensor::Sensor *s) { expresso_ii_dfl_hz1_ = s; }
+  void set_expresso_ii_dfl_hz2_sensor(sensor::Sensor *s) { expresso_ii_dfl_hz2_ = s; }
+  void set_expresso_ii_p_sp_sensor(sensor::Sensor *s) { expresso_ii_p_sp_ = s; }
   void set_expresso_ii_two_sensor(sensor::Sensor *s) { expresso_ii_two_ = s; }
   void set_expresso_ii_pk_sensor(sensor::Sensor *s) { expresso_ii_pk_ = s; }
   void set_expresso_ii_phk_sensor(sensor::Sensor *s) { expresso_ii_phk_ = s; }
@@ -182,6 +190,14 @@ public:
   void set_expresso_ii_fw_version_text_sensor(text_sensor::TextSensor *t) { expresso_ii_fw_version_ = t; }
 
   inline void pub_expresso_ii_ta(float v) { if (expresso_ii_ta_) expresso_ii_ta_->publish_state(v);}
+  inline void pub_expresso_ii_tkw(float v) { if (expresso_ii_tkw_) expresso_ii_tkw_->publish_state(v);}
+  inline void pub_expresso_ii_tsp(float v) { if (expresso_ii_tsp_) expresso_ii_tsp_->publish_state(v);}
+  inline void pub_expresso_ii_tsp_s(float v) { if (expresso_ii_tsp_s_) expresso_ii_tsp_s_->publish_state(v);}
+  inline void pub_expresso_ii_two_s(float v) { if (expresso_ii_two_s_) expresso_ii_two_s_->publish_state(v);}
+  inline void pub_expresso_ii_dfl_tw(float v) { if (expresso_ii_dfl_tw_) expresso_ii_dfl_tw_->publish_state(v);}
+  inline void pub_expresso_ii_dfl_hz1(float v) { if (expresso_ii_dfl_hz1_) expresso_ii_dfl_hz1_->publish_state(v);}
+  inline void pub_expresso_ii_dfl_hz2(float v) { if (expresso_ii_dfl_hz2_) expresso_ii_dfl_hz2_->publish_state(v);}
+  inline void pub_expresso_ii_p_sp(float v) { if (expresso_ii_p_sp_) expresso_ii_p_sp_->publish_state(v);}
   inline void pub_expresso_ii_two(float v) { if (expresso_ii_two_) expresso_ii_two_->publish_state(v);}
   inline void pub_expresso_ii_pk(float v) { if (expresso_ii_pk_) expresso_ii_pk_->publish_state(v);}
   inline void pub_expresso_ii_phk(float v) { if (expresso_ii_phk_) expresso_ii_phk_->publish_state(v);}
@@ -634,6 +650,14 @@ private:
   Expresso2Decoder *expresso_ii_{nullptr};
   // EXPRESSO-II sensors
   sensor::Sensor *expresso_ii_ta_{nullptr};
+  sensor::Sensor *expresso_ii_tkw_{nullptr};
+  sensor::Sensor *expresso_ii_tsp_{nullptr};
+  sensor::Sensor *expresso_ii_tsp_s_{nullptr};
+  sensor::Sensor *expresso_ii_two_s_{nullptr};
+  sensor::Sensor *expresso_ii_dfl_tw_{nullptr};
+  sensor::Sensor *expresso_ii_dfl_hz1_{nullptr};
+  sensor::Sensor *expresso_ii_dfl_hz2_{nullptr};
+  sensor::Sensor *expresso_ii_p_sp_{nullptr};
   sensor::Sensor *expresso_ii_two_{nullptr};
   sensor::Sensor *expresso_ii_pk_{nullptr};
   sensor::Sensor *expresso_ii_phk_{nullptr};
