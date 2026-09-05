@@ -159,13 +159,20 @@ public:
   inline void pub_aqua_ii_status_text(const std::string &s) { if (aqua_ii_status_text_) aqua_ii_status_text_->publish_state(s);}
   inline void pub_aqua_ii_timestamp(const std::string &s) { if (aqua_ii_timestamp_) aqua_ii_timestamp_->publish_state(s);}
 
-  // EXPRESSO-II: Frame-Offsets der noch nicht zugeordneten Register.
-  // Roh-Slots liegen als BE-u16 auf den geraden Offsets kExpresso2RawFirst..
-  // kExpresso2RawLast; 34/35 sind ausgenommen (dort stehen PK/PHK als u8).
-  static constexpr int kExpresso2RawFirst = 12;
-  static constexpr int kExpresso2RawLast = 48;
+  // EXPRESSO-II: frame offsets of the registers that are not identified yet.
+  // Explicit table rather than a stride, because the widths differ: most are
+  // u16, [32] is signed and [35] is a single byte. The decoder owns the
+  // per-offset width; this is only the addressing.
+  static constexpr int kExpresso2RawOffsets[] = {18, 28, 30, 32, 35, 36,
+                                                 37, 38, 42, 44, 46, 48};
   static constexpr int kExpresso2RawCount =
-      (kExpresso2RawLast - kExpresso2RawFirst) / 2 + 1;
+      sizeof(kExpresso2RawOffsets) / sizeof(kExpresso2RawOffsets[0]);
+  static int expresso_ii_raw_index(int off) {
+    for (int i = 0; i < kExpresso2RawCount; i++)
+      if (kExpresso2RawOffsets[i] == off)
+        return i;
+    return -1;
+  }
 
   // EXPRESSO-II numeric
   void set_expresso_ii_ta_sensor(sensor::Sensor *s) { expresso_ii_ta_ = s; }
@@ -179,10 +186,9 @@ public:
   void set_expresso_ii_p_sp_sensor(sensor::Sensor *s) { expresso_ii_p_sp_ = s; }
   void set_expresso_ii_two_sensor(sensor::Sensor *s) { expresso_ii_two_ = s; }
   void set_expresso_ii_pk_sensor(sensor::Sensor *s) { expresso_ii_pk_ = s; }
-  void set_expresso_ii_phk_sensor(sensor::Sensor *s) { expresso_ii_phk_ = s; }
   void set_expresso_ii_raw_sensor(int off, sensor::Sensor *s) {
-    const int i = (off - kExpresso2RawFirst) / 2;
-    if (i >= 0 && i < kExpresso2RawCount)
+    const int i = expresso_ii_raw_index(off);
+    if (i >= 0)
       expresso_ii_raw_[i] = s;
   }
   // EXPRESSO-II text
@@ -200,10 +206,9 @@ public:
   inline void pub_expresso_ii_p_sp(float v) { if (expresso_ii_p_sp_) expresso_ii_p_sp_->publish_state(v);}
   inline void pub_expresso_ii_two(float v) { if (expresso_ii_two_) expresso_ii_two_->publish_state(v);}
   inline void pub_expresso_ii_pk(float v) { if (expresso_ii_pk_) expresso_ii_pk_->publish_state(v);}
-  inline void pub_expresso_ii_phk(float v) { if (expresso_ii_phk_) expresso_ii_phk_->publish_state(v);}
   inline void pub_expresso_ii_raw(int off, float v) {
-    const int i = (off - kExpresso2RawFirst) / 2;
-    if (i >= 0 && i < kExpresso2RawCount && expresso_ii_raw_[i])
+    const int i = expresso_ii_raw_index(off);
+    if (i >= 0 && expresso_ii_raw_[i])
       expresso_ii_raw_[i]->publish_state(v);
   }
   inline void pub_expresso_ii_timestamp(const std::string &s) { if (expresso_ii_timestamp_) expresso_ii_timestamp_->publish_state(s);}
@@ -660,7 +665,6 @@ private:
   sensor::Sensor *expresso_ii_p_sp_{nullptr};
   sensor::Sensor *expresso_ii_two_{nullptr};
   sensor::Sensor *expresso_ii_pk_{nullptr};
-  sensor::Sensor *expresso_ii_phk_{nullptr};
   sensor::Sensor *expresso_ii_raw_[kExpresso2RawCount]{nullptr};
   text_sensor::TextSensor *expresso_ii_timestamp_{nullptr};
   text_sensor::TextSensor *expresso_ii_fw_version_{nullptr};

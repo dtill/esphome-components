@@ -17,6 +17,16 @@ void Palletti2Decoder::on_fc_frame(const std::vector<uint8_t>& frame,
   auto s16 = [&](int i){ return (int16_t)read_u16_be(frame, i); };
   auto u8  = [&](int i){ return read_u8(frame, i); };
 
+  // 0C01 exists in several lengths. The last data byte is at
+  // frame.size() - 2; the byte after it is the checksum. Without this guard
+  // a short frame makes pk read the checksum and phk read past the end,
+  // which yields plausible-looking but meaningless values.
+  const int last_data = (int) frame.size() - 2;
+  if (last_data < 33) {
+    ESP_LOGW(TAG_PALLETTI_II, "Frame too short: len=%u, need at least 31", frame[1]);
+    return;
+  }
+
   // Zeitstempel
   uint8_t day    = bcd2dec(payload[0]);
   uint8_t month  = bcd2dec(payload[1]);
@@ -40,9 +50,13 @@ void Palletti2Decoder::on_fc_frame(const std::vector<uint8_t>& frame,
   float tpo = u16(28) / 10.0f;
   float tpu = u16(30) / 10.0f;
   float tzr = u16(32) / 10.0f;
-  float pk = u8(34) / 1.0f;
-  float hk1_phk = u8(35) / 1.0f;
-  float hk2_phk2 = u8(36) / 1.0f;
+  // Pump percentages, only present on the longer frame variants
+  const bool has_pk = last_data >= 34;
+  const bool has_phk1 = last_data >= 35;
+  const bool has_phk2 = last_data >= 36;
+  float pk = has_pk ? u8(34) / 1.0f : 0.0f;
+  float hk1_phk = has_phk1 ? u8(35) / 1.0f : 0.0f;
+  float hk2_phk2 = has_phk2 ? u8(36) / 1.0f : 0.0f;
 
   r_.pub_palletti_ii_ta(ta);
   r_.pub_palletti_ii_two(two);
@@ -57,9 +71,12 @@ void Palletti2Decoder::on_fc_frame(const std::vector<uint8_t>& frame,
   r_.pub_palletti_ii_tpo(tpo);
   r_.pub_palletti_ii_tpu(tpu);
   r_.pub_palletti_ii_tzr(tzr);
-  r_.pub_palletti_ii_pk(pk);
-  r_.pub_palletti_ii_hk1_phk(hk1_phk);
-  r_.pub_palletti_ii_hk2_phk2(hk2_phk2);
+  if (has_pk)
+    r_.pub_palletti_ii_pk(pk);
+  if (has_phk1)
+    r_.pub_palletti_ii_hk1_phk(hk1_phk);
+  if (has_phk2)
+    r_.pub_palletti_ii_hk2_phk2(hk2_phk2);
 
   ESP_LOGI(TAG_PALLETTI_II, "PALLETTI-II: TA=%.1f TWO=%.1f FA TV=%.1f FA TR=%.1f HK1 TI=%.1f HK2 TI2=%.1f HK1 TV=%.1f HK2 TV2=%.1f HK1 TR=%.1f HK2 TR2=%.1f TPO=%.1f TPU=%.1f TZR=%.1f PK=%.0f HK1 PHK=%.0f HK2 PHK2=%.0f",
            ta,two,fa_tv,fa_tr,hk1_ti,hk2_ti2,hk1_tv,hk2_tv2,hk1_tr,hk2_tr2,tpo,tpu,tzr,pk,hk1_phk,hk2_phk2);

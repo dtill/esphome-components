@@ -9,7 +9,7 @@ CONF_KIND = "kind"
 # EXPRESSO-II: registers that are not identified yet, named after their frame
 # offset. Deliberately unit-less. Offset 32 is read as s16, the rest as u16;
 # all scaled by 1/10.
-EXPRESSO_II_RAW_OFFSETS = [18, 28, 30, 32, 36, 38, 42, 44, 46, 48]
+EXPRESSO_II_RAW_OFFSETS = [18, 28, 30, 32, 35, 36, 37, 38, 42, 44, 46, 48]
 _EXPRESSO_II_RAW_KINDS = [f"expresso_ii_raw_{o}" for o in EXPRESSO_II_RAW_OFFSETS]
 
 KIND = cv.one_of(
@@ -29,7 +29,7 @@ KIND = cv.one_of(
     "expresso_ii_ta","expresso_ii_two","expresso_ii_tkw","expresso_ii_tsp",
     "expresso_ii_two_s","expresso_ii_tsp_s","expresso_ii_dfl_tw",
     "expresso_ii_dfl_hz1","expresso_ii_dfl_hz2",
-    "expresso_ii_pk","expresso_ii_phk","expresso_ii_p_sp",
+    "expresso_ii_pk","expresso_ii_p_sp",
     *_EXPRESSO_II_RAW_KINDS,
     # PALLETTI-II
     "palletti_ii_ta","palletti_ii_two","palletti_ii_fa_tv","palletti_ii_fa_tr","palletti_ii_hk1_ti","palletti_ii_hk2_ti2",
@@ -110,7 +110,6 @@ async def to_code(config):
     elif k == "expresso_ii_ta":     cg.add(parent.set_expresso_ii_ta_sensor(s))
     elif k == "expresso_ii_two":    cg.add(parent.set_expresso_ii_two_sensor(s))
     elif k == "expresso_ii_pk":     cg.add(parent.set_expresso_ii_pk_sensor(s))
-    elif k == "expresso_ii_phk":    cg.add(parent.set_expresso_ii_phk_sensor(s))
     elif k == "expresso_ii_tkw":    cg.add(parent.set_expresso_ii_tkw_sensor(s))
     elif k == "expresso_ii_tsp":    cg.add(parent.set_expresso_ii_tsp_sensor(s))
     elif k == "expresso_ii_two_s":  cg.add(parent.set_expresso_ii_two_s_sensor(s))

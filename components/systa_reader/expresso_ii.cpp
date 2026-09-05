@@ -70,8 +70,7 @@ void Expresso2Decoder::on_fc_frame(const std::vector<uint8_t> &frame,
   const float dfl_hz1 = read_u16_be(frame, 22) / 10.0f; // [l/min]
   const float dfl_hz2 = read_u16_be(frame, 24) / 10.0f; // [l/min]
   const float tsp_s = read_u16_be(frame, 26) / 10.0f;  // tank setpoint [degC]
-  const uint8_t pk = read_u8(frame, 34);   // boiler load [%]
-  const uint8_t phk = read_u8(frame, 35);  // heating circuit pump
+  const uint8_t pk = read_u8(frame, 34);   // boiler pump [%]
   // Storage pump: u8, not scaled, tops out at exactly 100. Tracks the
   // heating water flow closely — this is the pump feeding the heat
   // exchanger.
@@ -87,7 +86,6 @@ void Expresso2Decoder::on_fc_frame(const std::vector<uint8_t> &frame,
   r_.pub_expresso_ii_dfl_hz2(dfl_hz2);
   r_.pub_expresso_ii_tsp_s(tsp_s);
   r_.pub_expresso_ii_pk(pk);
-  r_.pub_expresso_ii_phk(phk);
   r_.pub_expresso_ii_p_sp(p_sp);
 
   // ---- Registers that are not identified yet
@@ -95,16 +93,23 @@ void Expresso2Decoder::on_fc_frame(const std::vector<uint8_t> &frame,
   // misleading reaches the frontend. Once a register is confirmed it moves
   // up to the named values above. Offset 32 is the only signed one; read as
   // u16 it would show values around 6550 instead of small negatives.
-  for (int off : {18, 28, 30, 36, 38, 42, 44, 46, 48})
+  for (int off : {18, 28, 30, 42, 44, 46, 48})
     r_.pub_expresso_ii_raw(off, read_u16_be(frame, off) / 10.0f);
-  r_.pub_expresso_ii_raw(32, read_s16_be(frame, 32) / 10.0f);
+  r_.pub_expresso_ii_raw(32, read_s16_be(frame, 32) / 10.0f); // signed
+  // [35]..[37] are single bytes, matching what Espresso/Palletti read at the
+  // same offsets. [36] is 0 in every sample; the one non-zero observation
+  // sits in [37]. Kept separate rather than merged into a u16, since nothing
+  // supports a 16-bit boundary here.
+  for (int off : {35, 36, 37})
+    r_.pub_expresso_ii_raw(off, read_u8(frame, off));
+  r_.pub_expresso_ii_raw(38, read_u16_be(frame, 38) / 10.0f);
 
   ESP_LOGI(TAG_EXP2,
            "EXPRESSO-II: ZEIT=%s TA=%.1f TWO=%.1f TKW=%.1f TSP=%.1f "
            "TWO_S=%.1f TSP_S=%.1f DFL_TW=%.1f DFL_HZ1=%.1f DFL_HZ2=%.1f "
-           "PK=%u PHK=%u P_SP=%u",
+           "PK=%u P_SP=%u",
            ts, ta, two, tkw, tsp, two_s, tsp_s, dfl_tw, dfl_hz1, dfl_hz2, pk,
-           phk, p_sp);
+           p_sp);
 }
 
 void Expresso2Decoder::on_fd_version_frame(uint8_t major, uint8_t minor,

@@ -12,6 +12,7 @@ Tested Paradigma Systa-hardware:
  - Aqua / Aqua II
  - Modula II
  - Expresso
+ - Expresso II
  - Pelletti II
  - Compact
  - SystaComfort II
@@ -43,7 +44,7 @@ uart:
 systa_reader:                       # can be multiple systa_reader but only one per uart.
   - id: systa_bus_01
     uart_id: uart_bus
-    systa_device: [aqua_ii]     # call one or more devices [aqua, aqua_ii, modula, espresso, palletti_ii, compact, comfort]
+    systa_device: [aqua_ii]     # call one or more devices [aqua, aqua_ii, modula, espresso, expresso_ii, palletti_ii, compact, comfort]
     log_invalid: true               # logs invalid frames for debugging purpose
 
 sensor:
@@ -732,3 +733,83 @@ button:
     id: urgrow_firmware_restart
     name:  "Neustarten"
 ```
+
+## Expresso II (`expresso_ii`)
+
+Status frame `FC 37 14 01 ...` (58 bytes), firmware announce `FD 05 AA 14 ...`,
+device address `0x14`.
+
+Expresso II is close enough to Espresso I to be tempting to share a decoder,
+but different enough that it has its own. The frame is 58 bytes instead of
+~38, the register block past offset 16 is remapped, and the timestamp uses a
+different encoding. Espresso I drives two heating circuits and a buffer;
+Expresso II drives a fresh water station, so the same byte positions carry
+flow rates and setpoints instead of temperatures.
+
+### Timestamp
+
+The timestamp sits at `payload[0..3]` like on Espresso I, but is **not** BCD.
+It uses the Comfort keypad's `UHR` encoding: two big-endian u16, minutes since
+midnight followed by days since 2000-01-01.
+
+### Identified registers
+
+| Kind | Frame offset | Type | Unit |
+|------|--------------|------|------|
+| `expresso_ii_ta`      | `[8]`  | s16 / 10 | °C |
+| `expresso_ii_two`     | `[10]` | u16 / 10 | °C |
+| `expresso_ii_tkw`     | `[12]` | u16 / 10 | °C |
+| `expresso_ii_dfl_tw`  | `[14]` | u16 / 10 | l/min |
+| `expresso_ii_tsp`     | `[16]` | u16 / 10 | °C |
+| `expresso_ii_two_s`   | `[20]` | u16 / 10 | °C |
+| `expresso_ii_dfl_hz1` | `[22]` | u16 / 10 | l/min |
+| `expresso_ii_dfl_hz2` | `[24]` | u16 / 10 | l/min |
+| `expresso_ii_tsp_s`   | `[26]` | u16 / 10 | °C |
+| `expresso_ii_pk`      | `[34]` | u8       | % |
+| `expresso_ii_phk`     | `[35]` | u8       | — |
+| `expresso_ii_p_sp`    | `[41]` | u8       | % |
+| `expresso_ii_timestamp`  | `payload[0..3]` | text | — |
+| `expresso_ii_fw_version` | `FD 05 AA 14`   | text | — |
+
+Notes on individual registers:
+
+- **`ta`** looks like the damped outside temperature the controller uses for
+  its heating curve rather than the raw sensor. It can sit unchanged for
+  hours. Name it accordingly in your config so the flat line is not mistaken
+  for a broken sensor.
+- **`dfl_hz1` / `dfl_hz2`** are two measuring points on the same heating water
+  circuit and track each other almost exactly. Which one is flow and which is
+  return has not been established, so they are numbered rather than named.
+- **`pk`** is the boiler pump, not the boiler's modulation level. Comfort
+  names the same group of three bytes `p_hk1` / `p_hk2` / `p_kes` and labels
+  status bit 2 `PK`; Espresso and Palletti carry the same triple at
+  `[34]`..`[36]`.
+- **`pk`, `phk`, `p_sp`** are plain u8 percentages, **not** scaled by 1/10.
+  `p_sp` drives the heat exchanger and closely follows `dfl_hz1`/`dfl_hz2`.
+
+### Raw registers
+
+Everything else is published as `expresso_ii_raw_<offset>`, deliberately
+without a unit:
+
+`[18]` `[28]` `[30]` `[32]` `[36]` `[38]` `[42]` `[44]` `[46]` `[48]`
+
+All are read as u16 / 10 **except `[32]`, which is signed** — read as u16 it
+shows values around 6550 instead of small negatives.
+
+To map one of these, compare it against the controller display and use the
+`expresso_ii_timestamp` text sensor as the time reference: controller clocks
+drift, and each device on the bus keeps its own. Once a register is confirmed,
+move it in `expresso_ii.cpp` from the raw loop up to the named values and add
+a `kind` in `sensor/__init__.py`.
+
+### Not available on the bus
+
+Some values shown on the controller display are computed inside the device and
+never transmitted. Heat meter readings (domestic hot water, circulation) fall
+into this category — no register in the frame moves when hot water is drawn,
+so they cannot be recovered by listening. The same applies to the Aqua's
+maximum collector temperature.
+
+Note that the Aqua `sol` register (instantaneous solar power) reads 0 on all
+known installations.
