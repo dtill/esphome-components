@@ -98,7 +98,7 @@ sensor:
   - platform: systa_reader
     systa_reader_id: systa_bus_01
     kind: expresso_ii_pk
-    name: "EXPRESSO-II PK (boiler load)"
+    name: "EXPRESSO-II PK (boiler pump)"
     unit_of_measurement: "%"
     accuracy_decimals: 0
     state_class: measurement
@@ -109,12 +109,6 @@ sensor:
     unit_of_measurement: "%"
     accuracy_decimals: 0
     state_class: measurement
-  - platform: systa_reader
-    systa_reader_id: systa_bus_01
-    kind: expresso_ii_phk
-    name: "EXPRESSO-II PHK (heating circuit pump)"
-    accuracy_decimals: 0
-    state_class: measurement
 
     # EXPRESSO-II raw registers (not identified yet).
     # Deliberately without a unit. Use the timestamp text sensor as the time
@@ -123,7 +117,7 @@ sensor:
   - platform: systa_reader
     systa_reader_id: systa_bus_01
     kind: expresso_ii_raw_18
-    name: "EXPRESSO-II raw[18]"       # seen 0 .. 24.4, zero most of the time
+    name: "EXPRESSO-II raw[18]"       # 0 .. 24.4, zero most of the time
     accuracy_decimals: 1
     entity_category: diagnostic
     state_class: measurement
@@ -150,8 +144,22 @@ sensor:
     state_class: measurement
   - platform: systa_reader
     systa_reader_id: systa_bus_01
+    kind: expresso_ii_raw_35
+    name: "EXPRESSO-II raw[35]"       # single byte, constant 1 in all samples
+    accuracy_decimals: 1
+    entity_category: diagnostic
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
     kind: expresso_ii_raw_36
-    name: "EXPRESSO-II raw[36]"       # almost always 0
+    name: "EXPRESSO-II raw[36]"       # single byte; 0 in every sample
+    accuracy_decimals: 1
+    entity_category: diagnostic
+    state_class: measurement
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    kind: expresso_ii_raw_37
+    name: "EXPRESSO-II raw[37]"       # 0 in every sample but one, which read 28"
     accuracy_decimals: 1
     entity_category: diagnostic
     state_class: measurement
