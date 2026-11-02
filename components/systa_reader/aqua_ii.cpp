@@ -86,6 +86,17 @@ void Aqua2Decoder::on_fc_frame(const std::vector<uint8_t> &frame,
   float tam2  = read_i16_le(payload,  50) / 10.0f;      // TAM2 (Aussentemp2)// evtl. nicht überall so
 
   // ---- Publish
+#if ESPHOME_LOG_LEVEL >= ESPHOME_LOG_LEVEL_VERBOSE
+  // Fühler-Fehlerwerte: bei jedem Frame warnen, Werte trotzdem veröffentlichen
+  warn_temp_fault_s16(TAG_AQUA_II, "AQUA-II TSA (Kollektor)", read_i16_le(payload, 0));
+  warn_temp_fault_s16(TAG_AQUA_II, "AQUA-II TW (Speicher)", read_i16_le(payload, 2));
+  warn_temp_fault_s16(TAG_AQUA_II, "AQUA-II TSV (Vorlauf)", read_i16_le(payload, 4));
+  warn_temp_fault_s16(TAG_AQUA_II, "AQUA-II TAM (Außen)", read_i16_le(payload, 6));
+  warn_temp_fault_s16(TAG_AQUA_II, "AQUA-II TSE (Rücklauf)", read_i16_le(payload, 10));
+  warn_temp_fault_s16(TAG_AQUA_II, "AQUA-II TSA1 (Kollektor1)", read_i16_le(payload, 46));
+  warn_temp_fault_s16(TAG_AQUA_II, "AQUA-II TSA2 (Kollektor2)", read_i16_le(payload, 48));
+  warn_temp_fault_s16(TAG_AQUA_II, "AQUA-II TAM2 (Außen2)", read_i16_le(payload, 50));
+#endif
   r_.pub_aqua_ii_tsa(tsa);
   r_.pub_aqua_ii_twu(tw);
   r_.pub_aqua_ii_tsv(tsv);

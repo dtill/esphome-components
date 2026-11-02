@@ -339,6 +339,18 @@ void SystaReader::flush_skipped_(const char *reason) {
   skipped_.clear();
 }
 
+void warn_temp_fault_u16(const char *tag, const char *name, uint16_t raw) {
+  if (raw >= 0xFE00)
+    ESP_LOGW(tag, "%s = %.1f °C (raw %04X): Fühler fehlt oder defekt?", name,
+             raw / 10.0f, raw);
+}
+
+void warn_temp_fault_s16(const char *tag, const char *name, int16_t raw) {
+  if (raw <= -300 || raw >= 0x7F00)
+    ESP_LOGW(tag, "%s = %.1f °C (raw %04X): Fühler fehlt oder defekt?", name,
+             raw / 10.0f, uint16_t(raw));
+}
+
 uint8_t SystaReader::checksum_twos_complement_(const std::vector<uint8_t> &v) {
   uint32_t sum = 0;
   for (auto b : v)

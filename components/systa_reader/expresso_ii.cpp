@@ -76,6 +76,13 @@ void Expresso2Decoder::on_fc_frame(const std::vector<uint8_t> &frame,
   // exchanger.
   const uint8_t p_sp = read_u8(frame, 41); // storage pump [%]
 
+#if ESPHOME_LOG_LEVEL >= ESPHOME_LOG_LEVEL_VERBOSE
+  // Fühler-Fehlerwerte: bei jedem Frame warnen, Werte trotzdem veröffentlichen
+  warn_temp_fault_s16(TAG_EXP2, "EXPRESSO-II TA", read_s16_be(frame, 8));
+  warn_temp_fault_u16(TAG_EXP2, "EXPRESSO-II TWO", read_u16_be(frame, 10));
+  warn_temp_fault_u16(TAG_EXP2, "EXPRESSO-II TKW", read_u16_be(frame, 12));
+  warn_temp_fault_u16(TAG_EXP2, "EXPRESSO-II TSP", read_u16_be(frame, 16));
+#endif
   r_.pub_expresso_ii_ta(ta);
   r_.pub_expresso_ii_two(two);
   r_.pub_expresso_ii_tkw(tkw);

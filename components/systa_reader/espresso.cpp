@@ -58,6 +58,22 @@ void EspressoDecoder::on_fc_frame(const std::vector<uint8_t>& frame,
   float hk1_phk = has_phk1 ? u8(35) / 1.0f : 0.0f;
   float hk2_phk2 = has_phk2 ? u8(36) / 1.0f : 0.0f;
 
+#if ESPHOME_LOG_LEVEL >= ESPHOME_LOG_LEVEL_VERBOSE
+  // Fühler-Fehlerwerte: bei jedem Frame warnen, Werte trotzdem veröffentlichen
+  warn_temp_fault_s16(TAG_ESP, "ESPRESSO TA", s16(8));
+  warn_temp_fault_u16(TAG_ESP, "ESPRESSO TWO", u16(10));
+  warn_temp_fault_u16(TAG_ESP, "ESPRESSO FA TV", u16(12));
+  warn_temp_fault_u16(TAG_ESP, "ESPRESSO FA TR", u16(14));
+  warn_temp_fault_u16(TAG_ESP, "ESPRESSO HK1 TI", u16(16));
+  warn_temp_fault_u16(TAG_ESP, "ESPRESSO HK2 TI2", u16(18));
+  warn_temp_fault_u16(TAG_ESP, "ESPRESSO HK1 TV", u16(20));
+  warn_temp_fault_u16(TAG_ESP, "ESPRESSO HK2 TV2", u16(22));
+  warn_temp_fault_u16(TAG_ESP, "ESPRESSO HK1 TR", u16(24));
+  warn_temp_fault_u16(TAG_ESP, "ESPRESSO HK2 TR2", u16(26));
+  warn_temp_fault_u16(TAG_ESP, "ESPRESSO TPO", u16(28));
+  warn_temp_fault_u16(TAG_ESP, "ESPRESSO TPU", u16(30));
+  warn_temp_fault_u16(TAG_ESP, "ESPRESSO TZR", u16(32));
+#endif
   r_.pub_espresso_ta(ta);
   r_.pub_espresso_two(two);
   r_.pub_espresso_fa_tv(fa_tv);

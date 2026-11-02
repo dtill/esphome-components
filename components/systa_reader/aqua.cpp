@@ -66,18 +66,10 @@ void AquaDecoder::on_fc_frame(const std::vector<uint8_t>& frame,
 
 #if ESPHOME_LOG_LEVEL >= ESPHOME_LOG_LEVEL_VERBOSE
   // Fühler-Fehlerwerte: bei jedem Frame warnen, Werte trotzdem veröffentlichen
-  auto warn_fault = [&](const char *name, float value, int i) {
-    ESP_LOGW(TAG_AQUA, "AQUA %s = %.1f °C (raw %04X): Fühler fehlt oder defekt?",
-             name, value, u16(i));
-  };
-  if (s16(4) <= SENSOR_FAULT_S16_MIN || s16(4) >= SENSOR_FAULT_S16_MAX)
-    warn_fault("TSA (Kollektor)", tsa, 4);
-  if (u16(6) >= SENSOR_FAULT_RAW_MIN)
-    warn_fault("TSE (Eintritt)", tse, 6);
-  if (u16(8) >= SENSOR_FAULT_RAW_MIN)
-    warn_fault("TWU (unten)", twu, 8);
-  if (u16(10) >= SENSOR_FAULT_RAW_MIN)
-    warn_fault("TW2 (oben)", tw2, 10);
+  warn_temp_fault_s16(TAG_AQUA, "AQUA TSA (Kollektor)", s16(4));
+  warn_temp_fault_u16(TAG_AQUA, "AQUA TSE (Eintritt)", u16(6));
+  warn_temp_fault_u16(TAG_AQUA, "AQUA TWU (unten)", u16(8));
+  warn_temp_fault_u16(TAG_AQUA, "AQUA TW2 (oben)", u16(10));
 #endif
 
   r_.pub_aqua_tsa(tsa);

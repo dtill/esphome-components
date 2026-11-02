@@ -30,11 +30,6 @@ class AquaDecoder {
   uint32_t    last_display_ms_{0};
   static constexpr uint32_t DISPLAY_MIN_INTERVAL_MS = 5 * 60 * 1000;
 
-  // Fühler-Fehlerwerte (nur bei VERBOSE gewarnt, Wert wird trotzdem publiziert)
-  static constexpr uint16_t SENSOR_FAULT_RAW_MIN = 0xFE00;  // unsigned: >= 6502.4 °C
-  static constexpr int16_t SENSOR_FAULT_S16_MIN = -300;     // signed: <= -30.0 °C (raw FED4)
-  static constexpr int16_t SENSOR_FAULT_S16_MAX = 0x7F00;   // signed: >= 3251.2 °C
-
   SystaReader &r_;
 };
 

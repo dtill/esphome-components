@@ -39,6 +39,14 @@ void CompactDecoder::on_fc_frame(const std::vector<uint8_t>& frame,
   float tv_s  = u16(20) / 10.0f;
   float two_s = u16(22) / 10.0f;
 
+#if ESPHOME_LOG_LEVEL >= ESPHOME_LOG_LEVEL_VERBOSE
+  // Fühler-Fehlerwerte: bei jedem Frame warnen, Werte trotzdem veröffentlichen
+  warn_temp_fault_s16(TAG_ESP, "COMPACT TA", s16(8));
+  warn_temp_fault_u16(TAG_ESP, "COMPACT TWO", u16(10));
+  warn_temp_fault_u16(TAG_ESP, "COMPACT FA TV", u16(12));
+  warn_temp_fault_u16(TAG_ESP, "COMPACT FA TR", u16(14));
+  warn_temp_fault_u16(TAG_ESP, "COMPACT TI", u16(16));
+#endif
   r_.pub_compact_ta(ta);
   r_.pub_compact_two(two);
   r_.pub_compact_fa_tv(fa_tv);

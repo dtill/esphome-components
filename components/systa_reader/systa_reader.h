@@ -769,6 +769,14 @@ private:
   binary_sensor::BinarySensor *comfort_stat_ot_{nullptr};
 };
 
+// Fühler-Fehlerwerte (fehlender/defekter Temperaturfühler) als ESP_LOGW
+// melden. Aufruf nur unter ESPHOME_LOG_LEVEL >= VERBOSE, bei jedem Frame;
+// der Wert wird vom Aufrufer trotzdem veröffentlicht.
+//   unsigned: raw >= 0xFE00            (>= 6502.4 °C, z.B. FED8 = 6524.0)
+//   signed:   raw <= -300 / >= 0x7F00  (<= -30.0 °C, z.B. FED4; >= 3251.2 °C)
+void warn_temp_fault_u16(const char *tag, const char *name, uint16_t raw);
+void warn_temp_fault_s16(const char *tag, const char *name, int16_t raw);
+
 // concrete text sensor sink
 class SystaReaderTextSensor : public text_sensor::TextSensor,
                               public Component,

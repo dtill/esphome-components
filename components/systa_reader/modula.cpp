@@ -48,6 +48,20 @@ void ModulaDecoder::on_fc_frame(const std::vector<uint8_t>& frame,
   float tpu = u16(30) / 10.0f;
   float tzr = u16(32) / 10.0f;
 
+#if ESPHOME_LOG_LEVEL >= ESPHOME_LOG_LEVEL_VERBOSE
+  // Fühler-Fehlerwerte: bei jedem Frame warnen, Werte trotzdem veröffentlichen
+  warn_temp_fault_s16(TAG_MODULA, "MODULA TA", s16(8));
+  warn_temp_fault_u16(TAG_MODULA, "MODULA TWO", u16(10));
+  warn_temp_fault_u16(TAG_MODULA, "MODULA TBV", u16(12));
+  warn_temp_fault_u16(TAG_MODULA, "MODULA TBR", u16(14));
+  warn_temp_fault_u16(TAG_MODULA, "MODULA TV", u16(20));
+  warn_temp_fault_u16(TAG_MODULA, "MODULA TV2", u16(22));
+  warn_temp_fault_u16(TAG_MODULA, "MODULA TR", u16(24));
+  warn_temp_fault_u16(TAG_MODULA, "MODULA TR2", u16(26));
+  warn_temp_fault_u16(TAG_MODULA, "MODULA TPO", u16(28));
+  warn_temp_fault_u16(TAG_MODULA, "MODULA TPU", u16(30));
+  warn_temp_fault_u16(TAG_MODULA, "MODULA TZR", u16(32));
+#endif
   r_.pub_modula_ta(ta);
   r_.pub_modula_two(two);
   r_.pub_modula_tbv(tbv);

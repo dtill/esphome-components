@@ -58,6 +58,22 @@ void Palletti2Decoder::on_fc_frame(const std::vector<uint8_t>& frame,
   float hk1_phk = has_phk1 ? u8(35) / 1.0f : 0.0f;
   float hk2_phk2 = has_phk2 ? u8(36) / 1.0f : 0.0f;
 
+#if ESPHOME_LOG_LEVEL >= ESPHOME_LOG_LEVEL_VERBOSE
+  // Fühler-Fehlerwerte: bei jedem Frame warnen, Werte trotzdem veröffentlichen
+  warn_temp_fault_s16(TAG_PALLETTI_II, "PALLETTI-II TA", s16(8));
+  warn_temp_fault_u16(TAG_PALLETTI_II, "PALLETTI-II TWO", u16(10));
+  warn_temp_fault_u16(TAG_PALLETTI_II, "PALLETTI-II FA TV", u16(12));
+  warn_temp_fault_u16(TAG_PALLETTI_II, "PALLETTI-II FA TR", u16(14));
+  warn_temp_fault_u16(TAG_PALLETTI_II, "PALLETTI-II HK1 TI", u16(16));
+  warn_temp_fault_u16(TAG_PALLETTI_II, "PALLETTI-II HK2 TI2", u16(18));
+  warn_temp_fault_u16(TAG_PALLETTI_II, "PALLETTI-II HK1 TV", u16(20));
+  warn_temp_fault_u16(TAG_PALLETTI_II, "PALLETTI-II HK2 TV2", u16(22));
+  warn_temp_fault_u16(TAG_PALLETTI_II, "PALLETTI-II HK1 TR", u16(24));
+  warn_temp_fault_u16(TAG_PALLETTI_II, "PALLETTI-II HK2 TR2", u16(26));
+  warn_temp_fault_u16(TAG_PALLETTI_II, "PALLETTI-II TPO", u16(28));
+  warn_temp_fault_u16(TAG_PALLETTI_II, "PALLETTI-II TPU", u16(30));
+  warn_temp_fault_u16(TAG_PALLETTI_II, "PALLETTI-II TZR", u16(32));
+#endif
   r_.pub_palletti_ii_ta(ta);
   r_.pub_palletti_ii_two(two);
   r_.pub_palletti_ii_fa_tv(fa_tv);
