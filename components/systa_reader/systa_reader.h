@@ -4,7 +4,6 @@
 #include "esphome/components/text_sensor/text_sensor.h"
 #include "esphome/components/uart/uart.h"
 #include "esphome/core/component.h"
-#include <deque>
 #include <string>
 #include <vector>
 
@@ -16,13 +15,9 @@ class Aqua2Decoder;
 class ModulaDecoder;
 class EspressoDecoder;
 class Palletti2Decoder;
-class ModulaDecoder;
-class EspressoDecoder;
-class Palletti2Decoder;
 class CompactDecoder;
 class ComfortDecoder;
 class Expresso2Decoder;
-class SystaReaderTextSink; // forward
 
 class SystaReader : public uart::UARTDevice, public Component {
 public:
@@ -575,10 +570,6 @@ private:
 
   // compute expected total size from partial header; SIZE_MAX => hard desync
   size_t expect_total_if_known_(const std::vector<uint8_t> &v) const;
-  // parsing
-  void process_buffer_();
-  bool try_parse_display_frame_();
-  bool try_parse_fc_frame_();
 
   // Test-Injector
   std::vector<std::string> test_data_hex_{};
@@ -601,14 +592,12 @@ private:
   static std::string to_hex_(const std::vector<uint8_t> &buf);
 
   // state
-  std::deque<uint8_t> buf_;
   std::vector<HexSink *> sinks_all_;
   std::vector<HexSink *> sinks_aqua_;
   std::vector<HexSink *> sinks_aqua_ii_;
   std::vector<HexSink *> sinks_palletti_ii_;
   std::vector<HexSink *> sinks_comfort_;
   std::vector<HexSink *> sinks_expresso_ii_;
-  std::vector<SystaReaderTextSink *> sinks_{};
   bool log_invalid_{true};
 
   // decoder instances
@@ -778,13 +767,6 @@ private:
   binary_sensor::BinarySensor *comfort_stat_taster_{nullptr};
   binary_sensor::BinarySensor *comfort_stat_lon_{nullptr};
   binary_sensor::BinarySensor *comfort_stat_ot_{nullptr};
-};
-
-// Sink-Interface (bestehend)
-class SystaReaderTextSink {
-public:
-  virtual void publish_frame_hex(const std::string &hex) = 0;
-  virtual ~SystaReaderTextSink() = default;
 };
 
 // concrete text sensor sink

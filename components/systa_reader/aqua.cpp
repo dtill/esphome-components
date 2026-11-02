@@ -108,7 +108,8 @@ void AquaDecoder::on_display_frame(const std::vector<uint8_t>& /*frame*/,
   if (last_display_ms_ != 0 && (uint32_t)(now - last_display_ms_) < DISPLAY_MIN_INTERVAL_MS) {
     // innerhalb 5 min: nur leise loggen
     ESP_LOGV(TAG_AQUA, "Display change suppressed (interval): \"%s\"", ascii.c_str());
-    last_display_ = ascii;  // trotzdem aktualisieren, damit nach Ablauf nicht „altes“ kommt
+    // last_display_ bewusst NICHT aktualisieren: nach Ablauf wird der dann
+    // aktuelle Text veröffentlicht, sonst bliebe der Sensor auf altem Text
     return;
   }
 
