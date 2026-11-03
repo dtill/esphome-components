@@ -16,6 +16,15 @@ void ComfortDecoder::on_fc_frame(const std::vector<uint8_t> &frame,
       frame[3] != 0x02)
     return;
 
+  // Last register read is payload[31] = frame[35]. The last data byte is at
+  // frame.size() - 2; the byte after it is the checksum. Without this guard
+  // a short frame reads past the end and yields meaningless values.
+  const int last_data = (int) frame.size() - 2;
+  if (last_data < 35) {
+    ESP_LOGW(TAG_COMFORT, "Frame too short: len=%u, need at least 34", frame[1]);
+    return;
+  }
+
   // Since enabled_mask filtering routes here, we double check header
   r_.publish_hex_comfort(hex);
   ESP_LOGV(TAG_COMFORT, "COMFORT len=%u, frame.size()=%u, payload.size()=%u",

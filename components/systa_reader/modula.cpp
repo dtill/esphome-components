@@ -36,32 +36,18 @@ void ModulaDecoder::on_fc_frame(const std::vector<uint8_t>& frame,
   auto u16 = [&](int i){ return read_u16_be(frame, i); };
   auto s16 = [&](int i){ return (int16_t)read_u16_be(frame, i); };
 
-  float ta = s16(8) / 10.0f;
-  float two = u16(10) / 10.0f;
-  float tbv = u16(12) / 10.0f;
-  float tbr = u16(14) / 10.0f;
-  float tv  = u16(20) / 10.0f;
-  float tv2 = u16(22) / 10.0f;
-  float tr  = u16(24) / 10.0f;
-  float tr2 = u16(26) / 10.0f;
-  float tpo = u16(28) / 10.0f;
-  float tpu = u16(30) / 10.0f;
-  float tzr = u16(32) / 10.0f;
+  float ta = r_.temp_s16(TAG_MODULA, "MODULA TA", s16(8));
+  float two = r_.temp_u16(TAG_MODULA, "MODULA TWO", u16(10));
+  float tbv = r_.temp_u16(TAG_MODULA, "MODULA TBV", u16(12));
+  float tbr = r_.temp_u16(TAG_MODULA, "MODULA TBR", u16(14));
+  float tv  = r_.temp_u16(TAG_MODULA, "MODULA TV", u16(20));
+  float tv2 = r_.temp_u16(TAG_MODULA, "MODULA TV2", u16(22));
+  float tr  = r_.temp_u16(TAG_MODULA, "MODULA TR", u16(24));
+  float tr2 = r_.temp_u16(TAG_MODULA, "MODULA TR2", u16(26));
+  float tpo = r_.temp_u16(TAG_MODULA, "MODULA TPO", u16(28));
+  float tpu = r_.temp_u16(TAG_MODULA, "MODULA TPU", u16(30));
+  float tzr = r_.temp_u16(TAG_MODULA, "MODULA TZR", u16(32));
 
-#if ESPHOME_LOG_LEVEL >= ESPHOME_LOG_LEVEL_VERBOSE
-  // Fühler-Fehlerwerte: bei jedem Frame warnen, Werte trotzdem veröffentlichen
-  warn_temp_fault_s16(TAG_MODULA, "MODULA TA", s16(8));
-  warn_temp_fault_u16(TAG_MODULA, "MODULA TWO", u16(10));
-  warn_temp_fault_u16(TAG_MODULA, "MODULA TBV", u16(12));
-  warn_temp_fault_u16(TAG_MODULA, "MODULA TBR", u16(14));
-  warn_temp_fault_u16(TAG_MODULA, "MODULA TV", u16(20));
-  warn_temp_fault_u16(TAG_MODULA, "MODULA TV2", u16(22));
-  warn_temp_fault_u16(TAG_MODULA, "MODULA TR", u16(24));
-  warn_temp_fault_u16(TAG_MODULA, "MODULA TR2", u16(26));
-  warn_temp_fault_u16(TAG_MODULA, "MODULA TPO", u16(28));
-  warn_temp_fault_u16(TAG_MODULA, "MODULA TPU", u16(30));
-  warn_temp_fault_u16(TAG_MODULA, "MODULA TZR", u16(32));
-#endif
   r_.pub_modula_ta(ta);
   r_.pub_modula_two(two);
   r_.pub_modula_tbv(tbv);

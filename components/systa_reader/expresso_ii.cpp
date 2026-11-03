@@ -40,12 +40,18 @@ void Expresso2Decoder::on_fc_frame(const std::vector<uint8_t> &frame,
       frame[3] != 0x01)
     return;
 
+  // Last register read is the u16 at frame[48]. The last data byte is at
+  // frame.size() - 2; the byte after it is the checksum. Without this guard
+  // a short frame reads past the end and yields meaningless values.
+  const int last_data = (int) frame.size() - 2;
+  if (last_data < 49) {
+    ESP_LOGW(TAG_EXP2, "Frame too short: len=%u, need at least 48", frame[1]);
+    return;
+  }
+
   r_.publish_hex_expresso_ii(hex);
   ESP_LOGV(TAG_EXP2, "EXPRESSO-II len=%u, frame.size()=%u, payload.size()=%u",
            frame[1], (unsigned) frame.size(), (unsigned) payload.size());
-
-  if (payload.size() < 4)
-    return;
 
   // Timestamp, payload[0..3] — see format_timestamp_
   char ts[16];
@@ -56,13 +62,13 @@ void Expresso2Decoder::on_fc_frame(const std::vector<uint8_t> &frame,
   // ---- Identified fields
   // TA appears to be the damped outside temperature the controller uses for
   // its heating curve, not the raw sensor: it barely moves over hours.
-  const float ta = read_s16_be(frame, 8) / 10.0f;   // outside temperature
-  const float two = read_u16_be(frame, 10) / 10.0f; // domestic hot water
+  const float ta = r_.temp_s16(TAG_EXP2, "EXPRESSO-II TA", read_s16_be(frame, 8));   // outside temperature
+  const float two = r_.temp_u16(TAG_EXP2, "EXPRESSO-II TWO", read_u16_be(frame, 10)); // domestic hot water
   // TKW drops to mains temperature while water is drawn and warms up again
   // when idle (stagnation in the cold water pipe).
-  const float tkw = read_u16_be(frame, 12) / 10.0f;    // cold water [degC]
+  const float tkw = r_.temp_u16(TAG_EXP2, "EXPRESSO-II TKW", read_u16_be(frame, 12));    // cold water [degC]
   const float dfl_tw = read_u16_be(frame, 14) / 10.0f; // DHW flow [l/min]
-  const float tsp = read_u16_be(frame, 16) / 10.0f;    // storage tank [degC]
+  const float tsp = r_.temp_u16(TAG_EXP2, "EXPRESSO-II TSP", read_u16_be(frame, 16));    // storage tank [degC]
   const float two_s = read_u16_be(frame, 20) / 10.0f;  // DHW setpoint [degC]
   // Two measuring points of the same heating water circuit: the readings
   // track each other almost exactly (mass balance). Which one is flow and
@@ -76,13 +82,6 @@ void Expresso2Decoder::on_fc_frame(const std::vector<uint8_t> &frame,
   // exchanger.
   const uint8_t p_sp = read_u8(frame, 41); // storage pump [%]
 
-#if ESPHOME_LOG_LEVEL >= ESPHOME_LOG_LEVEL_VERBOSE
-  // Fühler-Fehlerwerte: bei jedem Frame warnen, Werte trotzdem veröffentlichen
-  warn_temp_fault_s16(TAG_EXP2, "EXPRESSO-II TA", read_s16_be(frame, 8));
-  warn_temp_fault_u16(TAG_EXP2, "EXPRESSO-II TWO", read_u16_be(frame, 10));
-  warn_temp_fault_u16(TAG_EXP2, "EXPRESSO-II TKW", read_u16_be(frame, 12));
-  warn_temp_fault_u16(TAG_EXP2, "EXPRESSO-II TSP", read_u16_be(frame, 16));
-#endif
   r_.pub_expresso_ii_ta(ta);
   r_.pub_expresso_ii_two(two);
   r_.pub_expresso_ii_tkw(tkw);

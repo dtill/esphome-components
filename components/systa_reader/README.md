@@ -20,6 +20,8 @@ Tested Paradigma Systa-hardware:
 
 [Comfort II Example YAML](../../example_systa_reader_comfort.yaml)
 
+[Expresso II Example YAML](../../example_systa_reader_expresso_ii.yaml)
+
 [Example YAML](../../example_systa_reader.yaml) configuration:
 ```yaml
 # for updates and code examples + more systa devices supported please check
@@ -32,10 +34,22 @@ external_components:
     components: [systa_reader]
     refresh: 0s
 
+# Enable/Disable logging
+logger:
+  level: VERBOSE
+  baud_rate: 0  # disable logging over UART
+  logs:
+    # quiet the API chatter — protobuf dumps drown the bus frames otherwise
+    api: DEBUG
+    api.service: DEBUG
+    api.connection: DEBUG
+
 uart:
   id: uart_bus
-  tx_pin: GPIO1
+  # no tx_pin: the reader only listens. rx GPIO13 without tx (or tx GPIO15) uses hardware UART0;
+  # requires logger baud_rate: 0, otherwise the logger occupies UART0 and it falls back to software serial
   rx_pin: GPIO13
+  rx_buffer_size: 1024
   baud_rate: 9600
   data_bits: 8
   parity: NONE
@@ -46,6 +60,7 @@ systa_reader:                       # can be multiple systa_reader but only one 
     uart_id: uart_bus
     systa_device: [aqua_ii]     # call one or more devices [aqua, aqua_ii, modula, espresso, expresso_ii, palletti_ii, compact, comfort]
     log_invalid: true               # logs invalid frames for debugging purpose
+    sensor_fault_as_nan: false  # true: publish missing/broken temp sensors as NaN (unavailable) instead of e.g. 6524.0
 
 sensor:
     # AQUA sensors:
@@ -733,6 +748,143 @@ button:
     id: urgrow_firmware_restart
     name:  "Neustarten"
 ```
+
+## Configuration
+
+`systa_reader:` options:
+
+| Option | Default | Description |
+|---|---|---|
+| `uart_id` | required | UART bus the reader listens on (one reader per UART) |
+| `systa_device` | required | One or more of `aqua`, `aqua_ii`, `modula`, `espresso`, `expresso_ii`, `palletti_ii`, `compact`, `comfort` |
+| `log_invalid` | `true` | Log frames with a bad checksum as an error |
+| `sensor_fault_as_nan` | `false` | Publish missing/broken temperature sensors as NaN, see [Missing or broken temperature sensors](#missing-or-broken-temperature-sensors) |
+| `test_data` | — | List of hex frames (`FC...` or `0F220400...`) injected every 10 s, for testing without a bus |
+
+## UART setup on ESP8266
+
+The reader only listens on the bus, so no `tx_pin` is needed:
+
+```yaml
+logger:
+  baud_rate: 0        # disable logging over UART
+
+uart:
+  id: uart_bus
+  rx_pin: GPIO13
+  rx_buffer_size: 1024
+  baud_rate: 9600
+```
+
+With `rx_pin: GPIO13` and no `tx_pin`, ESPHome uses the hardware UART0 (swapped
+to GPIO13/GPIO15). Check the UART section of the boot log for
+`Using hardware serial interface`.
+
+- `tx_pin: GPIO1` together with `rx_pin: GPIO13` is no valid hardware pin pair.
+  ESPHome then silently falls back to software serial, which is more sensitive
+  to WiFi and CPU load: frames get corrupted, and the board can become unstable
+  on a busy bus.
+- `logger: baud_rate: 0` is required. A logger using UART0 falls back to
+  software serial as well.
+- The swap makes GPIO15 the UART0 TX pin. Keep it free; it must also stay low
+  at boot.
+
+## Logging
+
+The example YAML uses `level: VERBOSE`, which is meant for debugging. For
+long-term use set `level: DEBUG` or lower.
+
+| Level | Output |
+|---|---|
+| `VERBOSE` | Raw frames (`FC HEX:`, `FD HEX:`, `Display HEX:`, `Cmd HEX:`, …), skipped bytes (`SKIP HEX`, `REJECT HEX`), sensor fault warnings |
+| `DEBUG` | Decoded commands (`COMMAND: type: ...`), display text changes |
+| `INFO` | Decoded values per frame, firmware version |
+| `ERROR` | `Checksum invalid (got .., expected ..)` if `log_invalid` is on |
+
+## Frame validation
+
+Every frame is logged raw first. Frames with a bad checksum are then dropped:
+they never reach a decoder, so sensors keep their last valid value and broken
+text does not end up in a display text sensor.
+
+A text sensor with `mode: raw` and `filter: all` is the exception. It shows all
+frames, including broken ones, and is only compiled in at logger level
+`VERBOSE`:
+
+```yaml
+text_sensor:
+  - platform: systa_reader
+    systa_reader_id: systa_bus_01
+    mode: raw
+    filter: all    # all, aqua, aqua_ii or expresso_ii
+    name: "Systa Raw Frames"
+```
+
+`filter: aqua`, `aqua_ii` and `expresso_ii` only show valid frames of that
+device. Other filter values currently behave like `all`.
+
+Display text sensors are limited to one update every 5 minutes. A newer text is
+published once that interval has passed.
+
+## Missing or broken temperature sensors
+
+An unconnected or broken sensor shows up as an implausible value, for example
+6524.0 °C (raw `FED8`) or -30.0 °C (raw `FED4`). These values count as a sensor
+fault:
+
+| Register type | Fault value |
+|---|---|
+| unsigned | raw >= `FE00` (>= 6502.4 °C) |
+| signed | <= -30.0 °C or >= 3251.2 °C (raw >= `7F00`) |
+
+Signed registers are the Aqua `tsa`, every `ta`, and all Aqua II temperatures.
+
+- At logger level `VERBOSE` every affected sensor logs a warning on each frame:
+  `AQUA TW2 (oben) = 6524.0 °C (raw FED8): Fühler fehlt oder defekt?`
+- By default the value is published unchanged.
+- With `sensor_fault_as_nan: true` it is published as NaN instead, which Home
+  Assistant shows as unknown. The warning stays the same. A real reading of
+  -30.0 °C or colder on a signed register also counts as a fault.
+
+Only measured temperatures are checked, not setpoints, flow rates or raw
+registers. Comfort exposes setpoints only, so nothing is checked there.
+
+## Comfort (`comfort`)
+
+Status frame `FC .. 0C 02 ...`, firmware announce `FD 05 AA 0C ...`. Offsets
+refer to the payload.
+
+| Kind | Payload offset | Type | Description |
+|---|---|---|---|
+| `comfort_ti_s` | `[0]` | s16 / 10 | Room setpoint HK1 (°C) |
+| `comfort_ti2_s` | `[2]` | s16 / 10 | Room setpoint HK2 (°C) |
+| `comfort_tv_s` | `[4]` | s16 / 10 | Flow setpoint HK1 (°C) |
+| `comfort_tv2_s` | `[6]` | s16 / 10 | Flow setpoint HK2 (°C) |
+| `comfort_tw_s` | `[8]` | s16 / 10 | Hot water setpoint (°C) |
+| `comfort_tp_s` | `[10]` | s16 / 10 | Buffer setpoint (°C) |
+| `comfort_bst` | `[14]` | u32 | Operating hours |
+| `comfort_kst` | `[18]` | u32 | Boiler starts |
+| `comfort_sens` | `[24]` | u8 | Sensor error |
+| `comfort_ba1`, `comfort_niv1` | `[25]`, `[26]` | u8 | BA1, NIV1 |
+| `comfort_ba2`, `comfort_niv2` | `[27]`, `[28]` | u8 | BA2, NIV2 |
+| `comfort_phk1`, `comfort_phk2` | `[29]`, `[30]` | u8 | Pump HK1, HK2 (%) |
+| `comfort_pkes` | `[31]` | u8 | Boiler pump (%) |
+
+Text sensors (`mode: field`):
+
+| Kind | Description |
+|---|---|
+| `comfort_boiler_err` | Boiler error register `[22]` as `0x0000` |
+| `comfort_fw_version` | Firmware version |
+
+Binary sensors, from the status word at `[12]`, lowest bit first:
+`comfort_stat_phk`, `_phk2`, `_pk`, `_m1_open`, `_m1_close`, `_m2_open`,
+`_m2_close`, `_ulv`, `_pzi`, `_b1`, `_taster`, `_lon`, `_ot`.
+
+## Aqua II additions
+
+Besides the kinds in the example above: `aqua_ii_koll_lstg` (collector power)
+and the text sensor `aqua_ii_fw_version` (from `FD 05 AA 24`).
 
 ## Expresso II (`expresso_ii`)
 

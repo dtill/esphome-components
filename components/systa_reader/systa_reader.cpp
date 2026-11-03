@@ -8,6 +8,7 @@
 #include "expresso_ii.h"
 #include "modula.h"
 #include "palletti_ii.h"
+#include <cmath>
 
 namespace esphome {
 namespace systa_reader {
@@ -209,7 +210,8 @@ void SystaReader::loop() {
         // payload for device decoders
         std::vector<uint8_t> payload(cur_.begin() + 4, cur_.end() - 1);
         route_fc_frame_to_device_(cur_, payload, hex);
-      } else if (cur_[0] == 0x0F) { // display
+      } else if (cur_[0] == 0x0F && cur_.size() >= 5) { // display
+        // cur_.size() == 4 (0F 01 xx chk): payload range would be negative
         std::vector<uint8_t> payload(cur_.begin() + 4, cur_.end() - 1);
         route_display_frame_to_device_(cur_, payload, hex);
       } else if (cur_[0] == 0xFD && cur_.size() == 8 && cur_[1] == 0x05 &&
@@ -339,16 +341,27 @@ void SystaReader::flush_skipped_(const char *reason) {
   skipped_.clear();
 }
 
-void warn_temp_fault_u16(const char *tag, const char *name, uint16_t raw) {
-  if (raw >= 0xFE00)
-    ESP_LOGW(tag, "%s = %.1f °C (raw %04X): Fühler fehlt oder defekt?", name,
-             raw / 10.0f, raw);
+float SystaReader::temp_u16(const char *tag, const char *name,
+                            uint16_t raw) const {
+  const float value = raw / 10.0f;
+  return raw >= 0xFE00 ? temp_fault_(tag, name, value, raw) : value;
 }
 
-void warn_temp_fault_s16(const char *tag, const char *name, int16_t raw) {
-  if (raw <= -300 || raw >= 0x7F00)
-    ESP_LOGW(tag, "%s = %.1f °C (raw %04X): Fühler fehlt oder defekt?", name,
-             raw / 10.0f, uint16_t(raw));
+float SystaReader::temp_s16(const char *tag, const char *name,
+                            int16_t raw) const {
+  const float value = raw / 10.0f;
+  return (raw <= -300 || raw >= 0x7F00)
+             ? temp_fault_(tag, name, value, uint16_t(raw))
+             : value;
+}
+
+float SystaReader::temp_fault_(const char *tag, const char *name, float value,
+                               uint16_t raw) const {
+#if ESPHOME_LOG_LEVEL >= ESPHOME_LOG_LEVEL_VERBOSE
+  ESP_LOGW(tag, "%s = %.1f °C (raw %04X): Fühler fehlt oder defekt?", name,
+           value, raw);
+#endif
+  return sensor_fault_as_nan_ ? NAN : value;
 }
 
 uint8_t SystaReader::checksum_twos_complement_(const std::vector<uint8_t> &v) {

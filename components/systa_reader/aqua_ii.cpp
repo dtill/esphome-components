@@ -56,17 +56,25 @@ void Aqua2Decoder::on_fc_frame(const std::vector<uint8_t> &frame,
   if (frame.size() < 6 || frame[0] != 0xFC || frame[2] != 0x24 || frame[3] != 0x01)
     return;
 
+  // Letztes Pflicht-Register ist gesamt bei payload[33..36]. TSA1/TSA2/TAM2
+  // (payload[46..51]) sind optional, siehe has_ext. Ohne diesen Guard liest ein
+  // kurzer Frame über das Ende hinaus und liefert unsinnige Werte.
+  if (payload.size() < 37) {
+    ESP_LOGW(TAG_AQUA_II, "Frame too short: len=%u, need at least 39", frame[1]);
+    return;
+  }
+
   r_.publish_hex_aqua_ii(hex);
 
   ESP_LOGV(TAG_AQUA_II, "AQUA-II len=%u, frame.size()=%u, payload.size()=%u",
            frame[1], (unsigned)frame.size(), (unsigned)payload.size());
 
   // ---- Werte gemäß decode-systa-csv.sh
-  float tsa  = read_i16_le(payload,  0) / 10.0f; // TSA1 (Kollektor)
-  float tw   = read_i16_le(payload,  2) / 10.0f; // TW Speicher
-  float tsv  = read_i16_le(payload,  4) / 10.0f; // TSV Vorlauf
-  float tam  = read_i16_le(payload,  6) / 10.0f; // TAM Außen
-  float tse  = read_i16_le(payload, 10) / 10.0f; // TSE Rücklauf
+  float tsa  = r_.temp_s16(TAG_AQUA_II, "AQUA-II TSA (Kollektor)", read_i16_le(payload, 0)); // TSA1 (Kollektor)
+  float tw   = r_.temp_s16(TAG_AQUA_II, "AQUA-II TW (Speicher)", read_i16_le(payload, 2)); // TW Speicher
+  float tsv  = r_.temp_s16(TAG_AQUA_II, "AQUA-II TSV (Vorlauf)", read_i16_le(payload, 4)); // TSV Vorlauf
+  float tam  = r_.temp_s16(TAG_AQUA_II, "AQUA-II TAM (Außen)", read_i16_le(payload, 6)); // TAM Außen
+  float tse  = r_.temp_s16(TAG_AQUA_II, "AQUA-II TSE (Rücklauf)", read_i16_le(payload, 10)); // TSE Rücklauf
   float dfl  = read_i16_le(payload, 12) / 10.0f; // Durchfluss (0.1 l/min)
   uint8_t pwm    = payload.size() > 14 ? payload[14] : 0; // PWM Pumpe (%)
   uint8_t status = payload.size() > 19 ? payload[19] : 0; // Status (Byte)
@@ -81,22 +89,13 @@ void Aqua2Decoder::on_fc_frame(const std::vector<uint8_t> &frame,
   uint16_t tag_erg = read_u16_le(payload, 29);          // Tagesleistung
   uint16_t koll_lstg = read_u16_le(payload, 31);        // Kollektorleistung
   uint32_t gesamt  = read_u32_le(payload, 33);          // Gesamtleistung
-  float tsa1  = read_i16_le(payload,  46) / 10.0f;      // TSA1 (Kollektor1) // evtl. nicht überall so
-  float tsa2  = read_i16_le(payload,  48) / 10.0f;      // TSA2 (Kollektor2) // evtl. nicht überall so
-  float tam2  = read_i16_le(payload,  50) / 10.0f;      // TAM2 (Aussentemp2)// evtl. nicht überall so
+  // TSA1/TSA2/TAM2 nur auf der langen Frame-Variante vorhanden
+  const bool has_ext = payload.size() >= 52;
+  float tsa1  = !has_ext ? 0.0f : r_.temp_s16(TAG_AQUA_II, "AQUA-II TSA1 (Kollektor1)", read_i16_le(payload, 46));      // TSA1 (Kollektor1) // evtl. nicht überall so
+  float tsa2  = !has_ext ? 0.0f : r_.temp_s16(TAG_AQUA_II, "AQUA-II TSA2 (Kollektor2)", read_i16_le(payload, 48));      // TSA2 (Kollektor2) // evtl. nicht überall so
+  float tam2  = !has_ext ? 0.0f : r_.temp_s16(TAG_AQUA_II, "AQUA-II TAM2 (Außen2)", read_i16_le(payload, 50));      // TAM2 (Aussentemp2)// evtl. nicht überall so
 
   // ---- Publish
-#if ESPHOME_LOG_LEVEL >= ESPHOME_LOG_LEVEL_VERBOSE
-  // Fühler-Fehlerwerte: bei jedem Frame warnen, Werte trotzdem veröffentlichen
-  warn_temp_fault_s16(TAG_AQUA_II, "AQUA-II TSA (Kollektor)", read_i16_le(payload, 0));
-  warn_temp_fault_s16(TAG_AQUA_II, "AQUA-II TW (Speicher)", read_i16_le(payload, 2));
-  warn_temp_fault_s16(TAG_AQUA_II, "AQUA-II TSV (Vorlauf)", read_i16_le(payload, 4));
-  warn_temp_fault_s16(TAG_AQUA_II, "AQUA-II TAM (Außen)", read_i16_le(payload, 6));
-  warn_temp_fault_s16(TAG_AQUA_II, "AQUA-II TSE (Rücklauf)", read_i16_le(payload, 10));
-  warn_temp_fault_s16(TAG_AQUA_II, "AQUA-II TSA1 (Kollektor1)", read_i16_le(payload, 46));
-  warn_temp_fault_s16(TAG_AQUA_II, "AQUA-II TSA2 (Kollektor2)", read_i16_le(payload, 48));
-  warn_temp_fault_s16(TAG_AQUA_II, "AQUA-II TAM2 (Außen2)", read_i16_le(payload, 50));
-#endif
   r_.pub_aqua_ii_tsa(tsa);
   r_.pub_aqua_ii_twu(tw);
   r_.pub_aqua_ii_tsv(tsv);
@@ -107,9 +106,11 @@ void Aqua2Decoder::on_fc_frame(const std::vector<uint8_t> &frame,
   r_.pub_aqua_ii_koll_lstg(koll_lstg);
   r_.pub_aqua_ii_tag(tag_erg);
   r_.pub_aqua_ii_ges(gesamt);
-  r_.pub_aqua_ii_tsa1(tsa1);
-  r_.pub_aqua_ii_tsa2(tsa2);
-  r_.pub_aqua_ii_tam2(tam2);
+  if (has_ext) {
+    r_.pub_aqua_ii_tsa1(tsa1);
+    r_.pub_aqua_ii_tsa2(tsa2);
+    r_.pub_aqua_ii_tam2(tam2);
+  }
   r_.pub_aqua_ii_status_code(status);
 
   if (const char *t = status_text(status)) {

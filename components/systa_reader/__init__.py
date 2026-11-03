@@ -31,6 +31,7 @@ DEV_FLAGS = {
 
 CONF_UART_ID = "uart_id"
 CONF_LOG_INVALID = "log_invalid"
+CONF_SENSOR_FAULT_AS_NAN = "sensor_fault_as_nan"
 CONF_DEVICES = "systa_device"  # list, e.g. systa_device: [aqua, espresso]
 CONF_TEST_DATA = "test_data"
 
@@ -89,6 +90,7 @@ CONFIG_SCHEMA = cv.Schema({
     cv.GenerateID(): cv.declare_id(SystaReader),
     cv.Required(CONF_UART_ID): cv.use_id(uart.UARTComponent),
     cv.Optional(CONF_LOG_INVALID, default=True): cv.boolean,
+    cv.Optional(CONF_SENSOR_FAULT_AS_NAN, default=False): cv.boolean,
     cv.Required(CONF_DEVICES): SYSTA_DEVICES_LIST,
     cv.Optional(CONF_TEST_DATA): cv.ensure_list(cv.All(cv.string, _validate_test_data)),
 }).extend(cv.COMPONENT_SCHEMA)
@@ -118,6 +120,7 @@ async def to_code(config):
     await uart.register_uart_device(var, config)
 
     cg.add(var.set_log_invalid(config[CONF_LOG_INVALID]))
+    cg.add(var.set_sensor_fault_as_nan(config[CONF_SENSOR_FAULT_AS_NAN]))
 
     mask = _devices_to_mask(config[CONF_DEVICES])
     cg.add(var.set_enabled_mask(mask))

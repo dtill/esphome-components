@@ -8,10 +8,20 @@ external_components:
     components: [systa_reader]
     refresh: 0s
 
+# Enable/Disable logging
+logger:
+  level: VERBOSE
+  baud_rate: 0  # disable logging over UART
+  logs:
+    # quiet the API chatter — protobuf dumps drown the bus frames otherwise
+    api: DEBUG
+    api.service: DEBUG
+    api.connection: DEBUG
+
 uart:
   id: uart_bus
-  tx_pin: GPIO1
   rx_pin: GPIO13
+  rx_buffer_size: 1024
   baud_rate: 9600
   data_bits: 8
   parity: NONE
@@ -23,6 +33,7 @@ systa_reader:
     uart_id: uart_bus
     systa_device: [expresso_ii]  # Enable Expresso-II device (1401 frames)
     log_invalid: true        # logs invalid frames for debugging purpose
+    sensor_fault_as_nan: false  # true: publish missing/broken temp sensors as NaN
 
 sensor:
     # EXPRESSO-II sensors (identified):

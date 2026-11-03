@@ -13,6 +13,15 @@ void CompactDecoder::on_fc_frame(const std::vector<uint8_t>& frame,
   if (frame.size() < 6 || frame[0] != 0xFC || frame[2] != 0x0D || frame[3] != 0x01)
     return;
 
+  // Letztes Pflicht-Register ist u16 bei frame[22..23]. Das letzte Datenbyte
+  // liegt bei frame.size() - 2, danach folgt die Checksumme. Ohne diesen Guard
+  // liest ein kurzer Frame über das Ende hinaus und liefert unsinnige Werte.
+  const int last_data = (int) frame.size() - 2;
+  if (last_data < 23) {
+    ESP_LOGW(TAG_ESP, "Frame too short: len=%u, need at least 22", frame[1]);
+    return;
+  }
+
   auto u16 = [&](int i){ return read_u16_be(frame, i); };
   auto s16 = [&](int i){ return (int16_t)read_u16_be(frame, i); };
   auto u8  = [&](int i){ return read_u8(frame, i); };
@@ -30,23 +39,15 @@ void CompactDecoder::on_fc_frame(const std::vector<uint8_t>& frame,
   uint16_t status_code = static_cast<uint16_t>(status_raw);
 
   // Werte gemäß Vorlage
-  float ta = s16(8) / 10.0f;
-  float two = u16(10) / 10.0f;
-  float fa_tv = u16(12) / 10.0f;
-  float fa_tr = u16(14) / 10.0f;
-  float ti = u16(16) / 10.0f;
+  float ta = r_.temp_s16(TAG_ESP, "COMPACT TA", s16(8));
+  float two = r_.temp_u16(TAG_ESP, "COMPACT TWO", u16(10));
+  float fa_tv = r_.temp_u16(TAG_ESP, "COMPACT FA TV", u16(12));
+  float fa_tr = r_.temp_u16(TAG_ESP, "COMPACT FA TR", u16(14));
+  float ti = r_.temp_u16(TAG_ESP, "COMPACT TI", u16(16));
   float ti_s = u16(18) / 10.0f;
   float tv_s  = u16(20) / 10.0f;
   float two_s = u16(22) / 10.0f;
 
-#if ESPHOME_LOG_LEVEL >= ESPHOME_LOG_LEVEL_VERBOSE
-  // Fühler-Fehlerwerte: bei jedem Frame warnen, Werte trotzdem veröffentlichen
-  warn_temp_fault_s16(TAG_ESP, "COMPACT TA", s16(8));
-  warn_temp_fault_u16(TAG_ESP, "COMPACT TWO", u16(10));
-  warn_temp_fault_u16(TAG_ESP, "COMPACT FA TV", u16(12));
-  warn_temp_fault_u16(TAG_ESP, "COMPACT FA TR", u16(14));
-  warn_temp_fault_u16(TAG_ESP, "COMPACT TI", u16(16));
-#endif
   r_.pub_compact_ta(ta);
   r_.pub_compact_two(two);
   r_.pub_compact_fa_tv(fa_tv);

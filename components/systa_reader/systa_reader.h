@@ -43,6 +43,7 @@ public:
 
   // config
   void set_log_invalid(bool v) { log_invalid_ = v; }
+  void set_sensor_fault_as_nan(bool v) { sensor_fault_as_nan_ = v; }
 
   // lifecycle
   void setup() override;
@@ -517,6 +518,14 @@ public:
 
   // General setters
   bool log_invalid() const { return log_invalid_; }
+
+  // Temperatur (raw / 10) für die Decoder. Fühler-Fehlerwerte (fehlender oder
+  // defekter Fühler) werden bei jedem Frame als ESP_LOGW gemeldet (nur bei
+  // VERBOSE) und mit sensor_fault_as_nan als NaN zurückgegeben.
+  //   unsigned: raw >= 0xFE00            (>= 6502.4 °C, z.B. FED8 = 6524.0)
+  //   signed:   raw <= -300 / >= 0x7F00  (<= -30.0 °C, z.B. FED4; >= 3251.2 °C)
+  float temp_u16(const char *tag, const char *name, uint16_t raw) const;
+  float temp_s16(const char *tag, const char *name, int16_t raw) const;
   void publish_hex_all(const std::string &hex) {
     for (auto *s : sinks_all_)
       s->publish_frame_hex(hex);
@@ -599,6 +608,9 @@ private:
   std::vector<HexSink *> sinks_comfort_;
   std::vector<HexSink *> sinks_expresso_ii_;
   bool log_invalid_{true};
+  bool sensor_fault_as_nan_{false};
+  float temp_fault_(const char *tag, const char *name, float value,
+                    uint16_t raw) const;
 
   // decoder instances
   AquaDecoder *aqua_{nullptr};
@@ -768,14 +780,6 @@ private:
   binary_sensor::BinarySensor *comfort_stat_lon_{nullptr};
   binary_sensor::BinarySensor *comfort_stat_ot_{nullptr};
 };
-
-// Fühler-Fehlerwerte (fehlender/defekter Temperaturfühler) als ESP_LOGW
-// melden. Aufruf nur unter ESPHOME_LOG_LEVEL >= VERBOSE, bei jedem Frame;
-// der Wert wird vom Aufrufer trotzdem veröffentlicht.
-//   unsigned: raw >= 0xFE00            (>= 6502.4 °C, z.B. FED8 = 6524.0)
-//   signed:   raw <= -300 / >= 0x7F00  (<= -30.0 °C, z.B. FED4; >= 3251.2 °C)
-void warn_temp_fault_u16(const char *tag, const char *name, uint16_t raw);
-void warn_temp_fault_s16(const char *tag, const char *name, int16_t raw);
 
 // concrete text sensor sink
 class SystaReaderTextSensor : public text_sensor::TextSensor,

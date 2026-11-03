@@ -40,6 +40,15 @@ void AquaDecoder::on_fc_frame(const std::vector<uint8_t>& frame,
   // Nur AQUA Frames: FC .. 0B 01 ..
   if (frame.size()<6 || frame[0]!=0xFC || frame[2]!=0x0B || frame[3]!=0x01) return;
 
+  // Letztes gelesenes Byte ist frame[31] (gesamt). Das letzte Datenbyte liegt
+  // bei frame.size() - 2, danach folgt die Checksumme. Ohne diesen Guard liest
+  // ein kurzer Frame über das Ende hinaus und liefert unsinnige Werte.
+  const int last_data = (int) frame.size() - 2;
+  if (last_data < 31) {
+    ESP_LOGW(TAG_AQUA, "Frame too short: len=%u, need at least 30", frame[1]);
+    return;
+  }
+
   // HEX auch in AQUA-only sink
   r_.publish_hex_aqua(hex);
   ESP_LOGV(TAG_AQUA, "AQUA len=%u, frame.size()=%u, payload.size()=%u",
@@ -50,10 +59,10 @@ void AquaDecoder::on_fc_frame(const std::vector<uint8_t>& frame,
   auto s16 = [&](int i){ return (int16_t)read_u16_be(frame, i); };
   auto u32 = [&](int i){ return read_u32_be(frame, i); };
 
-  float tsa    = s16(4)  / 10.0f;
-  float tse    = u16(6)  / 10.0f;
-  float twu    = u16(8)  / 10.0f;
-  float tw2    = u16(10) / 10.0f;
+  float tsa    = r_.temp_s16(TAG_AQUA, "AQUA TSA (Kollektor)", s16(4));
+  float tse    = r_.temp_u16(TAG_AQUA, "AQUA TSE (Eintritt)", u16(6));
+  float twu    = r_.temp_u16(TAG_AQUA, "AQUA TWU (unten)", u16(8));
+  float tw2    = r_.temp_u16(TAG_AQUA, "AQUA TW2 (oben)", u16(10));
   int   pwm    = u8(12);
   int   var1   = u8(14);
   int   stat   = u8(16);
@@ -64,13 +73,6 @@ void AquaDecoder::on_fc_frame(const std::vector<uint8_t>& frame,
   uint8_t status_raw  = payload[11];
   uint8_t status_code = uint8_t((status_raw/10) * 16 + (status_raw%10));
 
-#if ESPHOME_LOG_LEVEL >= ESPHOME_LOG_LEVEL_VERBOSE
-  // Fühler-Fehlerwerte: bei jedem Frame warnen, Werte trotzdem veröffentlichen
-  warn_temp_fault_s16(TAG_AQUA, "AQUA TSA (Kollektor)", s16(4));
-  warn_temp_fault_u16(TAG_AQUA, "AQUA TSE (Eintritt)", u16(6));
-  warn_temp_fault_u16(TAG_AQUA, "AQUA TWU (unten)", u16(8));
-  warn_temp_fault_u16(TAG_AQUA, "AQUA TW2 (oben)", u16(10));
-#endif
 
   r_.pub_aqua_tsa(tsa);
   r_.pub_aqua_tse(tse);

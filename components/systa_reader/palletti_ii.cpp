@@ -37,19 +37,19 @@ void Palletti2Decoder::on_fc_frame(const std::vector<uint8_t>& frame,
   r_.pub_palletti_ii_timestamp(ts);
 
   // Werte gemäß Vorlage
-  float ta = s16(8) / 10.0f;
-  float two = u16(10) / 10.0f;
-  float fa_tv = u16(12) / 10.0f;
-  float fa_tr = u16(14) / 10.0f;
-  float hk1_ti = u16(16) / 10.0f;
-  float hk2_ti2 = u16(18) / 10.0f;
-  float hk1_tv  = u16(20) / 10.0f;
-  float hk2_tv2 = u16(22) / 10.0f;
-  float hk1_tr = u16(24) / 10.0f;
-  float hk2_tr2 = u16(26) / 10.0f;
-  float tpo = u16(28) / 10.0f;
-  float tpu = u16(30) / 10.0f;
-  float tzr = u16(32) / 10.0f;
+  float ta = r_.temp_s16(TAG_PALLETTI_II, "PALLETTI-II TA", s16(8));
+  float two = r_.temp_u16(TAG_PALLETTI_II, "PALLETTI-II TWO", u16(10));
+  float fa_tv = r_.temp_u16(TAG_PALLETTI_II, "PALLETTI-II FA TV", u16(12));
+  float fa_tr = r_.temp_u16(TAG_PALLETTI_II, "PALLETTI-II FA TR", u16(14));
+  float hk1_ti = r_.temp_u16(TAG_PALLETTI_II, "PALLETTI-II HK1 TI", u16(16));
+  float hk2_ti2 = r_.temp_u16(TAG_PALLETTI_II, "PALLETTI-II HK2 TI2", u16(18));
+  float hk1_tv  = r_.temp_u16(TAG_PALLETTI_II, "PALLETTI-II HK1 TV", u16(20));
+  float hk2_tv2 = r_.temp_u16(TAG_PALLETTI_II, "PALLETTI-II HK2 TV2", u16(22));
+  float hk1_tr = r_.temp_u16(TAG_PALLETTI_II, "PALLETTI-II HK1 TR", u16(24));
+  float hk2_tr2 = r_.temp_u16(TAG_PALLETTI_II, "PALLETTI-II HK2 TR2", u16(26));
+  float tpo = r_.temp_u16(TAG_PALLETTI_II, "PALLETTI-II TPO", u16(28));
+  float tpu = r_.temp_u16(TAG_PALLETTI_II, "PALLETTI-II TPU", u16(30));
+  float tzr = r_.temp_u16(TAG_PALLETTI_II, "PALLETTI-II TZR", u16(32));
   // Pump percentages, only present on the longer frame variants
   const bool has_pk = last_data >= 34;
   const bool has_phk1 = last_data >= 35;
@@ -58,22 +58,6 @@ void Palletti2Decoder::on_fc_frame(const std::vector<uint8_t>& frame,
   float hk1_phk = has_phk1 ? u8(35) / 1.0f : 0.0f;
   float hk2_phk2 = has_phk2 ? u8(36) / 1.0f : 0.0f;
 
-#if ESPHOME_LOG_LEVEL >= ESPHOME_LOG_LEVEL_VERBOSE
-  // Fühler-Fehlerwerte: bei jedem Frame warnen, Werte trotzdem veröffentlichen
-  warn_temp_fault_s16(TAG_PALLETTI_II, "PALLETTI-II TA", s16(8));
-  warn_temp_fault_u16(TAG_PALLETTI_II, "PALLETTI-II TWO", u16(10));
-  warn_temp_fault_u16(TAG_PALLETTI_II, "PALLETTI-II FA TV", u16(12));
-  warn_temp_fault_u16(TAG_PALLETTI_II, "PALLETTI-II FA TR", u16(14));
-  warn_temp_fault_u16(TAG_PALLETTI_II, "PALLETTI-II HK1 TI", u16(16));
-  warn_temp_fault_u16(TAG_PALLETTI_II, "PALLETTI-II HK2 TI2", u16(18));
-  warn_temp_fault_u16(TAG_PALLETTI_II, "PALLETTI-II HK1 TV", u16(20));
-  warn_temp_fault_u16(TAG_PALLETTI_II, "PALLETTI-II HK2 TV2", u16(22));
-  warn_temp_fault_u16(TAG_PALLETTI_II, "PALLETTI-II HK1 TR", u16(24));
-  warn_temp_fault_u16(TAG_PALLETTI_II, "PALLETTI-II HK2 TR2", u16(26));
-  warn_temp_fault_u16(TAG_PALLETTI_II, "PALLETTI-II TPO", u16(28));
-  warn_temp_fault_u16(TAG_PALLETTI_II, "PALLETTI-II TPU", u16(30));
-  warn_temp_fault_u16(TAG_PALLETTI_II, "PALLETTI-II TZR", u16(32));
-#endif
   r_.pub_palletti_ii_ta(ta);
   r_.pub_palletti_ii_two(two);
   r_.pub_palletti_ii_fa_tv(fa_tv);
