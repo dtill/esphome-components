@@ -209,7 +209,8 @@ void SystaReader::loop() {
         // payload for device decoders
         std::vector<uint8_t> payload(cur_.begin() + 4, cur_.end() - 1);
         route_fc_frame_to_device_(cur_, payload, hex);
-      } else if (cur_[0] == 0x0F) { // display
+      } else if (cur_[0] == 0x0F && cur_.size() >= 5) { // display
+        // A len=1 0x0F frame has no payload byte; constructing one aborts.
         std::vector<uint8_t> payload(cur_.begin() + 4, cur_.end() - 1);
         route_display_frame_to_device_(cur_, payload, hex);
       } else if (cur_[0] == 0xFD && cur_.size() == 8 && cur_[1] == 0x05 &&
