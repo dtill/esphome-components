@@ -71,7 +71,7 @@ void AquaDecoder::on_fc_frame(const std::vector<uint8_t>& frame,
   float gesamt = u32(28);
 
   uint8_t status_raw  = payload[11];
-  uint8_t status_code = uint8_t((status_raw/10) * 16 + (status_raw%10));
+  uint8_t status_code = status_raw;  // Störcode wie im Handbuch (dezimal)
 
 
   r_.pub_aqua_tsa(tsa);
@@ -90,7 +90,7 @@ void AquaDecoder::on_fc_frame(const std::vector<uint8_t>& frame,
     r_.pub_aqua_status_text(t);
   } else {
     char buf[40];
-    snprintf(buf, sizeof(buf), "Unbekannter Status (%02X)", status_code);
+    snprintf(buf, sizeof(buf), "Unbekannter Status (%02u)", status_code);
     r_.pub_aqua_status_text(buf);
   }
 
@@ -102,7 +102,7 @@ void AquaDecoder::on_fc_frame(const std::vector<uint8_t>& frame,
   snprintf(ts, sizeof(ts), "%02d.%02d %02d:%02d", day, month, hour, minute);
   r_.pub_aqua_timestamp(ts);
 
-  ESP_LOGI(TAG_AQUA, "AQUA: TSA=%.1f TSE=%.1f TWU=%.1f TW2=%.1f PWM=%u SOL=%.0f TAG=%.0f GES=%.0f code=%02X VAR1=%u STAT=%u",
+  ESP_LOGI(TAG_AQUA, "AQUA: TSA=%.1f TSE=%.1f TWU=%.1f TW2=%.1f PWM=%u SOL=%.0f TAG=%.0f GES=%.0f code=%02u VAR1=%u STAT=%u",
            tsa, tse, twu, tw2, pwm, sol, tag, gesamt, status_code, var1, stat);
 }
 void AquaDecoder::on_display_frame(const std::vector<uint8_t>& /*frame*/,
