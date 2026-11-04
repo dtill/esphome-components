@@ -918,7 +918,6 @@ midnight followed by days since 2000-01-01.
 | `expresso_ii_dfl_hz2` | `[24]` | u16 / 10 | l/min |
 | `expresso_ii_tsp_s`   | `[26]` | u16 / 10 | °C |
 | `expresso_ii_pk`      | `[34]` | u8       | % |
-| `expresso_ii_phk`     | `[35]` | u8       | — |
 | `expresso_ii_p_sp`    | `[41]` | u8       | % |
 | `expresso_ii_timestamp`  | `payload[0..3]` | text | — |
 | `expresso_ii_fw_version` | `FD 05 AA 14`   | text | — |
@@ -936,7 +935,7 @@ Notes on individual registers:
   names the same group of three bytes `p_hk1` / `p_hk2` / `p_kes` and labels
   status bit 2 `PK`; Espresso and Palletti carry the same triple at
   `[34]`..`[36]`.
-- **`pk`, `phk`, `p_sp`** are plain u8 percentages, **not** scaled by 1/10.
+- **`pk`, `p_sp`** are plain u8 percentages, **not** scaled by 1/10.
   `p_sp` drives the heat exchanger and closely follows `dfl_hz1`/`dfl_hz2`.
 
 ### Raw registers
@@ -944,10 +943,11 @@ Notes on individual registers:
 Everything else is published as `expresso_ii_raw_<offset>`, deliberately
 without a unit:
 
-`[18]` `[28]` `[30]` `[32]` `[36]` `[38]` `[42]` `[44]` `[46]` `[48]`
+`[18]` `[28]` `[30]` `[32]` `[35]` `[36]` `[37]` `[38]` `[42]` `[44]` `[46]` `[48]`
 
 All are read as u16 / 10 **except `[32]`, which is signed** — read as u16 it
-shows values around 6550 instead of small negatives.
+shows values around 6550 instead of small negatives — and `[35]`..`[37]`,
+which are single bytes (u8, not scaled).
 
 To map one of these, compare it against the controller display and use the
 `expresso_ii_timestamp` text sensor as the time reference: controller clocks
