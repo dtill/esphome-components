@@ -444,7 +444,7 @@ void SystaReader::inject_test_frames_() {
     // 5) Gerätespezifisch routen (wie echte Frames)
     std::vector<uint8_t> payload;
     if (frame[0] == 0xFC) {
-      if (frame.size() >= 4)
+      if (frame.size() >= 5)
         payload.assign(frame.begin() + 4, frame.end() - 1);
       route_fc_frame_to_device_(frame, payload, hex);
     } else if (frame.size() == 37 && frame[0] == 0x0F && frame[1] == 0x22 &&
